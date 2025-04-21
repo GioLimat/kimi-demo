@@ -9,7 +9,7 @@
 
 class ByGenDeclaration {
 public:
-    static std::vector<std::string> generateDeclaration(const std::unique_ptr<StatementNode>& statement);
+    static std::vector<std::string> generateDeclaration(const StatementNode* statement);
 private:
     static std::vector<std::string> varDeclaration(const VarDeclarationNode* varDeclaration);
     static std::vector<std::string> functionDeclaration(FunctionDeclarationNode* functionDeclaration);

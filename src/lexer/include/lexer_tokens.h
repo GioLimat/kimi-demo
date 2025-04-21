@@ -13,6 +13,10 @@
 
 
 enum class LexerTokenType {
+
+    // Macros
+    PRINTLN,
+
     // Keywords
     VAR, VAL, FN, IF, ELSE, WHILE, FOR, DO, RETURN,
 

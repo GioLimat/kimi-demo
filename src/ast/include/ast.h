@@ -18,6 +18,15 @@ public:
     virtual ~ASTNode() = default;
 };
 
+
+class AST {
+public:
+    std::vector<std::unique_ptr<ASTNode>> children;
+    explicit AST(std::vector<std::unique_ptr<ASTNode>> children)
+        : children(std::move(children)) {}
+};
+
+
 class ExpressionNode : public ASTNode {
     public:
     virtual ~ExpressionNode() = default;
@@ -143,6 +152,10 @@ class DoWhileStatementNode : public StatementNode {
     explicit DoWhileStatementNode(std::unique_ptr<WhileStatementNode> whileStatement);
 };
 
-
+class PrintlnStatementNode : public StatementNode {
+public:
+    std::unique_ptr<ExpressionNode> expression;
+    explicit PrintlnStatementNode(std::unique_ptr<ExpressionNode> expression);
+};
 
 #endif // AST_H

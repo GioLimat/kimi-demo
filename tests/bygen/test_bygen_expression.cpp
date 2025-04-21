@@ -25,7 +25,7 @@ std::vector<std::string> loadByGenExpression(const std::string& code) {
     const auto tokens = lexer.tokenize();
     ParserExpression parser(tokens);
     auto expr = parser.parseExpression();
-    return BygenExpression::generateExpression(expr);
+    return BygenExpression::generateExpression(expr.get());
 }
 
 std::vector<std::string> loadByGenDeclaration(const std::string& code) {
@@ -33,7 +33,7 @@ std::vector<std::string> loadByGenDeclaration(const std::string& code) {
     const auto tokens = lexer.tokenize();
     ParserDeclaration parser(tokens);
     auto expr = parser.parseDeclaration();
-    return ByGenDeclaration::generateDeclaration(expr);
+    return ByGenDeclaration::generateDeclaration(expr.get());
 }
 
 

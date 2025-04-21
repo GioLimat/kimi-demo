@@ -163,3 +163,14 @@ TEST(ParserExpression, DoWhileStatement) {
     ASSERT_EQ(v1->name, "x");
     ASSERT_EQ(v2->value, "10");
 }
+
+
+TEST(ParserStatement, PrintStatement) {
+    const auto statement = getStatementByStatement("println(10) ");
+
+    auto printStatement = dynamic_cast<PrintlnStatementNode*>(statement.get());
+
+    auto n1 = dynamic_cast<NumberNode*>(printStatement->expression.get());
+
+    ASSERT_EQ(n1->value, "10");
+}

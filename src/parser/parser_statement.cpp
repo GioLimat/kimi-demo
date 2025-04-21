@@ -17,6 +17,7 @@ std::unique_ptr<StatementNode> ParserStatement::parseStatement() {
     if (token.type == LexerTokenType::IF) return parseIfStatement();
     if (token.type == LexerTokenType::WHILE) return parseWhileStatement();
     if (token.type == LexerTokenType::DO) return parseDoWhileStatement();
+    if (token.type == LexerTokenType::PRINTLN) return parsePrintln();
 
     const auto end = findEndOfExpression(current);
     auto expr = delegateToExpression(end);
@@ -154,4 +155,15 @@ std::vector<std::unique_ptr<StatementNode>> ParserStatement::parseBlock(const in
     }
 
     return body;
+}
+
+
+std::unique_ptr<StatementNode> ParserStatement::parsePrintln() {
+    advance();
+
+    const int end = findEndOfParenBlock(current);
+    auto expr = delegateToExpression(end);
+    current = end;
+
+    return std::make_unique<PrintlnStatementNode>(std::move(expr));
 }

@@ -156,7 +156,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
         return expr;
     }
 
-    if (token.type == LexerTokenType::EOS) {
+    if (token.type == LexerTokenType::EOS ) {
         return nullptr;
     }
 

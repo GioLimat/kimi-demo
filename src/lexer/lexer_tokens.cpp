@@ -4,6 +4,9 @@
 #include "include/lexer_tokens.h"
 
 const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerTokensMap = {
+    {LexerTokenType::PRINTLN, "println"},
+
+
     {LexerTokenType::VAR, "var"},
     {LexerTokenType::VAL, "val"},
     {LexerTokenType::IDENTIFIER, "IDENTIFIER"},
@@ -13,9 +16,9 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
     {LexerTokenType::WHILE, "while"},
     {LexerTokenType::FOR, "for"},
     {LexerTokenType::DO, "do"},
-    {LexerTokenType::INT, "INT"},
-    {LexerTokenType::FLOAT, "FLOAT"},
-    {LexerTokenType::BOOLEAN, "BOOLEAN"},
+    {LexerTokenType::INT, "Int"},
+    {LexerTokenType::FLOAT, "Float"},
+    {LexerTokenType::BOOLEAN, "Boolean"},
     {LexerTokenType::TRUE, "true"},
     {LexerTokenType::FALSE, "false"},
     {LexerTokenType::RETURN, "return"},

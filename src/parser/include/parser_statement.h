@@ -12,6 +12,7 @@ public:
     explicit ParserStatement(const std::vector<LexerToken>& tokens) : Parser(tokens) {}
 
     std::unique_ptr<StatementNode> parseStatement();
+    std::unique_ptr<StatementNode> parsePrintln();
     std::unique_ptr<StatementNode> parseReturnStatement();
     std::unique_ptr<StatementNode> parseIfStatement();
     std::unique_ptr<StatementNode> parseWhileStatement();

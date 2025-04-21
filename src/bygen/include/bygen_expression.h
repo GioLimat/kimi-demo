@@ -10,9 +10,9 @@
 
 class BygenExpression {
 public:
-     static std::vector<std::string> generateExpression(const std::unique_ptr<ExpressionNode>& expression);
+     static std::vector<std::string> generateExpression(const ExpressionNode *expression);
 private:
-     static std::vector<std::string> binExpression(const std::unique_ptr<ExpressionNode> &expression);
+     static std::vector<std::string> binExpression(const BinaryExprNode* expression);
      static std::string number(const NumberNode *number);
      static std::string identifier(const IdentifierExprNode *identifier);
      static std::vector<std::string> callFunction(const std::shared_ptr<ASTNode>& function);

@@ -17,6 +17,8 @@ add_executable(kimi_tests lexer/test_lexer.cpp
         parser/test_parser_expression.cpp
         parser/test_parser_declaration.cpp
         bygen/test_bygen_expression.cpp
+        vm/test_vm.cpp
+        parser/test_parser.cpp
 )
 
 target_link_libraries(kimi_tests GTest::gtest_main kimi gtest gtest_main)

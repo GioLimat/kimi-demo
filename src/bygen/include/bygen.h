@@ -11,7 +11,7 @@
 
 class ByGen {
 public:
-    static std::vector<std::string> generate(const std::vector<std::unique_ptr<ASTNode>>& root);
+    static std::vector<std::string> generate(const std::unique_ptr<AST> &root);
 };
 
 #endif //BYGEN_H

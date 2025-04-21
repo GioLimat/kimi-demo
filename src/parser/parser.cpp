@@ -4,6 +4,8 @@
 #include "parser.h"
 
 #include <parser_expression.h>
+#include <parser_statement.h>
+#include <parse_declaration.h>
 
 
 Parser::Parser(const std::vector<LexerToken>& tokens) : tokens(tokens) {}
@@ -96,6 +98,25 @@ std::unique_ptr<ExpressionNode> Parser::delegateToExpression(size_t i) {
     return std::move(expr);
 }
 
+std::unique_ptr<StatementNode> Parser::delegateToStatement(size_t i) {
+    const auto index = i == -1 ? tokens.size() - 1 : i;
+    const auto sliced = slice(index);
+    auto stateParser = ParserStatement(sliced);
+    auto statement = stateParser.parseStatement();
+    current += stateParser.current;
+    return std::move(statement);
+}
+
+std::unique_ptr<StatementNode> Parser::delegateToDeclaration(size_t i) {
+    const auto index = i == -1 ? tokens.size() - 1 : i;
+    const auto sliced = slice(index);
+    auto stateParser = ParserDeclaration(sliced);
+    auto statement = stateParser.parseDeclaration();
+    current += stateParser.current + 1;
+    return std::move(statement);
+}
+
+
 
 std::vector<LexerToken> Parser::slice(size_t i) {
     const auto tokensS = tokens | std::views::drop(current) | std::views::take(i);
@@ -124,5 +145,39 @@ LexerToken Parser::advance() {
 }
 
 bool Parser::isAtEnd() const {
-    return tokens[current].type == LexerTokenType::EOS;
+    return tokens.size() <= current || tokens.at(current).type == LexerTokenType::EOS;
+}
+
+bool Parser::isDeclaration(const LexerToken &token) {
+    return token.type == LexerTokenType::VAR ||
+           token.type == LexerTokenType::VAL ||
+           token.type== LexerTokenType::FN;
+}
+
+bool Parser::isStatement(const LexerToken &token) {
+    return token.type == LexerTokenType::DO ||
+            token.type == LexerTokenType::PRINTLN ||
+            token.type == LexerTokenType::RETURN ||
+            token.type == LexerTokenType::IF ||
+            token.type == LexerTokenType::WHILE ||
+            token.type == LexerTokenType::FOR;
+}
+
+
+
+std::unique_ptr<AST> Parser::parse() {
+    std::vector<std::unique_ptr<ASTNode>> ast;
+
+    while (!isAtEnd()) {
+        if (isDeclaration(peek())) {
+            ast.push_back(delegateToDeclaration(tokens.size() - 1));
+        }
+        else if (isStatement(peek())) {
+           ast.push_back(delegateToStatement(tokens.size() - 1));
+        }
+        else {
+            ast.push_back(delegateToExpression(tokens.size() - 1));
+        }
+    }
+    return std::make_unique<AST>(std::move(ast));
 }

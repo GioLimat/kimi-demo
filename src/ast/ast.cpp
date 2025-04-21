@@ -68,3 +68,4 @@ DoWhileStatementNode::DoWhileStatementNode(std::unique_ptr<WhileStatementNode> w
         : whileStatement(std::move(whileStatement)) {}
 
 
+PrintlnStatementNode::PrintlnStatementNode(std::unique_ptr<ExpressionNode> expression) : expression(std::move(expression)) {}

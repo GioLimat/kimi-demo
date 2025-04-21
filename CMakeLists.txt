@@ -10,17 +10,28 @@ add_library(kimi STATIC
         src/parser/parser.cpp
         src/parser/parser_expression.cpp
         src/ast/ast.cpp
-        src/parser/include/parser_statement.h
         src/parser/parser_statement.cpp
-        src/parser/include/parse_declaration.h
         src/parser/parse_declaration.cpp
-        src/bygen/include/bygen.h
-        src/bygen/include/bygen_expression.h
         src/bygen/bygen_expression.cpp
         src/bygen/bygen.cpp
-        src/bygen/include/bygen_statement.h
-        src/bygen/include/bygen_declaration.h
-        src/bygen/bygem_declaration.cpp
+        src/bygen/bygen_declaration.cpp
+        src/shinVM/include/shin_VM.h
+        src/shinVM/shin_VM.cpp
+        src/shinVM/include/stack_manager.h
+        src/shinVM/stack_manager.cpp
+        src/shinVM/executor/include/executor.h
+        src/bytecode_instructions/include/instructions.h
+        src/bytecode_instructions/instructions.cpp
+        src/shinVM/decoder.cpp
+        src/shinVM/executor/executor.cpp
+        src/bytecode_instructions/include/instructions_arithmetic.h
+        src/bytecode_instructions/instructions_arithmetic.cpp
+        src/bytecode_instructions/instructions_lloc.cpp
+        src/bytecode_instructions/instructions_macros.cpp
+        src/parser/parser_macro.cpp
+        src/parser/include/parser_macro.h
+        src/bygen/bygen_macros.cpp
+        src/bytecode_instructions/include/instructions_macros.h
 )
 
 add_subdirectory(tests)
@@ -30,4 +41,7 @@ target_include_directories(kimi PUBLIC
         src/parser/include
         src/ast/include
         src/bygen/include
+        src/bytecode_instructions/include
+        src/shinVM/include
+        src/shinVM/executor/include
 )
