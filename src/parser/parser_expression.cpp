@@ -134,7 +134,13 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
 
     if (token.type == LexerTokenType::INT || token.type == LexerTokenType::FLOAT) {
         std::string value = advance().value;
-        return std::make_unique<NumberNode>(value);
+        std::string type;
+        if (token.type == LexerTokenType::INT) {
+            type = "i32";
+        } else if (token.type == LexerTokenType::FLOAT) {
+            type = "f64";
+        }
+        return std::make_unique<NumberNode>(value, type);
     }
 
     if (token.type == LexerTokenType::TRUE || token.type == LexerTokenType::FALSE) {

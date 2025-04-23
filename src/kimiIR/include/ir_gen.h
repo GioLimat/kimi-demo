@@ -2,16 +2,16 @@
 // Created by home on 19/04/25.
 //
 
-#ifndef BYGEN_H
-#define BYGEN_H
+#ifndef IR_GEN_H
+#define IR_GEN_H
 
 #include <vector>
 #include "ast.h"
 #include <string>
 
-class ByGen {
+class IRGen {
 public:
     static std::vector<std::string> generate(const std::unique_ptr<AST> &root);
 };
 
-#endif //BYGEN_H
+#endif //IR_GEN_H

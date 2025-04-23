@@ -38,6 +38,7 @@ class NumberNode : public ExpressionNode {
         std::string value;
         std::string type;
         explicit NumberNode(std::string value);
+        explicit NumberNode(std::string value, std::string type);
 };
 
 class BooleanNode : public ExpressionNode {
@@ -57,6 +58,7 @@ public:
     std::string op;
     std::unique_ptr<ExpressionNode> left;
     std::unique_ptr<ExpressionNode> right;
+    std::string type;
     BinaryExprNode(std::string op, std::unique_ptr<ExpressionNode> left, std::unique_ptr<ExpressionNode> right);
 };
 
@@ -64,6 +66,7 @@ class AssignmentExprNode : public ExpressionNode {
 public:
     std::string name;
     std::unique_ptr<ExpressionNode> value;
+    std::string type;
 
     explicit AssignmentExprNode(std::string name, std::unique_ptr<ExpressionNode> value);
 };
@@ -90,6 +93,8 @@ public:
     bool isConst;
     std::string name;
     std::unique_ptr<ExpressionNode> initializer;
+    std::string declaredType;
+    std::string inferType;
     VarDeclarationNode(std::string name, std::unique_ptr<ExpressionNode> initializer, bool isConst);
 };
 
@@ -105,6 +110,7 @@ class CallFunctionNode : public ExpressionNode {
 public:
     std::string name;
     std::vector<std::unique_ptr<ExpressionNode>> arguments;
+    std::string returnType;
     CallFunctionNode(std::string name, std::vector<std::unique_ptr<ExpressionNode>> arguments);
 };
 
@@ -112,6 +118,7 @@ class UnaryExprNode : public ExpressionNode {
 public:
     std::string op;
     std::unique_ptr<ExpressionNode> operand;
+    std::string type;
 
     UnaryExprNode(std::string op, std::unique_ptr<ExpressionNode> operand);
 };
@@ -120,7 +127,7 @@ public:
 class ReturnStatementNode : public StatementNode {
 public:
     std::unique_ptr<ExpressionNode> returnValue;
-
+    std::string returnType;
     explicit ReturnStatementNode(std::unique_ptr<ExpressionNode> returnValue);
 };
 

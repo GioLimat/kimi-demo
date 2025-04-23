@@ -12,26 +12,17 @@ add_library(kimi STATIC
         src/ast/ast.cpp
         src/parser/parser_statement.cpp
         src/parser/parse_declaration.cpp
-        src/bygen/bygen_expression.cpp
-        src/bygen/bygen.cpp
-        src/bygen/bygen_declaration.cpp
-        src/shinVM/include/shin_VM.h
-        src/shinVM/shin_VM.cpp
-        src/shinVM/include/stack_manager.h
-        src/shinVM/stack_manager.cpp
-        src/shinVM/executor/include/executor.h
-        src/bytecode_instructions/include/instructions.h
-        src/bytecode_instructions/instructions.cpp
-        src/shinVM/decoder.cpp
-        src/shinVM/executor/executor.cpp
-        src/bytecode_instructions/include/instructions_arithmetic.h
-        src/bytecode_instructions/instructions_arithmetic.cpp
-        src/bytecode_instructions/instructions_lloc.cpp
-        src/bytecode_instructions/instructions_macros.cpp
         src/parser/parser_macro.cpp
         src/parser/include/parser_macro.h
-        src/bygen/bygen_macros.cpp
-        src/bytecode_instructions/include/instructions_macros.h
+        src/kimiIR/instructions/include/ir_instructions.h
+        src/kimiIR/ir_gen.cpp
+        src/kimiIR/ir_gen_declaration.cpp
+        src/kimiIR/ir_gen_expression.cpp
+        src/kimiIR/instructions/ir_instructions.cpp
+        src/validator/semantic/include/semantic_analyzer.h
+        src/validator/type_infer/include/type_analyzer.h
+        src/validator/semantic/semantic_analyzer.cpp
+        src/validator/type_infer/type_analyzer.cpp
 )
 
 add_subdirectory(tests)
@@ -40,8 +31,9 @@ target_include_directories(kimi PUBLIC
         src/lexer/include
         src/parser/include
         src/ast/include
-        src/bygen/include
-        src/bytecode_instructions/include
-        src/shinVM/include
-        src/shinVM/executor/include
+        src/kimiIR/include
+        src/kimiIR/instructions/include
+        src/kimiIR/optimizer/include
+        src/validator/semantic/include
+        src/validator/type_infer/include
 )

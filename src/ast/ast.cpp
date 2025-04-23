@@ -5,7 +5,10 @@
 #include "ast.h"
 
 NumberNode::NumberNode(std::string value)
-    : value(std::move(value)), type("int") {}
+    : value(std::move(value)) {}
+
+NumberNode::NumberNode(std::string value, std::string type)
+    : value(std::move(value)), type(std::move(type)) {}
 
 BooleanNode::BooleanNode(const bool value): value(value) {}
 
