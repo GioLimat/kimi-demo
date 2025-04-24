@@ -9,17 +9,22 @@
 #include "lexer.h"
 #include "parser.h"
 #include <gtest/gtest.h>
+#include "semantic_analyzer.h"
 
 std::vector<std::string> gen(const std::string& code) {
     Lexer lexer(code);
     auto tokens = lexer.tokenize();
     Parser parser(tokens);
     auto ast = parser.parse();
+    SemanticAnalyzer semantic_analyzer;
+    semantic_analyzer.analyze(*ast);
     return IRGen::generate(ast);
+    // otimizer
+    // bygen
 }
 
 TEST(IRGen, SimpleExpression) {
-    std::string code = "2 + 3";
+    const std::string code = "var x = true == false;";
     auto ir = gen(code);
     for (const auto& i : ir) {
         std::cout << i << std::endl;

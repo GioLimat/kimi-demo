@@ -177,6 +177,7 @@ std::unique_ptr<AST> Parser::parse() {
         }
         else {
             ast.push_back(delegateToExpression(tokens.size() - 1));
+            current += 1;
         }
     }
     return std::make_unique<AST>(std::move(ast));

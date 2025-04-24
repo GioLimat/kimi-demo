@@ -15,7 +15,7 @@ TEST(TypeInferTest, BasicTypes) {
 
     auto expression = dynamic_cast<ExpressionNode*>(ast->children.at(0).get());
 
-    auto result = TypeInfer::analyzeExpression(expression);
+    SemanticAnalyzer semanticAnalyzer;
+    semanticAnalyzer.analyze(*ast);
 
-    std::cout << result << std::endl;
 }

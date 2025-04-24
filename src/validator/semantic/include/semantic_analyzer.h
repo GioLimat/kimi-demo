@@ -12,24 +12,24 @@
 class SemanticAnalyzer {
 public:
     void analyze(const AST& ast);
-
+    struct VariableInfo {
+        std::string type;
+        bool isConst;
+    };
 private:
 
-    std::stack<std::unordered_map<std::string, std::string>> scopes;
+    std::stack<std::unordered_map<std::string, VariableInfo>> scopes;
 
     void enterScope();
     void exitScope();
     void declareVariable(const std::string& name, const std::string& type, bool isConst);
-    std::string lookupVariable(const std::string& name);
+    VariableInfo lookupVariable(const std::string& name);
 
-    void visitNode(ASTNode* node);
     void visitExpression(ExpressionNode* expr);
     void visitStatement(StatementNode* stmt);
 
     void visitVarDeclaration(VarDeclarationNode* var);
-    void visitBinaryExpr(BinaryExprNode* expr);
-    void visitIdentifierExpr(IdentifierExprNode* expr);
-    void visitAssignmentExpr(AssignmentExprNode* expr);
+    void visitAssignmentExpr(const AssignmentExprNode* expr);
     void visitCallFunction(CallFunctionNode* call);
     void visitBlock(BlockStatementNode* block);
     void visitIfStatement(IfStatementNode* stmt);

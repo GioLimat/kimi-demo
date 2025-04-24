@@ -115,6 +115,11 @@ LexerToken Lexer::identifyIdentifierKeyword() {
     }
 }
 
+
+
+
+
+
 LexerToken Lexer::identify() {
     while (isspace(sourceCode[currentIndex]) && !isAtEnd()) advance();
     if (isAtEnd()) return LexerToken(LexerTokenType::EOS, "", line, column);
@@ -122,9 +127,13 @@ LexerToken Lexer::identify() {
 
     if (isalpha(sourceCode[currentIndex]) || sourceCode[currentIndex] == '_') return identifyIdentifierKeyword();
 
-    if (!isalnum(sourceCode[currentIndex]) &&
-        currentIndex + 1 < sourceCode.size() &&
-        !isalnum(sourceCode[currentIndex + 1])) return identifySpecialSymbol();
+
+    if (!isalnum(sourceCode[currentIndex])) {
+        if (const std::string twoChar = sourceCode.substr(currentIndex, 2); LexerTokensMap::isValidSymbol(twoChar)) {
+            return identifySpecialSymbol();
+        }
+        return identifySymbol();
+    }
 
     if (!isalnum(sourceCode[currentIndex])) return identifySymbol();
 

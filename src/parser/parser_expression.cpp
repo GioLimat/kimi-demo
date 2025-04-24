@@ -67,6 +67,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseBinaryOperation(const int
         if (currentPrecedence < minPrecedence || currentToken.type == LexerTokenType::EOS
             || currentToken.type == LexerTokenType::SEMICOLON) break;
 
+
         std::string op = advance().value;
 
         auto right = parseBinaryOperation(currentPrecedence + 1);
@@ -154,7 +155,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
 
     if (token.type == LexerTokenType::L_PAREN) {
         advance();
-        auto expr = parseBinaryOperation(1);
+        auto expr = parseExpression();
         if (peek().type != LexerTokenType::R_PAREN) {
             throw std::runtime_error("Expected ')' after expression");
         }
@@ -162,7 +163,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
         return expr;
     }
 
-    if (token.type == LexerTokenType::EOS ) {
+    if (token.type == LexerTokenType::EOS || token.type == LexerTokenType::SEMICOLON) {
         return nullptr;
     }
 

@@ -16,7 +16,7 @@ std::vector<std::string> IRGenDeclaration::varDeclaration(const VarDeclarationNo
         bytecode.insert(bytecode.end(), expr.begin(), expr.end());
     }
 
-    auto instruction = IRMapper::getInstruction(IRInstruction::STORE) + " : i32 ";
+    auto instruction = IRMapper::getInstruction(IRInstruction::STORE) + " : " + varDeclaration->type + " ";
     std::string meta;
 
     if (varDeclaration->isConst) {

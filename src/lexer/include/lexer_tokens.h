@@ -75,6 +75,7 @@ class LexerTokensMap {
         static LexerTokenType getTokenByString(const std::string& tokenStr);
         static std::unordered_map<std::string, LexerTokenType> invertTokensMap();
         static std::string getStringByToken(LexerTokenType tokenType);
+        static bool isValidSymbol(const std::string& symbol);
 };
 
 #endif // LEXER_TOKENS_H

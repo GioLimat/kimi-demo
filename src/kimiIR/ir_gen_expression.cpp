@@ -8,13 +8,12 @@
 #include "ir_instructions.h"
 
 
-
 std::vector<std::string> IRGenExpression::binExpression(const BinaryExprNode* expression) {
 
 
     std::vector<std::string> bytecode;
 
-    const auto bin = expression;
+    auto bin = expression;
 
     auto leftBytecode = generateExpression(bin->left.get());
 
@@ -22,7 +21,7 @@ std::vector<std::string> IRGenExpression::binExpression(const BinaryExprNode* ex
 
     bytecode.insert(bytecode.end(), leftBytecode.begin(), leftBytecode.end());
     bytecode.insert(bytecode.end(), rightBytecode.begin(), rightBytecode.end());
-    bytecode.push_back(IRMapper::getOperator(bin->op) + " : i32");
+    bytecode.push_back(IRMapper::getOperator(bin->op) + " : " + bin->type);
 
     return bytecode;
 
@@ -30,12 +29,14 @@ std::vector<std::string> IRGenExpression::binExpression(const BinaryExprNode* ex
 
 
 std::string IRGenExpression::number(const NumberNode* number) {
-    return IRMapper::getInstruction(IRInstruction::CONST) + " " + number->value + " : i32";
+    return IRMapper::getInstruction(IRInstruction::CONST) + " " + number->value + " : " + number->type;
 }
 
 std::string IRGenExpression::identifier(const IdentifierExprNode* identifier) {
-    return IRMapper::getInstruction(IRInstruction::LOAD) + " " + identifier->name + " : i32";
+    return IRMapper::getInstruction(IRInstruction::LOAD) + " " + identifier->name + " : " + identifier->type;
 }
+
+
 
 
 

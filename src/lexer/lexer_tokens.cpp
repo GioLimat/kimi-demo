@@ -84,3 +84,13 @@ std::unordered_map<std::string, LexerTokenType> LexerTokensMap::invertTokensMap(
     }
     return invertedMap;
 }
+
+
+bool LexerTokensMap::isValidSymbol(const std::string& symbol) {
+    try {
+       getTokenByString(symbol);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}

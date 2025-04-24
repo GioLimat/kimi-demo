@@ -59,7 +59,7 @@ double evaluateExpression(const ExpressionNode* node) {
 
 
 TEST(ParserExpression, SimpleExpression) {
-    const std::string code = "1 + 2 * 5";
+    const std::string code = "1 + 2 * 5;";
     Lexer lexer(code);
 
     const auto tokens = lexer.tokenize();
@@ -74,7 +74,7 @@ TEST(ParserExpression, SimpleExpression) {
 }
 
 TEST(ParserExpression, PrecedenceWithPharensis) {
-    const std::string code = "5 * (1 + 2)";
+    const std::string code = "5 * ((1 + 2) / (1 + 2))";
 
     Lexer lexer(code);
     const auto tokens = lexer.tokenize();
@@ -86,7 +86,8 @@ TEST(ParserExpression, PrecedenceWithPharensis) {
 
     const double result = evaluateExpression(expr.get());
 
-    EXPECT_EQ(result, 15);
+
+    ASSERT_EQ(result, 5);
 }
 
 TEST(ParserExpression, ComplexExpression) {
@@ -206,3 +207,5 @@ TEST(ParserExpression, AssignmentExpression) {
     ASSERT_EQ(exprAsg->value, "4");
     ASSERT_EQ(assignment->name, "x");
 }
+
+

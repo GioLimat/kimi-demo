@@ -50,6 +50,7 @@ public:
 class IdentifierExprNode : public ExpressionNode {
 public:
     std::string name;
+    std::string type;
     explicit IdentifierExprNode(std::string name);
 };
 
@@ -95,6 +96,7 @@ public:
     std::unique_ptr<ExpressionNode> initializer;
     std::string declaredType;
     std::string inferType;
+    std::string type;
     VarDeclarationNode(std::string name, std::unique_ptr<ExpressionNode> initializer, bool isConst);
 };
 
