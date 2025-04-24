@@ -7,16 +7,20 @@
 #include <iostream>
 #include <set>
 
+std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>>* TypeInfer::scopes = nullptr;
+
 
 std::string TypeInfer::analyzeExpression(const ExpressionNode* expr,
     std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>> *declared) {
+
+    scopes = declared;
 
     if (const auto number = dynamic_cast<const NumberNode*>(expr)) {
         return number->type;
     }
     if (const auto ident = const_cast<IdentifierExprNode*>(dynamic_cast<const IdentifierExprNode*>(expr))) {
         try {
-            std::string type = declared->top().at(ident->name).type;
+            std::string type = lookupVariable(ident->name).type;
             ident->type = type;
             return type;
         } catch (const std::out_of_range&) {
@@ -72,3 +76,19 @@ std::string TypeInfer::analyzeExpression(const ExpressionNode* expr,
     return "unknown";
 }
 
+
+SemanticAnalyzer::VariableInfo TypeInfer::lookupVariable(const std::string &name) {
+    if (!scopes) {
+        throw std::runtime_error("Scope stack is not initialized in TypeInfer");
+    }
+
+    auto copy = *scopes;
+    while (!copy.empty()) {
+        if (const auto& scope = copy.top(); scope.contains(name)) {
+            return scope.at(name);
+        }
+        copy.pop();
+    }
+
+    throw std::runtime_error("Variable " + name + " not declared in any scope");
+}

@@ -105,6 +105,7 @@ public:
     std::string name;
     std::vector<std::string> parameters;
     std::vector<std::unique_ptr<StatementNode>> body;
+    std::vector<std::string> parameterTypes;
     FunctionDeclarationNode(std::string name, std::vector<std::string> parameters, std::vector<std::unique_ptr<StatementNode>> body);
 };
 

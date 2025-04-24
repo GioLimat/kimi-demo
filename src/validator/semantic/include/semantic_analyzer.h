@@ -25,7 +25,6 @@ private:
     void declareVariable(const std::string& name, const std::string& type, bool isConst);
     VariableInfo lookupVariable(const std::string& name);
 
-    void visitExpression(ExpressionNode* expr);
     void visitStatement(StatementNode* stmt);
 
     void visitVarDeclaration(VarDeclarationNode* var);

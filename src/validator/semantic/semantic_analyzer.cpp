@@ -17,11 +17,14 @@ void SemanticAnalyzer::analyze(const AST& ast) {
         else if (const auto assi = dynamic_cast<AssignmentExprNode*>(node.get())) {
             visitAssignmentExpr(assi);
         }
+        else if (const auto call = dynamic_cast<CallFunctionNode*>(node.get())) {
+            visitCallFunction(call);
+        }
         else if (const auto expr = dynamic_cast<ExpressionNode*>(node.get())) {
-            visitExpression(expr);
+            TypeInfer::analyzeExpression(expr, &scopes);
         }
         else if (const auto exprStatement = dynamic_cast<ExpressionStatementNode*>(node.get())) {
-            visitExpression(exprStatement->expression.get());
+            TypeInfer::analyzeExpression(exprStatement->expression.get(), &scopes);
         }
 
     }
@@ -32,7 +35,6 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     std::string inferredType;
 
     if (var->initializer) {
-        visitExpression(var->initializer.get());
         inferredType = TypeInfer::analyzeExpression(var->initializer.get(), &scopes);
 
         if (!var->declaredType.empty() && var->declaredType != inferredType) {
@@ -51,18 +53,8 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     var->type = finalType;
 }
 
-
-void SemanticAnalyzer::visitExpression(ExpressionNode* expr) {
-    const std::string inferredType = TypeInfer::analyzeExpression(expr, &scopes);
-
-    if (auto bin = dynamic_cast<BinaryExprNode*>(expr)) {
-        bin->type = inferredType;
-    }
-}
-
-
 void SemanticAnalyzer::visitAssignmentExpr(const AssignmentExprNode* expr) {
-    visitExpression(expr->value.get());
+    TypeInfer::analyzeExpression(expr, &scopes);
 
     const auto varInfo = lookupVariable(expr->name);
     if (varInfo.isConst) {
@@ -76,6 +68,11 @@ void SemanticAnalyzer::visitAssignmentExpr(const AssignmentExprNode* expr) {
     }
 }
 
+void SemanticAnalyzer::visitCallFunction(CallFunctionNode *call) {
+
+}
+
+
 void SemanticAnalyzer::declareVariable(const std::string& name, const std::string& type, const bool isConst) {
     if (scopes.top().contains(name)) {
         throw std::runtime_error("Variable " + name + " already declared in this scope");
@@ -85,10 +82,16 @@ void SemanticAnalyzer::declareVariable(const std::string& name, const std::strin
 
 
 SemanticAnalyzer::VariableInfo SemanticAnalyzer::lookupVariable(const std::string &name) {
-    if (!scopes.top().contains(name)) {
-        throw std::runtime_error("Variable " + name + " not declared in this scope");
+    auto tempScopes = scopes;
+
+    while (!tempScopes.empty()) {
+        if (const auto& currentScope = tempScopes.top(); currentScope.contains(name)) {
+            return currentScope.at(name);
+        }
+        tempScopes.pop();
     }
-    return scopes.top()[name];
+
+    throw std::runtime_error("Variable " + name + " not declared in any accessible scope");
 }
 
 

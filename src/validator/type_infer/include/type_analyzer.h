@@ -10,6 +10,9 @@
 
 
 class TypeInfer {
+private:
+    static std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>>* scopes;
+    static SemanticAnalyzer::VariableInfo lookupVariable(const std::string &name);
 public:
     static std::string analyzeExpression(const ExpressionNode* expr, std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>> *declared);
 };
