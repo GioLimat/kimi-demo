@@ -14,6 +14,7 @@ std::unique_ptr<StatementNode> getStatementByDeclaration(const std::string &code
 
     const auto tokens = lexer.tokenize();
 
+
     auto parser = ParserDeclaration(tokens);
 
     return  parser.parseDeclaration();
@@ -46,17 +47,17 @@ TEST(ParserDeclaration, VarDeclaration) {
 
 
 TEST(ParserDeclaration, FnDeclarationWithReturnImplicit) {
-    const std::unique_ptr<StatementNode> statement = getStatementByDeclaration("fn sum(a, b){ a + b }");
+    const std::unique_ptr<StatementNode> statement = getStatementByDeclaration("fn sum(a: Int, b: Int){ a + b }");
 
 
     auto fnDeclaration = dynamic_cast<FunctionDeclarationNode*>(statement.get());
     ASSERT_EQ(fnDeclaration->name, "sum");
     ASSERT_EQ(fnDeclaration->parameters, std::vector<std::string>({"a", "b"}));
-    ASSERT_EQ(fnDeclaration->body.size(), 1);
+    ASSERT_EQ(fnDeclaration->body.get()->statements.size(), 1);
 
 
 
-    auto st = dynamic_cast<ReturnStatementNode*>(fnDeclaration->body[0].get());
+    auto st = dynamic_cast<ReturnStatementNode*>(fnDeclaration->body->statements[0].get());
     auto expr = dynamic_cast<BinaryExprNode*>(st->returnValue.get());
     auto v1 = dynamic_cast<IdentifierExprNode*>(expr->left.get());
     auto v2 = dynamic_cast<IdentifierExprNode*>(expr->right.get());
@@ -69,16 +70,16 @@ TEST(ParserDeclaration, FnDeclarationWithReturnImplicit) {
 
 
 TEST(ParserDeclaration, FnDeclarationMulti) {
-    const std::unique_ptr<StatementNode> statement = getStatementByDeclaration("fn sum(a, b){return a+b; b+a } ");
+    const std::unique_ptr<StatementNode> statement = getStatementByDeclaration("fn sum(a: Float, b: Float){return a+b; b+a } ");
 
 
     auto fnDeclaration = dynamic_cast<FunctionDeclarationNode*>(statement.get());
-    auto st1 = dynamic_cast<ReturnStatementNode*>(fnDeclaration->body[0].get());
+    auto st1 = dynamic_cast<ReturnStatementNode*>(fnDeclaration->body.get()->statements[0].get());
     auto expr = dynamic_cast<BinaryExprNode*>(st1->returnValue.get());
     auto v1 = dynamic_cast<IdentifierExprNode*>(expr->left.get());
     auto v2 = dynamic_cast<IdentifierExprNode*>(expr->right.get());
 
-    ASSERT_EQ(fnDeclaration->body.size(), 2);
+    ASSERT_EQ(fnDeclaration->body.get()->statements.size(), 2);
     ASSERT_EQ(v1->name, "a");
     ASSERT_EQ(v2->name, "b");
 }

@@ -121,9 +121,9 @@ class FunctionDeclarationNode : public StatementNode {
 public:
     std::string name;
     std::vector<std::string> parameters;
-    std::vector<std::unique_ptr<StatementNode>> body;
-    std::vector<std::string> parameterTypes;
-    explicit FunctionDeclarationNode(std::string name, std::vector<std::string> parameters, std::vector<std::unique_ptr<StatementNode>> body);
+    std::unique_ptr<BlockStatementNode> body;
+    std::vector<std::string> parametersTypes;
+    explicit FunctionDeclarationNode(std::string name, std::vector<std::string> parameters, std::unique_ptr<BlockStatementNode> body, const std::vector<std::string>& parametersTypes);
     void accept(ASTVisitor &visitor) override;
 };
 
