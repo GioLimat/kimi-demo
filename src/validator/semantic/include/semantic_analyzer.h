@@ -7,9 +7,10 @@
 
 #include "ast.h"
 #include <stack>
+#include <visitor.h>
 #include <unordered_map>
 
-class SemanticAnalyzer {
+class SemanticAnalyzer : public DefaultASTVisitor {
 public:
     void analyze(const AST& ast);
     struct VariableInfo {
@@ -23,17 +24,13 @@ private:
     void enterScope();
     void exitScope();
     void declareVariable(const std::string& name, const std::string& type, bool isConst);
-    VariableInfo lookupVariable(const std::string& name);
+    [[nodiscard]] VariableInfo lookupVariable(const std::string& name) const;
 
-    void visitStatement(StatementNode* stmt);
 
-    void visitVarDeclaration(VarDeclarationNode* var);
-    void visitAssignmentExpr(const AssignmentExprNode* expr);
-    void visitCallFunction(CallFunctionNode* call);
-    void visitBlock(BlockStatementNode* block);
-    void visitIfStatement(IfStatementNode* stmt);
-    void visitWhileStatement(WhileStatementNode* stmt);
-    void visitReturnStatement(ReturnStatementNode* stmt);
+    void visitVarDeclaration(VarDeclarationNode* var) override;
+    void visitAssignmentExpr(AssignmentExprNode* expr) override;
+    void visitCallFunction(CallFunctionNode* call) override;
+    void visitBinaryExpr(BinaryExprNode *node) override;
 
 };
 

@@ -1,8 +1,15 @@
-//
-// Created by home on 11/04/25.
-//
+
+ /*
+ Created by home on 11/04/25.
+ */
+
 
 #include "ast.h"
+#include "visitor.h"
+
+
+
+
 
 NumberNode::NumberNode(std::string value)
     : value(std::move(value)) {}
@@ -72,3 +79,80 @@ DoWhileStatementNode::DoWhileStatementNode(std::unique_ptr<WhileStatementNode> w
 
 
 PrintlnStatementNode::PrintlnStatementNode(std::unique_ptr<ExpressionNode> expression) : expression(std::move(expression)) {}
+
+
+
+ //VISITORS
+
+void NumberNode::accept(ASTVisitor &visitor) {
+        visitor.visitNumber(this);
+}
+
+void BooleanNode::accept(ASTVisitor &visitor) {
+        visitor.visitBoolean(this);
+}
+
+void IdentifierExprNode::accept(ASTVisitor &visitor) {
+        visitor.visitIdentifier(this);
+}
+
+void BinaryExprNode::accept(ASTVisitor &visitor) {
+        visitor.visitBinaryExpr(this);
+}
+
+void AssignmentExprNode::accept(ASTVisitor &visitor) {
+        visitor.visitAssignmentExpr(this);
+}
+
+void VarDeclarationNode::accept(ASTVisitor &visitor) {
+        visitor.visitVarDeclaration(this);
+}
+
+void FunctionDeclarationNode::accept(ASTVisitor &visitor) {
+        visitor.visitFunctionDeclaration(this);
+}
+
+void CallFunctionNode::accept(ASTVisitor &visitor) {
+        visitor.visitCallFunction(this);
+}
+
+void UnaryExprNode::accept(ASTVisitor &visitor) {
+        visitor.visitUnaryExpr(this);
+}
+
+void ExpressionStatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitExpressionStatement(this);
+}
+
+void BlockStatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitBlockStatement(this);
+}
+
+void ReturnStatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitReturnStatement(this);
+}
+
+void IfStatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitIfStatement(this);
+}
+
+void WhileStatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitWhileStatement(this);
+}
+
+void DoWhileStatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitDoWhileStatement(this);
+}
+
+void PrintlnStatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitPrintln(this);
+}
+
+
+void StatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitStatementNode(this);
+}
+
+void ExpressionNode::accept(ASTVisitor &visitor) {
+        visitor.visitExpressionNode(this);
+}

@@ -10,25 +10,13 @@
 
 void SemanticAnalyzer::analyze(const AST& ast) {
     enterScope();
-    for (const auto& node : ast.children) {
-        if (const auto var = dynamic_cast<VarDeclarationNode*>(node.get())) {
-            visitVarDeclaration(var);
-        }
-        else if (const auto assi = dynamic_cast<AssignmentExprNode*>(node.get())) {
-            visitAssignmentExpr(assi);
-        }
-        else if (const auto call = dynamic_cast<CallFunctionNode*>(node.get())) {
-            visitCallFunction(call);
-        }
-        else if (const auto expr = dynamic_cast<ExpressionNode*>(node.get())) {
-            TypeInfer::analyzeExpression(expr, &scopes);
-        }
-        else if (const auto exprStatement = dynamic_cast<ExpressionStatementNode*>(node.get())) {
-            TypeInfer::analyzeExpression(exprStatement->expression.get(), &scopes);
-        }
-
+    for (auto& node : ast.children) {
+        node->accept(*this);
     }
+}
 
+void SemanticAnalyzer::visitBinaryExpr(BinaryExprNode *node) {
+    TypeInfer::analyzeExpression(node, &scopes);
 }
 
 void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
@@ -53,18 +41,17 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     var->type = finalType;
 }
 
-void SemanticAnalyzer::visitAssignmentExpr(const AssignmentExprNode* expr) {
+void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
     TypeInfer::analyzeExpression(expr, &scopes);
 
-    const auto varInfo = lookupVariable(expr->name);
-    if (varInfo.isConst) {
+    const auto [type, isConst] = lookupVariable(expr->name);
+    if (isConst) {
         throw std::runtime_error("Cannot assign to const variable " + expr->name);
     }
 
-    const std::string valueType = TypeInfer::analyzeExpression(expr->value.get(), &scopes);
-    if (valueType != varInfo.type) {
+    if (const std::string valueType = TypeInfer::analyzeExpression(expr->value.get(), &scopes); valueType != type) {
         throw std::runtime_error("Type mismatch in assignment to '" + expr->name +
-                                 "': expected " + varInfo.type + ", got " + valueType);
+                                 "': expected " + type + ", got " + valueType);
     }
 }
 
@@ -81,7 +68,7 @@ void SemanticAnalyzer::declareVariable(const std::string& name, const std::strin
 }
 
 
-SemanticAnalyzer::VariableInfo SemanticAnalyzer::lookupVariable(const std::string &name) {
+SemanticAnalyzer::VariableInfo SemanticAnalyzer::lookupVariable(const std::string &name) const {
     auto tempScopes = scopes;
 
     while (!tempScopes.empty()) {

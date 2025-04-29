@@ -9,12 +9,21 @@
 #include "semantic_analyzer.h"
 
 
-class TypeInfer {
+class TypeInfer : public DefaultASTVisitor {
 private:
     static std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>>* scopes;
     static SemanticAnalyzer::VariableInfo lookupVariable(const std::string &name);
+    mutable std::string currentType;
+
 public:
-    static std::string analyzeExpression(const ExpressionNode* expr, std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>> *declared);
+    static std::string analyzeExpression(ExpressionNode* expr,
+        std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>>* declared);
+
+    void visitNumber(NumberNode* node) override;
+    void visitIdentifier(IdentifierExprNode* node) override;
+    void visitBoolean(BooleanNode* node) override;
+    void visitBinaryExpr(BinaryExprNode* node) override;
 };
+
 
 #endif //TYPE_ANALYZER_H

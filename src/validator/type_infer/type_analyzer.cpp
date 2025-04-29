@@ -9,73 +9,75 @@
 
 std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>>* TypeInfer::scopes = nullptr;
 
-
-std::string TypeInfer::analyzeExpression(const ExpressionNode* expr,
-    std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>> *declared) {
+std::string TypeInfer::analyzeExpression(ExpressionNode* expr,
+    std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>>* declared) {
 
     scopes = declared;
-
-    if (const auto number = dynamic_cast<const NumberNode*>(expr)) {
-        return number->type;
-    }
-    if (const auto ident = const_cast<IdentifierExprNode*>(dynamic_cast<const IdentifierExprNode*>(expr))) {
-        try {
-            std::string type = lookupVariable(ident->name).type;
-            ident->type = type;
-            return type;
-        } catch (const std::out_of_range&) {
-            throw std::runtime_error("Usage of variable " + ident->name + ", was not declared");
-        }
-    }
-    if (dynamic_cast<const BooleanNode*>(expr)) {
-        return "bool";
-    }
-
-
-
-    if (auto binary = dynamic_cast<BinaryExprNode*>(const_cast<ExpressionNode*>(expr))){
-        const auto& op = binary->op;
-        const std::string left = analyzeExpression(binary->left.get(), declared);
-        const std::string right = analyzeExpression(binary->right.get(), declared);
-
-        const std::set<std::string> arithmeticOps = {"+", "-", "*", "/", "%"};
-        const std::set<std::string> logicalOps = {"&&", "||"};
-        const std::set<std::string> comparisonOps = {"==", "!=", "<", ">", "<=", ">="};
-
-        if (arithmeticOps.contains(op)) {
-            if ((left == "i32" || left == "f64") && (right == "i32" || right == "f64")) {
-                if (left == "f64" || right == "f64") {
-                    binary->type = "f64";
-                    return "f64";
-                }
-                binary->type = "i32";
-                return "i32";
-            }
-            throw std::runtime_error("Arithmetic operators require numeric types, got: " + left + " and " + right);
-        }
-
-        if (logicalOps.contains(op)) {
-            if (left == "bool" && right == "bool") {
-                binary->type = "bool";
-                return "bool";
-            }
-            throw std::runtime_error("Logical operators require boolean operands, got: " + left + " and " + right);
-        }
-
-        if (comparisonOps.contains(op)) {
-            if (left == right) {
-                binary->type = "bool";
-                return "bool";
-            }
-            throw std::runtime_error("Cannot compare different types: " + left + " and " + right);
-        }
-
-        throw std::runtime_error("Unknown binary operator: " + op);
-    }
-
-    return "unknown";
+    TypeInfer infer;
+    expr->accept(infer);
+    return infer.currentType;
 }
 
+void TypeInfer::visitNumber(NumberNode* node) {
+    currentType = node->type;
+}
+
+void TypeInfer::visitBoolean(BooleanNode* node) {
+    currentType = "bool";
+}
+
+void TypeInfer::visitIdentifier(IdentifierExprNode* node) {
+    try {
+        std::string type = lookupVariable(node->name).type;
+        node->type = type;
+        currentType = type;
+    } catch (const std::out_of_range&) {
+        throw std::runtime_error("Usage of variable " + node->name + " was not declared");
+    }
+}
+
+void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
+    const std::set<std::string> arithmeticOps = {"+", "-", "*", "/", "%"};
+    const std::set<std::string> logicalOps = {"&&", "||"};
+    const std::set<std::string> comparisonOps = {"==", "!=", "<", ">", "<=", ">="};
+
+    node->left->accept(*this);
+    std::string left = currentType;
+
+    node->right->accept(*this);
+    std::string right = currentType;
+
+    const std::string& op = node->op;
+
+    if (arithmeticOps.contains(op)) {
+        if ((left == "i32" || left == "f64") && (right == "i32" || right == "f64")) {
+            node->type = (left == "f64" || right == "f64") ? "f64" : "i32";
+            currentType = node->type;
+            return;
+        }
+        throw std::runtime_error("Arithmetic operators require numeric types, got: " + left + " and " + right);
+    }
+
+    if (logicalOps.contains(op)) {
+        if (left == "bool" && right == "bool") {
+            node->type = "bool";
+            currentType = "bool";
+            return;
+        }
+        throw std::runtime_error("Logical operators require boolean operands, got: " + left + " and " + right);
+    }
+
+    if (comparisonOps.contains(op)) {
+        if (left == right) {
+            node->type = "bool";
+            currentType = "bool";
+            return;
+        }
+        throw std::runtime_error("Cannot compare different types: " + left + " and " + right);
+    }
+
+    throw std::runtime_error("Unknown binary operator: " + op);
+}
 
 SemanticAnalyzer::VariableInfo TypeInfer::lookupVariable(const std::string &name) {
     if (!scopes) {
@@ -84,7 +86,8 @@ SemanticAnalyzer::VariableInfo TypeInfer::lookupVariable(const std::string &name
 
     auto copy = *scopes;
     while (!copy.empty()) {
-        if (const auto& scope = copy.top(); scope.contains(name)) {
+        const auto& scope = copy.top();
+        if (scope.contains(name)) {
             return scope.at(name);
         }
         copy.pop();

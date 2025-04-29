@@ -21,21 +21,6 @@ class MockExpression : public ParserExpression {
     }
 };
 
-void printExpression(const ExpressionNode* node) {
-    if (const auto* binary = dynamic_cast<const BinaryExprNode*>(node)) {
-        std::cout << "(";
-        printExpression(binary->left.get());
-        std::cout << " " << binary->op << " ";
-        printExpression(binary->right.get());
-        std::cout << ")";
-    } else if (const auto* number = dynamic_cast<const NumberNode*>(node)) {
-        std::cout << number->value;
-    } else if (const auto* identifier = dynamic_cast<const IdentifierExprNode*>(node)) {
-        std::cout << identifier->name;
-    } else {
-        std::cout << "<?>";
-    }
-}
 
 double evaluateExpression(const ExpressionNode* node) {
     if (auto num = dynamic_cast<const NumberNode*>(node)) {

@@ -23,6 +23,7 @@ add_library(kimi STATIC
         src/validator/type_infer/include/type_analyzer.h
         src/validator/semantic/semantic_analyzer.cpp
         src/validator/type_infer/type_analyzer.cpp
+        src/ast/include/visitor.h
 )
 
 add_subdirectory(tests)

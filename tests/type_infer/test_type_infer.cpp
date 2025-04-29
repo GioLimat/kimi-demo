@@ -9,7 +9,7 @@
 
 
 TEST(TypeInferTest, BasicTypes) {
-    Lexer lexer("42 + 3.14");
+    Lexer lexer("var x = 42 + 3.14;");
     Parser parser(lexer.tokenize());
     auto ast = parser.parse();
 
