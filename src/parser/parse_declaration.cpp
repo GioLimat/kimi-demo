@@ -101,20 +101,29 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
     int blockEnd = -1;
     auto sliced = tokensByCurrentBlock(blockEnd);
 
-    auto stateParser = ParserStatement(sliced);
-    std::vector<std::unique_ptr<StatementNode>> body = stateParser.parseBlock(blockEnd);
+    std::unique_ptr<BlockStatementNode> body;
+    if (sliced.size() > 2) {
+        sliced.pop_back();
+        sliced.erase(sliced.begin());
+        if (!sliced.empty()) {
+            auto parser = Parser(sliced);
+            parser.parse();
+        }
+    }
+    else body = std::unique_ptr<BlockStatementNode>();
 
-    current = blockEnd + 1;
+    current = blockEnd + 1 + sliced.size();
 
-    if (!body.empty()) {
-        if (auto* last = body.back().get(); !dynamic_cast<ReturnStatementNode*>(last)) {
+    if (!body->statements.empty()) {
+        if (auto* last = body->statements.back().get(); !dynamic_cast<ReturnStatementNode*>(last)) {
             if (auto* exprStmt = dynamic_cast<ExpressionStatementNode*>(last)) {
-                body.back() = std::make_unique<ReturnStatementNode>(std::move(exprStmt->expression));
+                body->statements.back() = std::make_unique<ReturnStatementNode>(std::move(exprStmt->expression));
             }
         }
     }
 
+
     advance();
 
-    return std::make_unique<FunctionDeclarationNode>(name.value, std::move(parameters), std::make_unique<BlockStatementNode>(std::move(body)));
+    return std::make_unique<FunctionDeclarationNode>(name.value, std::move(parameters), std::move(body), parametersTypes);
 }

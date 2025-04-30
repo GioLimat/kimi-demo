@@ -55,10 +55,30 @@ void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
     }
 }
 
-void SemanticAnalyzer::visitCallFunction(CallFunctionNode *call) {
-
+void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
+    declareFunction(node->name, node->parameters, node->parametersTypes);
+    enterScope();
+    for (auto& statement : node->body->statements) {
+        statement->accept(*this);
+    }
+    exitScope();
 }
 
+
+void SemanticAnalyzer::visitExpressionStatement(ExpressionStatementNode *node) {
+    TypeInfer::analyzeExpression(node->expression.get(), &scopes);
+}
+
+
+
+
+void SemanticAnalyzer::declareFunction(const std::string& name, const std::vector<std::string>& parameters,
+                                        const std::vector<std::string>& parametersTypes) {
+    if (scopes.top().contains(name)) {
+        throw std::runtime_error("Function " + name + " already declared in this scope");
+    }
+    scopes.top()[name] = FunctionInfo{name, parameters, parametersTypes};
+}
 
 void SemanticAnalyzer::declareVariable(const std::string& name, const std::string& type, const bool isConst) {
     if (scopes.top().contains(name)) {
@@ -73,12 +93,29 @@ SemanticAnalyzer::VariableInfo SemanticAnalyzer::lookupVariable(const std::strin
 
     while (!tempScopes.empty()) {
         if (const auto& currentScope = tempScopes.top(); currentScope.contains(name)) {
-            return currentScope.at(name);
+            const auto& symbol = currentScope.at(name);
+            if (!std::holds_alternative<VariableInfo>(symbol)) {
+                throw std::runtime_error("Symbol '" + name + "' is not a variable.");
+            }
+            return std::get<VariableInfo>(symbol);
         }
         tempScopes.pop();
     }
 
     throw std::runtime_error("Variable " + name + " not declared in any accessible scope");
+}
+
+SemanticAnalyzer::FunctionInfo SemanticAnalyzer::lookupFunction(const std::string &name) const {
+    auto tempScopes = scopes;
+
+    while (!tempScopes.empty()) {
+        if (const auto& currentScope = tempScopes.top(); currentScope.contains(name)) {
+            return std::get<FunctionInfo>(currentScope.at(name));
+        }
+        tempScopes.pop();
+    }
+
+    throw std::runtime_error("Function " + name + " not declared in any accessible scope");
 }
 
 

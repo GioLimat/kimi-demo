@@ -7,10 +7,10 @@
 #include <iostream>
 #include <set>
 
-std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>>* TypeInfer::scopes = nullptr;
+SemanticAnalyzer::Scope* TypeInfer::scopes = nullptr;
 
 std::string TypeInfer::analyzeExpression(ExpressionNode* expr,
-    std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>>* declared) {
+    SemanticAnalyzer::Scope * declared) {
 
     scopes = declared;
     TypeInfer infer;
@@ -86,9 +86,12 @@ SemanticAnalyzer::VariableInfo TypeInfer::lookupVariable(const std::string &name
 
     auto copy = *scopes;
     while (!copy.empty()) {
-        const auto& scope = copy.top();
-        if (scope.contains(name)) {
-            return scope.at(name);
+        if (const auto& scope = copy.top(); scope.contains(name)) {
+            const auto& symbol = scope.at(name);
+            if (!std::holds_alternative<SemanticAnalyzer::VariableInfo>(symbol)) {
+                throw std::runtime_error("Symbol '" + name + "' is not a variable.");
+            }
+            return std::get<SemanticAnalyzer::VariableInfo>(symbol);
         }
         copy.pop();
     }

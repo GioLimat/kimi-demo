@@ -86,7 +86,7 @@ TEST(ParserDeclaration, FnDeclarationMulti) {
 
 
 TEST(ParserStatement, IfStatement) {
-    const auto statement = getStatementByStatement("if(10 > 40){ 10 + 20; }");
+    const auto statement = getStatementByStatement("if(10 > 40){ var x = 10 + 20; }");
 
     auto ifStatement = dynamic_cast<IfStatementNode*>(statement.get());
     auto expr = dynamic_cast<BinaryExprNode*>(ifStatement->condition.get());

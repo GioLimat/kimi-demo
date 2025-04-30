@@ -164,6 +164,13 @@ bool Parser::isStatement(const LexerToken &token) {
 }
 
 
+bool Parser::canNotBeExpression(const LexerToken &token) {
+    return token.type == LexerTokenType::L_BRACE ||
+        token.type == LexerTokenType::R_BRACE;
+}
+
+
+
 
 std::unique_ptr<AST> Parser::parse() {
     std::vector<std::unique_ptr<ASTNode>> ast;
