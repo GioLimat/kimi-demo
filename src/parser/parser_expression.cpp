@@ -61,11 +61,13 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseAssignment() {
 std::unique_ptr<ExpressionNode> ParserExpression::parseBinaryOperation(const int minPrecedence) {
     auto left = parseUnary();
     while (true) {
+        if (peek().type == LexerTokenType::EOS) {
+            break;
+        }
         const auto currentToken = peek();
         const int currentPrecedence = precedence(currentToken.type);
 
-        if (currentPrecedence < minPrecedence || currentToken.type == LexerTokenType::EOS
-            || currentToken.type == LexerTokenType::SEMICOLON) break;
+        if (currentPrecedence < minPrecedence || currentToken.type == LexerTokenType::SEMICOLON) break;
 
 
         std::string op = advance().value;
@@ -163,7 +165,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
         return expr;
     }
 
-    if (token.type == LexerTokenType::EOS || token.type == LexerTokenType::SEMICOLON) {
+    if (token.type == LexerTokenType::EOS || token.type == LexerTokenType::SEMICOLON ) {
         return nullptr;
     }
 

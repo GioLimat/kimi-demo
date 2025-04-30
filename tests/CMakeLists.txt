@@ -21,6 +21,8 @@ add_executable(kimi_tests lexer/test_lexer.cpp
         type_infer/test_type_infer.cpp
 )
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O1 -fsanitize=address -fno-omit-frame-pointer")
+
 target_link_libraries(kimi_tests GTest::gtest_main kimi gtest gtest_main)
 
 include(GoogleTest)

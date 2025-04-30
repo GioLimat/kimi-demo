@@ -40,7 +40,7 @@ protected:
 
 private:
     bool isStatement(const LexerToken& token);
-    bool canNotBeExpression(const LexerToken& token);
+    bool isExpression(const LexerToken& token);
     bool isDeclaration(const LexerToken& token);
 };
 

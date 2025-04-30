@@ -91,10 +91,14 @@ int Parser::findIndex(const size_t start, const LexerTokenType token) const {
 
 std::unique_ptr<ExpressionNode> Parser::delegateToExpression(size_t i) {
     const auto index = i == -1 ? tokens.size() - 1 : i;
-    const auto sliced = slice(index);
+    auto sliced = slice(index + 1);
     auto exprParser = ParserExpression(sliced);
     auto expr = exprParser.parseExpression();
     current += exprParser.current;
+    if (!isAtEnd() && (peek().type == LexerTokenType::SEMICOLON
+                     || peek().type == LexerTokenType::R_BRACE))
+        advance();
+
     return std::move(expr);
 }
 
@@ -119,9 +123,14 @@ std::unique_ptr<StatementNode> Parser::delegateToDeclaration(size_t i) {
 
 
 std::vector<LexerToken> Parser::slice(size_t i) {
-    const auto tokensS = tokens | std::views::drop(current) | std::views::take(i);
-    const std::vector sliced(tokensS.begin(), tokensS.end());
-    return sliced;
+    if (i < current) throw std::runtime_error("slice indices out of order");
+    size_t length = i - current;
+    auto view = tokens
+              | std::views::drop(current)
+              | std::views::take(length);
+    std::vector<LexerToken> v(view.begin(), view.end());
+    return v;
+
 }
 
 LexerToken Parser::peek() const {
@@ -140,7 +149,6 @@ LexerToken Parser::advance() {
     if (!isAtEnd()) {
         return tokens.at(current++);
     }
-
     return tokens.at(tokens.size() - 1);
 }
 
@@ -164,11 +172,14 @@ bool Parser::isStatement(const LexerToken &token) {
 }
 
 
-bool Parser::canNotBeExpression(const LexerToken &token) {
-    return token.type == LexerTokenType::L_BRACE ||
-        token.type == LexerTokenType::R_BRACE;
-}
+bool Parser::isExpression(const LexerToken &token) {
+    return token.type == LexerTokenType::IDENTIFIER ||
+        token.type == LexerTokenType::INT ||
+        token.type == LexerTokenType::FLOAT ||
+        token.type == LexerTokenType::TRUE ||
+        token.type == LexerTokenType::FALSE;
 
+}
 
 
 
@@ -176,16 +187,18 @@ std::unique_ptr<AST> Parser::parse() {
     std::vector<std::unique_ptr<ASTNode>> ast;
 
     while (!isAtEnd()) {
+        std::cout << current << std::endl;
         if (isDeclaration(peek())) {
-            ast.push_back(delegateToDeclaration(tokens.size() - 1));
+            ast.push_back(delegateToDeclaration(findEndOfExpression(current)));
         }
         else if (isStatement(peek())) {
-           ast.push_back(delegateToStatement(tokens.size() - 1));
+            ast.push_back(delegateToStatement(findEndOfExpression(current)));
         }
         else {
-            ast.push_back(delegateToExpression(tokens.size() - 1));
-            current += 1;
+            ast.push_back(delegateToExpression(findEndOfExpression(current)));
         }
     }
+
+
     return std::make_unique<AST>(std::move(ast));
 }
