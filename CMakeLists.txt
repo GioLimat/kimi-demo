@@ -12,8 +12,6 @@ add_library(kimi STATIC
         src/ast/ast.cpp
         src/parser/parser_statement.cpp
         src/parser/parse_declaration.cpp
-        src/parser/parser_macro.cpp
-        src/parser/include/parser_macro.h
         src/kimiIR/instructions/include/ir_instructions.h
         src/kimiIR/ir_gen.cpp
         src/kimiIR/ir_gen_declaration.cpp

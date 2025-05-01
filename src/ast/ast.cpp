@@ -60,14 +60,14 @@ UnaryExprNode::UnaryExprNode(std::string op, std::unique_ptr<ExpressionNode> ope
 ExpressionStatementNode::ExpressionStatementNode(std::unique_ptr<ExpressionNode> expression)
         : expression(std::move(expression)) {}
 
-BlockStatementNode::BlockStatementNode(std::vector<std::unique_ptr<StatementNode>> statements): statements(std::move(statements)) {}
+BlockStatementNode::BlockStatementNode(std::vector<std::unique_ptr<ASTNode>> statements): statements(std::move(statements)) {}
 
 ReturnStatementNode::ReturnStatementNode(std::unique_ptr<ExpressionNode> returnValue)
         : returnValue(std::move(returnValue)) {}
 
 
 IfStatementNode::IfStatementNode(std::unique_ptr<ExpressionNode> condition,
-                    std::vector<std::unique_ptr<StatementNode>> thenBranch,
+                    std::unique_ptr<BlockStatementNode> thenBranch,
                 std::unique_ptr<StatementNode> elseBranch)
         : condition(std::move(condition)), thenBranch(std::move(thenBranch)),elseBranch(std::move(elseBranch)) {}
 

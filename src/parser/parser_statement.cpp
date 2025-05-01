@@ -88,7 +88,7 @@ std::unique_ptr<StatementNode> ParserStatement::parseIfStatement() {
 
     return std::make_unique<IfStatementNode>(
         std::move(condition),
-        std::move(thenBranch),
+        make_unique<BlockStatementNode>(std::move(thenBranch)),
         std::move(elseBranch)
     );
 }
@@ -133,8 +133,8 @@ std::unique_ptr<StatementNode> ParserStatement::parseDoWhileStatement() {
 
 
 
-std::vector<std::unique_ptr<StatementNode>> ParserStatement::parseBlock(const int end) {
-    std::vector<std::unique_ptr<StatementNode>> body;
+std::vector<std::unique_ptr<ASTNode>> ParserStatement::parseBlock(const int end) {
+    std::vector<std::unique_ptr<ASTNode>> body;
     advance();
 
 

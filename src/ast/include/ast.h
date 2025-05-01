@@ -91,8 +91,8 @@ public:
 
 class BlockStatementNode : public StatementNode {
 public:
-    std::vector<std::unique_ptr<StatementNode>> statements;
-    explicit BlockStatementNode(std::vector<std::unique_ptr<StatementNode>> statements);
+    std::vector<std::unique_ptr<ASTNode>> statements;
+    explicit BlockStatementNode(std::vector<std::unique_ptr<ASTNode>> statements);
     void accept(ASTVisitor &visitor) override;
 };
 
@@ -158,11 +158,11 @@ public:
 class IfStatementNode : public StatementNode {
 public:
     std::unique_ptr<ExpressionNode> condition;
-    std::vector<std::unique_ptr<StatementNode>> thenBranch;
+    std::unique_ptr<BlockStatementNode> thenBranch;
     std::unique_ptr<StatementNode> elseBranch;
 
     explicit IfStatementNode(std::unique_ptr<ExpressionNode> condition,
-                    std::vector<std::unique_ptr<StatementNode>> thenBranch,
+                    std::unique_ptr<BlockStatementNode> thenBranch,
                     std::unique_ptr<StatementNode> elseBranch);
     void accept(ASTVisitor &visitor) override;
 };

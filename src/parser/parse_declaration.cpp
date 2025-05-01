@@ -102,7 +102,7 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
     auto sliced = tokensByCurrentBlock(blockEnd);
 
     auto stateParser = ParserStatement(sliced);
-    std::vector<std::unique_ptr<StatementNode>> body = stateParser.parseBlock(blockEnd);
+    std::vector<std::unique_ptr<ASTNode>> body = stateParser.parseBlock(blockEnd);
 
     current = blockEnd + 1;
 
@@ -116,5 +116,5 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
 
     advance();
 
-    return std::make_unique<FunctionDeclarationNode>(name.value, std::move(parameters), std::make_unique<BlockStatementNode>(std::move(body)));
+    return std::make_unique<FunctionDeclarationNode>(name.value, std::move(parameters), std::make_unique<BlockStatementNode>(std::move(body)), std::move(parametersTypes));
 }
