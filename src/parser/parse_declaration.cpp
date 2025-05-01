@@ -101,9 +101,11 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
     int blockEnd = -1;
     auto sliced = tokensByCurrentBlock(blockEnd);
 
-    auto stateParser = ParserStatement(sliced);
-    std::vector<std::unique_ptr<ASTNode>> body = stateParser.parseBlock(blockEnd);
-
+    auto body = std::vector<std::unique_ptr<ASTNode>>();
+    if (!sliced.empty()) {
+        auto parser = Parser(sliced);
+        body =  std::move(parser.parse()->children);
+    }
     current = blockEnd + 1;
 
     if (!body.empty()) {

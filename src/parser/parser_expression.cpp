@@ -163,10 +163,12 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
         return expr;
     }
 
-    if (token.type == LexerTokenType::EOS || token.type == LexerTokenType::SEMICOLON) {
+    if (token.type == LexerTokenType::EOS
+        || token.type == LexerTokenType::SEMICOLON
+        || token.type == LexerTokenType::R_BRACE
+        || token.type == LexerTokenType::L_BRACE) {
         return nullptr;
     }
-
     throw std::runtime_error("Unexpected token: " + token.value);
 
 }

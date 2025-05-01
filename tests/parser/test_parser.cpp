@@ -28,7 +28,7 @@ TEST(Parser, FullParser) {
 
 
 TEST(Parser, IfParser) {
-    auto lexer = Lexer("if (x > 4){x+4;}");
+    auto lexer = Lexer("if (x > 4){x+8;}");
     auto tokens = lexer.tokenize();
     auto parser = Parser(tokens);
 

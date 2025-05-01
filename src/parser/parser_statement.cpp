@@ -66,8 +66,17 @@ std::unique_ptr<StatementNode> ParserStatement::parseIfStatement() {
         throw std::runtime_error("Expected '{' after if condition");
     }
 
-    int thenBlockEnd = findMatchingBrace(static_cast<int>(current));
-    auto thenBranch = parseBlock(thenBlockEnd);
+    int blockEnd = -1;
+    auto sliced = tokensByCurrentBlock(blockEnd);
+
+    auto body = std::vector<std::unique_ptr<ASTNode>>();
+
+    if (!sliced.empty()) {
+        auto parser = Parser(sliced);
+        body = std::move(parser.parse()->children);
+    }
+    current = blockEnd + 1;
+
 
     std::unique_ptr<StatementNode> elseBranch = nullptr;
 
@@ -77,10 +86,20 @@ std::unique_ptr<StatementNode> ParserStatement::parseIfStatement() {
 
         if (peek().type == LexerTokenType::IF) {
             elseBranch = parseIfStatement(); // else if
-        } else if (peek().type == LexerTokenType::L_BRACE) {
-            int elseBlockEnd = findMatchingBrace(static_cast<int>(current));
-            auto elseBlock = parseBlock(elseBlockEnd);
-            elseBranch = std::make_unique<BlockStatementNode>(std::move(elseBlock));
+        }
+        else if (peek().type == LexerTokenType::L_BRACE) {
+            int blockEndElse = -1;
+            auto slicedElse = tokensByCurrentBlock(blockEndElse);
+
+            auto bodyElse = std::vector<std::unique_ptr<ASTNode>>();
+
+            if (!slicedElse.empty()) {
+                auto parserElse = Parser(slicedElse);
+                bodyElse = std::move(parserElse.parse()->children);
+            }
+            current = blockEndElse + 1;
+
+            elseBranch = std::make_unique<BlockStatementNode>(std::move(bodyElse));
         } else {
             throw std::runtime_error("Expected 'if' or '{' after 'else'");
         }
@@ -88,7 +107,7 @@ std::unique_ptr<StatementNode> ParserStatement::parseIfStatement() {
 
     return std::make_unique<IfStatementNode>(
         std::move(condition),
-        make_unique<BlockStatementNode>(std::move(thenBranch)),
+        std::make_unique<BlockStatementNode>(std::move(body)),
         std::move(elseBranch)
     );
 }

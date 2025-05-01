@@ -37,6 +37,31 @@ int Parser::findEndOfExpression(const size_t start) const {
     return -1;
 }
 
+int Parser::findEndBraceDisconsideredFirst(size_t start) const {
+    size_t i = start;
+    while (i < tokens.size() && tokens[i].type != LexerTokenType::L_BRACE) {
+        ++i;
+    }
+    if (i >= tokens.size()) {
+        throw std::runtime_error("Expected '{' to start a block.");
+    }
+    int depth = 1;
+    for (size_t j = i + 1; j < tokens.size(); ++j) {
+        if (tokens[j].type == LexerTokenType::L_BRACE) {
+            ++depth;
+        } else if (tokens[j].type == LexerTokenType::R_BRACE) {
+            --depth;
+            if (depth == 0) {
+                return static_cast<int>(j);
+            }
+        }
+    }
+
+    throw std::runtime_error("No matching '}' found for '{'.");
+}
+
+
+
 int Parser::findEndOfParenBlock(const size_t start) const {
     if (start >= tokens.size() || tokens.at(start).type != LexerTokenType::L_PAREN) {
         throw std::runtime_error("Expected '(' at start of block for parenthesis matching.");
@@ -103,7 +128,7 @@ std::unique_ptr<StatementNode> Parser::delegateToStatement(size_t i) {
     const auto sliced = slice(index);
     auto stateParser = ParserStatement(sliced);
     auto statement = stateParser.parseStatement();
-    current += stateParser.current;
+    this->current += stateParser.current;
     return std::move(statement);
 }
 
@@ -112,7 +137,7 @@ std::unique_ptr<StatementNode> Parser::delegateToDeclaration(size_t i) {
     const auto sliced = slice(index);
     auto stateParser = ParserDeclaration(sliced);
     auto statement = stateParser.parseDeclaration();
-    current += stateParser.current + 1;
+    this->current += stateParser.current + 1;
     return std::move(statement);
 }
 
@@ -164,21 +189,37 @@ bool Parser::isStatement(const LexerToken &token) {
 }
 
 
+bool Parser::isNotExpression(const LexerToken &token) {
+    return token.type == LexerTokenType::L_BRACE ||
+           token.type == LexerTokenType::R_BRACE ||
+           token.type == LexerTokenType::SEMICOLON;
+}
+
 
 std::unique_ptr<AST> Parser::parse() {
     std::vector<std::unique_ptr<ASTNode>> ast;
 
     while (!isAtEnd()) {
         if (isDeclaration(peek())) {
-            ast.push_back(delegateToDeclaration(tokens.size() - 1));
+            ast.push_back(delegateToDeclaration(findEndOfExpression(current) + 1));
         }
         else if (isStatement(peek())) {
-           ast.push_back(delegateToStatement(tokens.size() - 1));
+
+            int end;
+            try {
+                end = findEndBraceDisconsideredFirst(current) + 1;
+            }
+            catch (...) {
+                end = findEndOfExpression(current);
+            }
+            ast.push_back(delegateToStatement(end));
+            current += end;
         }
-        else {
-            ast.push_back(delegateToExpression(tokens.size() - 1));
+        else if (!isNotExpression(peek())) {
+            ast.push_back(delegateToExpression(findEndOfExpression(current)));
             current += 1;
         }
+        else advance();
     }
     return std::make_unique<AST>(std::move(ast));
 }
