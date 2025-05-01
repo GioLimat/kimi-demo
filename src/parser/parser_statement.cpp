@@ -68,16 +68,14 @@ std::unique_ptr<StatementNode> ParserStatement::parseIfStatement() {
 
     int blockEnd = -1;
     auto sliced = tokensByCurrentBlock(blockEnd);
-
+    auto finalEnd = findMatchingBrace(current) + 1;
     auto body = std::vector<std::unique_ptr<ASTNode>>();
 
     if (!sliced.empty()) {
         auto parser = Parser(sliced);
         body = std::move(parser.parse()->children);
     }
-    current = blockEnd + 1;
-
-
+    current = finalEnd;
     std::unique_ptr<StatementNode> elseBranch = nullptr;
 
 
@@ -90,14 +88,15 @@ std::unique_ptr<StatementNode> ParserStatement::parseIfStatement() {
         else if (peek().type == LexerTokenType::L_BRACE) {
             int blockEndElse = -1;
             auto slicedElse = tokensByCurrentBlock(blockEndElse);
-
+            int finalEndElse = findMatchingBrace(current);
             auto bodyElse = std::vector<std::unique_ptr<ASTNode>>();
 
             if (!slicedElse.empty()) {
                 auto parserElse = Parser(slicedElse);
                 bodyElse = std::move(parserElse.parse()->children);
             }
-            current = blockEndElse + 1;
+            current = finalEndElse;
+            std::cout << current << " " <<  tokens.size() << " " <<finalEndElse<< " "  << blockEndElse << std::endl;
 
             elseBranch = std::make_unique<BlockStatementNode>(std::move(bodyElse));
         } else {

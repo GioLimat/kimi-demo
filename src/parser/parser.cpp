@@ -28,7 +28,6 @@ std::vector<LexerToken> Parser::tokensByCurrentBlock(int& blockEnd_)  {
 
 
 int Parser::findEndOfExpression(const size_t start) const {
-
     for (size_t i = start; i < tokens.size(); ++i) {
         if (tokens[i].type == LexerTokenType::SEMICOLON || tokens[i].type == LexerTokenType::R_BRACE) {
             return static_cast<int>(i);
@@ -201,19 +200,29 @@ std::unique_ptr<AST> Parser::parse() {
 
     while (!isAtEnd()) {
         if (isDeclaration(peek())) {
-            ast.push_back(delegateToDeclaration(findEndOfExpression(current) + 1));
-        }
-        else if (isStatement(peek())) {
-
             int end;
             try {
                 end = findEndBraceDisconsideredFirst(current) + 1;
             }
             catch (...) {
-                end = findEndOfExpression(current);
+                end = findEndOfExpression(current) + 1;
             }
+            ast.push_back(delegateToDeclaration(end));
+            current = end;
+        }
+        else if (isStatement(peek())) {
+            int end;
+
+            try {
+                end = findEndBraceDisconsideredFirst(current) + 1;
+            }
+            catch (...) {
+                end = findEndOfExpression(current) + 1;
+            }
+
+
             ast.push_back(delegateToStatement(end));
-            current += end;
+            current = end;
         }
         else if (!isNotExpression(peek())) {
             ast.push_back(delegateToExpression(findEndOfExpression(current)));

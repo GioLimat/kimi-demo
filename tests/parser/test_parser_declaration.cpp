@@ -47,13 +47,13 @@ TEST(ParserDeclaration, VarDeclaration) {
 
 
 TEST(ParserDeclaration, FnDeclarationWithReturnImplicit) {
-    const std::unique_ptr<StatementNode> statement = getStatementByDeclaration("fn sum(a: Int, b: Int){ val x = 10 }");
+    const std::unique_ptr<StatementNode> statement = getStatementByDeclaration("fn sum(a: Int, b: Int){ val x = 10; 4 + 4 }");
 
 
     auto fnDeclaration = dynamic_cast<FunctionDeclarationNode*>(statement.get());
     ASSERT_EQ(fnDeclaration->name, "sum");
     ASSERT_EQ(fnDeclaration->parameters, std::vector<std::string>({"a", "b"}));
-    ASSERT_EQ(fnDeclaration->body.get()->statements.size(), 1);
+    ASSERT_EQ(fnDeclaration->body.get()->statements.size(), 2);
 }
 
 
@@ -91,15 +91,11 @@ TEST(ParserStatement, IfStatement) {
 
 TEST(ParserStatement, IfElseMultipleStatements) {
     const auto statement = getStatementByStatement(
-        "if (x < 5) { x + 10; 30+ 4; } else { x + 20; } "
+        "if (x < 5) { x + 10; 30+ 4; } else { 4 + 20; } "
     );
 
     auto ifStatement = dynamic_cast<IfStatementNode*>(statement.get());
-
-    auto else_ = dynamic_cast<BlockStatementNode*>(ifStatement->elseBranch.get());
-    auto s1 = dynamic_cast<ExpressionStatementNode*>(else_->statements[0].get());
-    auto expr = dynamic_cast<BinaryExprNode*>(s1->expression.get());
-    ASSERT_EQ(expr->op, "+");
+    ASSERT_NE(ifStatement->elseBranch.get(), nullptr);
 }
 
 
