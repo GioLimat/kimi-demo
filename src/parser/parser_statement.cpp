@@ -96,8 +96,6 @@ std::unique_ptr<StatementNode> ParserStatement::parseIfStatement() {
                 bodyElse = std::move(parserElse.parse()->children);
             }
             current = finalEndElse;
-            std::cout << current << " " <<  tokens.size() << " " <<finalEndElse<< " "  << blockEndElse << std::endl;
-
             elseBranch = std::make_unique<BlockStatementNode>(std::move(bodyElse));
         } else {
             throw std::runtime_error("Expected 'if' or '{' after 'else'");
@@ -123,8 +121,10 @@ std::unique_ptr<StatementNode> ParserStatement::parseWhileStatement() {
         throw std::runtime_error("Expected '{' after while condition");
     }
 
-    const auto blockEnd = findMatchingBrace(static_cast<int>(current));
-    auto body = std::make_unique<BlockStatementNode>(parseBlock(blockEnd));
+    int blockEnd;
+    auto sliced = tokensByCurrentBlock(blockEnd);
+    auto body = std::make_unique<BlockStatementNode>(std::move(Parser(sliced).parse()->children));
+    current = blockEnd;
 
     return std::make_unique<WhileStatementNode>(std::move(condition), std::move(body));
 }
@@ -132,8 +132,10 @@ std::unique_ptr<StatementNode> ParserStatement::parseWhileStatement() {
 std::unique_ptr<StatementNode> ParserStatement::parseDoWhileStatement() {
     advance();
 
-    const auto blockEnd = findMatchingBrace(static_cast<int>(current));
-    auto body = std::make_unique<BlockStatementNode>(parseBlock(blockEnd));
+    int blockEnd;
+    auto sliced = tokensByCurrentBlock(blockEnd);
+    auto body = std::make_unique<BlockStatementNode>(std::move(Parser(sliced).parse()->children));
+    current = blockEnd + 1;
 
     if (peek().type != LexerTokenType::WHILE) {
         throw std::runtime_error("Expected 'while' after do-while block");

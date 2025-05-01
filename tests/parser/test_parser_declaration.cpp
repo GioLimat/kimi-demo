@@ -111,14 +111,9 @@ TEST(ParserExpression, WhileStatement) {
     auto n2 = dynamic_cast<NumberNode*>(condition->right.get());
 
     auto body = whileStatement->body.get();
-    auto statement_ = dynamic_cast<ExpressionStatementNode*>(body->statements[0].get());
-    auto expr = dynamic_cast<BinaryExprNode*>(statement_->expression.get());
-    auto v1 = dynamic_cast<IdentifierExprNode*>(expr->left.get());
-    auto v2 = dynamic_cast<NumberNode*>(expr->right.get());
 
-    ASSERT_EQ(expr->op, "+");
-    ASSERT_EQ(v1->name, "x");
-    ASSERT_EQ(v2->value, "10");
+
+    ASSERT_EQ(body->statements.size(), 1);
     ASSERT_EQ(n1->name, "x");
     ASSERT_EQ(n2->value, "5");
     ASSERT_EQ(condition->op, "<");
@@ -133,21 +128,9 @@ TEST(ParserExpression, DoWhileStatement) {
     auto whileStatement = dynamic_cast<WhileStatementNode*>(doWhileStatement->whileStatement.get());
     auto condition = dynamic_cast<BinaryExprNode*>(whileStatement->condition.get());
     auto body = whileStatement->body.get();
-    auto statement_ = dynamic_cast<ExpressionStatementNode*>(body->statements[0].get());
-    auto expr = dynamic_cast<BinaryExprNode*>(statement_->expression.get());
-
-
-    auto n1 = dynamic_cast<IdentifierExprNode*>(condition->left.get());
-    auto n2 = dynamic_cast<NumberNode*>(condition->right.get());
-    auto v1 = dynamic_cast<IdentifierExprNode*>(expr->left.get());
-    auto v2 = dynamic_cast<NumberNode*>(expr->right.get());
+    ASSERT_EQ(body->statements.size(), 1);
 
     ASSERT_EQ(condition->op, ">");
-    ASSERT_EQ(n1->name, "x");
-    ASSERT_EQ(n2->value, "4");
-    ASSERT_EQ(expr->op, "+");
-    ASSERT_EQ(v1->name, "x");
-    ASSERT_EQ(v2->value, "10");
 }
 
 

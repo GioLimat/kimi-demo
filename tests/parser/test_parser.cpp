@@ -28,7 +28,7 @@ TEST(Parser, FullParser) {
 
 
 TEST(Parser, IfParser) {
-    auto lexer = Lexer("if (x > 4){x+8;}");
+    auto lexer = Lexer("if (x > 4){val p = 2; p + x}");
     auto tokens = lexer.tokenize();
     auto parser = Parser(tokens);
 
@@ -37,6 +37,7 @@ TEST(Parser, IfParser) {
     ASSERT_EQ(ast.get()->children.size(), 1);
 
     auto ifStatement = dynamic_cast<IfStatementNode*>(ast->children[0].get());
+    ASSERT_EQ(ifStatement->thenBranch.get()->statements.size(),2);
 
     auto condition = dynamic_cast<BinaryExprNode*>(ifStatement->condition.get());
     auto v1 = dynamic_cast<IdentifierExprNode*>(condition->left.get());

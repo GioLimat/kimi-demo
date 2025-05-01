@@ -22,7 +22,7 @@ std::vector<LexerToken> Parser::tokensByCurrentBlock(int& blockEnd_)  {
         | std::views::drop(blockStart)
         | std::views::take(bodyLength);
     const std::vector sliced(tokensS.begin(), tokensS.end());
-    blockEnd_  = blockEnd - blockStart;
+    blockEnd_  = blockEnd;
     return sliced;
 }
 
