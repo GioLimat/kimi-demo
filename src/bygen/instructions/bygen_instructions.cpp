@@ -7,7 +7,7 @@ uint8_t ByMapper::getInstruction(const std::string& ir) {
     if (const auto it = instructionMap.find(ir); it != instructionMap.end()) {
         return it->second;
     }
-    throw std::runtime_error("Unknown IR instruction");
+    return 0x00;
 }
 
 
@@ -16,5 +16,5 @@ uint8_t ByMapper::getType(const std::string &type) {
     if (const auto it = typeMap.find(type); it != typeMap.end()) {
         return it->second;
     }
-    throw std::runtime_error("Unknown type");
+    return 0x00;
 }

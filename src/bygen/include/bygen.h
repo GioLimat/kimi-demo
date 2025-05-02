@@ -4,16 +4,15 @@
 
 #ifndef BYGEN_H
 #define BYGEN_H
+#include <stack>
 #include <string>
 #include <vector>
 
 class ByGen {
+    std::stack<std::unordered_map<std::string, uint32_t>> symbolTable;
+    uint32_t nextVarId = 0;
     std::vector<std::string> ir;
-    size_t current;
-    std::string peek();
-    std::string advance();
-    [[nodiscard]] size_t findEndBlock() const;
-    std::vector<std::string> splitBySpace(const std::string& str) const;
+    [[nodiscard]] std::vector<std::string> splitBySpace(const std::string& str) const;
 public:
     ByGen(std::vector<std::string> ir);
     std::vector<uint8_t>  generate();

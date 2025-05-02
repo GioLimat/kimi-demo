@@ -11,36 +11,7 @@
 #include <bits/ostream.tcc>
 
 ByGen::ByGen(std::vector<std::string> ir) : ir(std::move(ir)) {
-    current = 0;
-}
-
-std::string ByGen::peek() {
-    if (current >= ir.size()) {
-        return ir[ir.size() - 1];
-    }
-    return ir[current];
-}
-
-std::string ByGen::advance() {
-    if (current >= ir.size()) {
-        return ir[ir.size() - 1];
-    }
-    return ir[current++];
-}
-
-size_t ByGen::findEndBlock() const {
-    size_t depth = 0;
-    for (size_t i = current; i < ir.size(); ++i) {
-        if (ir[i] == "INIT_BLOCK") {
-            depth++;
-        } else if (ir[i] == "END_BLOCK") {
-            depth--;
-            if (depth == 0) {
-                return i;
-            }
-        }
-    }
-    return INT64_MAX;
+    symbolTable.emplace();
 }
 
 
@@ -61,8 +32,26 @@ std::vector<uint8_t>  ByGen::generate() {
     for (const auto& instruction : ir) {
         const auto parts  = splitBySpace(instruction);
         const auto& instructionType = parts[0];
-
+        // Leave the current iteration and crate or destroy a scope
+        if (instructionType == "INIT_BLOCK") {
+            symbolTable.emplace();
+            continue;
+        }
+        if (instructionType == "END_BLOCK") {
+            symbolTable.pop();
+            continue;
+        }
         bytecode.push_back(ByMapper::getInstruction(instructionType));
+        bytecode.push_back(0x00);
+
+        std::string type;
+
+        for (int i = 0; i < parts.size(); ++i) {
+            if (parts[i] == ":") {
+                type = parts[i + 1];
+            }
+        }
+        bytecode.push_back(ByMapper::getType(type));
 
         if (instructionType == "CONST") {
             uint32_t val = std::stoul(parts[1]);
@@ -71,7 +60,41 @@ std::vector<uint8_t>  ByGen::generate() {
                 val >>= 7;
             }
             bytecode.push_back(static_cast<uint8_t>(val));
+            continue;
         }
+
+        if (instructionType == "STORE") {
+            const std::string& name = parts[1];
+            uint32_t varId;
+            std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
+            bool found = false;
+            while (!temp.empty()) {
+                auto& scope = temp.top();
+                auto it = scope.find(name);
+                if (it != scope.end()) {
+                    varId = it->second;
+                    found = true;
+                    break;
+                }
+                temp.pop();
+            }
+            if (!found) {
+                auto& currentScope = symbolTable.top();
+                varId = nextVarId++;
+                currentScope[name] = varId;
+            }
+
+            bytecode.push_back(ByMapper::getType(type));
+
+            uint32_t val = varId;
+            while (val >= 0x80) {
+                bytecode.push_back(static_cast<uint8_t>((val & 0x7F) | 0x80));
+                val >>= 7;
+            }
+            bytecode.push_back(static_cast<uint8_t>(val));
+            continue;
+        }
+
     }
 
     return bytecode;
