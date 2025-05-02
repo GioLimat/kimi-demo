@@ -22,6 +22,11 @@ add_library(kimi STATIC
         src/validator/semantic/semantic_analyzer.cpp
         src/validator/type_infer/type_analyzer.cpp
         src/ast/include/visitor.h
+        src/kimiIR/ir_gen_statement.cpp
+        src/bygen/instructions/include/bygen_instructions.h
+        src/bygen/instructions/bygen_instructions.cpp
+        src/bygen/include/bygen.h
+        src/bygen/bygen.cpp
 )
 
 add_subdirectory(tests)
@@ -35,4 +40,6 @@ target_include_directories(kimi PUBLIC
         src/kimiIR/optimizer/include
         src/validator/semantic/include
         src/validator/type_infer/include
+        src/bygen/instructions/include
+        src/bygen/include
 )

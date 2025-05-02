@@ -4,19 +4,16 @@
 
 #include <iostream>
 
-#include "ir_gen_expression.h"
-#include "ir_gen_declaration.h"
+#include "ir_gen.h"
 #include "ir_instructions.h"
 
-std::vector<std::string> IRGenDeclaration::varDeclaration(const VarDeclarationNode *varDeclaration) {
-    std::vector<std::string> bytecode;
+void IRGen::visitVarDeclaration(VarDeclarationNode *varDeclaration) {
 
     if (varDeclaration->initializer) {
-        std::vector<std::string> expr = IRGenExpression::generateExpression(varDeclaration->initializer.get());
-        bytecode.insert(bytecode.end(), expr.begin(), expr.end());
+       varDeclaration->initializer->accept(*this);
     }
 
-    auto instruction = IRMapper::getInstruction(IRInstruction::STORE) + " : " + varDeclaration->type + " ";
+    auto instruction = IRMapper::getInstruction(IRInstruction::STORE) + " " + varDeclaration->name + " : " + varDeclaration->type + " ";
     std::string meta;
 
     if (varDeclaration->isConst) {
@@ -33,18 +30,20 @@ std::vector<std::string> IRGenDeclaration::varDeclaration(const VarDeclarationNo
     }
 
     bytecode.push_back(instruction);
-
-    return bytecode;
 }
 
 
-std::vector<std::string> IRGenDeclaration::generateDeclaration(const StatementNode* statement) {
-    std::vector<std::string> bytecode;
+void IRGen::visitFunctionDeclaration(FunctionDeclarationNode *function) {
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::FN) + " " + function->name);
 
-    if (const auto var = dynamic_cast<const VarDeclarationNode*>(statement)) {
-        const auto decl = varDeclaration(var);
-        if (!decl.empty()) bytecode.insert(bytecode.end(), decl.begin(), decl.end());
+    for (const auto &param : function->parameters) {
+        auto instruction = IRMapper::getInstruction(IRInstruction::FN_PARAM) + " " + param.name + " : " + param.type;
+        bytecode.push_back(instruction);
+    }
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
+    for (const auto &node : function->body->statements) {
+        node->accept(*this);
     }
 
-    return bytecode;
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK));
 }

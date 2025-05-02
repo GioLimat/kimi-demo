@@ -36,6 +36,29 @@ int Parser::findEndOfExpression(const size_t start) const {
     return -1;
 }
 
+int Parser::findEndParenDisconsideredFirst(size_t start) const {
+    size_t i = start;
+    while (i < tokens.size() && tokens[i].type != LexerTokenType::L_PAREN) {
+        ++i;
+    }
+    if (i >= tokens.size()) {
+        throw std::runtime_error("Expected '(' to start a block.");
+    }
+    int depth = 1;
+    for (size_t j = i + 1; j < tokens.size(); ++j) {
+        if (tokens[j].type == LexerTokenType::L_PAREN) {
+            ++depth;
+        } else if (tokens[j].type == LexerTokenType::R_PAREN) {
+            --depth;
+            if (depth == 0) {
+                return static_cast<int>(j);
+            }
+        }
+    }
+
+    throw std::runtime_error("No matching ')' found for '('.");
+}
+
 int Parser::findEndBraceDisconsideredFirst(size_t start) const {
     size_t i = start;
     while (i < tokens.size() && tokens[i].type != LexerTokenType::L_BRACE) {
@@ -197,7 +220,6 @@ bool Parser::isNotExpression(const LexerToken &token) {
 
 std::unique_ptr<AST> Parser::parse() {
     std::vector<std::unique_ptr<ASTNode>> ast;
-
     while (!isAtEnd()) {
         if (isDeclaration(peek())) {
             int end;
@@ -214,7 +236,10 @@ std::unique_ptr<AST> Parser::parse() {
             int end;
 
             try {
-                end = findEndBraceDisconsideredFirst(current) + 1;
+                if (peek().type == LexerTokenType::DO) {
+                    end = findEndParenDisconsideredFirst(current) + 1;
+                }
+                else end = findEndBraceDisconsideredFirst(current) + 1;
             }
             catch (...) {
                 end = findEndOfExpression(current) + 1;

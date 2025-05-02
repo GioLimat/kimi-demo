@@ -35,6 +35,7 @@ protected:
     [[nodiscard]] int findIndex(size_t start, LexerTokenType token) const;
     [[nodiscard]] int findMatchingBrace(int start) const;
     [[nodiscard]] int findEndBraceDisconsideredFirst(size_t start) const;
+    [[nodiscard]] int findEndParenDisconsideredFirst(size_t start) const;
     [[nodiscard]] int findEndOfExpression(size_t start) const;
     [[nodiscard]] int findEndOfParenBlock(size_t start) const;
     std::vector<LexerToken> tokensByCurrentBlock(int& blockEnd_);

@@ -131,7 +131,6 @@ std::unique_ptr<StatementNode> ParserStatement::parseWhileStatement() {
 
 std::unique_ptr<StatementNode> ParserStatement::parseDoWhileStatement() {
     advance();
-
     int blockEnd;
     auto sliced = tokensByCurrentBlock(blockEnd);
     auto body = std::make_unique<BlockStatementNode>(std::move(Parser(sliced).parse()->children));

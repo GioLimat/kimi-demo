@@ -4,7 +4,6 @@
 
 #include "ir_gen.h"
 #include <iostream>
-#include <ir_gen_expression.h>
 
 #include "lexer.h"
 #include "parser.h"
@@ -18,13 +17,14 @@ std::vector<std::string> gen(const std::string& code) {
     auto ast = parser.parse();
     SemanticAnalyzer semantic_analyzer;
     semantic_analyzer.analyze(*ast);
-    return IRGen::generate(ast);
+    IRGen ir_gen(ast);
+    return ir_gen.generate();
     // otimizer
     // bygen
 }
 
 TEST(IRGen, SimpleExpression) {
-    const std::string code = "10 + 20.4;";
+    const std::string code = "fn x() {4 + 4}";
     auto ir = gen(code);
     for (const auto& i : ir) {
         std::cout << i << std::endl;

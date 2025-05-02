@@ -19,6 +19,11 @@ void SemanticAnalyzer::visitBinaryExpr(BinaryExprNode *node) {
     TypeInfer::analyzeExpression(node, &scopes);
 }
 
+void SemanticAnalyzer::visitIdentifier(IdentifierExprNode *node) {
+    TypeInfer::analyzeExpression(node, &scopes);
+}
+
+
 void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     std::string inferredType;
 
@@ -44,7 +49,7 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
 void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
     TypeInfer::analyzeExpression(expr, &scopes);
 
-    const auto [type, isConst] = lookupVariable(expr->name);
+    const auto [type, isConst] = lookup<VariableInfo>(expr->name, "Variable " + expr->name + " not declared in this scope");
     if (isConst) {
         throw std::runtime_error("Cannot assign to const variable " + expr->name);
     }
@@ -55,9 +60,64 @@ void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
     }
 }
 
-void SemanticAnalyzer::visitCallFunction(CallFunctionNode *call) {
 
+void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
+    declareFunction(node->name, node->parameters);
+    enterScope();
+    for (const auto& param : node->parameters) {
+        declareVariable(param.name, param.type, false);
+    }
+    for (const auto& child : node->body->statements) {
+        child->accept(*this);
+    }
+    exitScope();
 }
+
+
+void SemanticAnalyzer::visitIfStatement(IfStatementNode *node) {
+    enterScope();
+    node->condition->accept(*this);
+    for (const auto& child : node->thenBranch->statements) {
+        child->accept(*this);
+    }
+    if (node->elseBranch) {
+        node->elseBranch->accept(*this);
+    }
+    exitScope();
+}
+
+void SemanticAnalyzer::visitWhileStatement(WhileStatementNode *node) {
+    enterScope();
+    node->condition->accept(*this);
+    for (const auto& child : node->body->statements) {
+        child->accept(*this);
+    }
+    exitScope();
+}
+
+
+void SemanticAnalyzer::visitDoWhileStatement(DoWhileStatementNode *node) {
+    enterScope();
+    for (const auto& child : node->whileStatement->body->statements) {
+        child->accept(*this);
+    }
+    node->whileStatement->condition->accept(*this);
+    exitScope();
+}
+
+void SemanticAnalyzer::visitPrintln(PrintlnStatementNode *node) {
+    node->type = TypeInfer::analyzeExpression(node->expression.get(), &scopes);
+}
+
+
+
+void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters) {
+    if (scopes.top().contains(name)) {
+        throw std::runtime_error("Function " + name + " already declared in this scope");
+    }
+    scopes.top()[name] = FunctionInfo{name, parameters};
+}
+
 
 
 void SemanticAnalyzer::declareVariable(const std::string& name, const std::string& type, const bool isConst) {
@@ -68,19 +128,20 @@ void SemanticAnalyzer::declareVariable(const std::string& name, const std::strin
 }
 
 
-SemanticAnalyzer::VariableInfo SemanticAnalyzer::lookupVariable(const std::string &name) const {
+SemanticAnalyzer::FunctionInfo SemanticAnalyzer::lookupFunction(const std::string &name,
+    std::vector<FunctionDeclarationNode::Param> parameters) const {
     auto tempScopes = scopes;
 
     while (!tempScopes.empty()) {
         if (const auto& currentScope = tempScopes.top(); currentScope.contains(name)) {
-            return currentScope.at(name);
+            auto fn = std::get<FunctionInfo>(currentScope.at(name));
+            return fn;
         }
         tempScopes.pop();
     }
 
-    throw std::runtime_error("Variable " + name + " not declared in any accessible scope");
+    throw std::runtime_error("Function " + name + " not declared in this scope");
 }
-
 
 
 void SemanticAnalyzer::enterScope() {

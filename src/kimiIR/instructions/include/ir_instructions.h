@@ -20,12 +20,33 @@ enum class IRInstruction {
   // Print from stack
   PRINT,
 
+  // Function
+  FN,
+  FN_PARAM,
+
+  // DO WHILE
+  DO,
+  WHILE,
+
+  // IF
+  IF,
+  ELSE,
+
+  // BLOCKS
+  INIT_BLOCK,
+  END_BLOCK,
+  END_CONDITION,
+
   // Arithmetic operations
   ADD,
   SUB,
   MUL,
   DIV,
   MOD,
+
+  EQUAL_EQUAL,
+  GRATER_THAN,
+  LESS_THAN,
  };
 
 
@@ -46,7 +67,6 @@ enum class IRType {
 enum class IRMeta {
   CONST,
   MUT,
-  GLOBAL,
 };
 
 

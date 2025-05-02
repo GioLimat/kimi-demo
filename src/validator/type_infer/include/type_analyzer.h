@@ -11,13 +11,13 @@
 
 class TypeInfer : public DefaultASTVisitor {
 private:
-    static std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>>* scopes;
+    static SemanticAnalyzer::Scope* scopes;
     static SemanticAnalyzer::VariableInfo lookupVariable(const std::string &name);
     mutable std::string currentType;
 
 public:
     static std::string analyzeExpression(ExpressionNode* expr,
-        std::stack<std::unordered_map<std::string, SemanticAnalyzer::VariableInfo>>* declared);
+        SemanticAnalyzer::Scope* declared);
 
     void visitNumber(NumberNode* node) override;
     void visitIdentifier(IdentifierExprNode* node) override;

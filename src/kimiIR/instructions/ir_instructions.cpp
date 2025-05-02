@@ -10,6 +10,9 @@ std::string IRMapper::getOperator(const std::string &op) {
     if (op == "*") return "MUL";
     if (op == "/") return "DIV";
     if (op == "%") return "MOD";
+    if (op == ">") return "GREATER";
+    if (op == "<") return "LESS";
+    if (op == "==") return "EQUAL";
     return "";
 }
 
@@ -18,7 +21,6 @@ std::string IRMapper::getMeta(const IRMeta meta) {
     switch (meta) {
         case IRMeta::CONST: return "const";
         case IRMeta::MUT: return "mut";
-        case IRMeta::GLOBAL: return "global";
     }
     return "";
 }
@@ -32,8 +34,9 @@ std::string IRMapper::getType(const IRType type) {
         case IRType::FLOAT32: return "f32";
         case IRType::FLOAT64: return "f64";
         case IRType::BOOL: return "bool";
+        default: return "";
     }
-    return "";
+
 }
 
 
@@ -43,6 +46,15 @@ std::string IRMapper::getInstruction(const IRInstruction ir) {
         case IRInstruction::LOAD: return "LOAD";
         case IRInstruction::STORE: return "STORE";
         case IRInstruction::PRINT: return "PRINT";
+        case IRInstruction::FN: return "FN";
+        case IRInstruction::FN_PARAM: return "FN_PARAM";
+        case IRInstruction::END_BLOCK: return "END_BLOCK";
+        case IRInstruction::INIT_BLOCK: return "INIT_BLOCK";
+        case IRInstruction::IF: return "IF";
+        case IRInstruction::DO: return "DO";
+        case IRInstruction::WHILE: return "WHILE";
+        case IRInstruction::ELSE: return "ELSE";
+        case IRInstruction::END_CONDITION: return "END_CONDITION";
         default: return "";
     }
 }

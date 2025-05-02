@@ -57,16 +57,16 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
 
 
 
-    std::vector<std::string> parameters;
-    std::vector<std::string> parametersTypes;
+    std::vector<FunctionDeclarationNode::Param> parameters;
 
     if (peek().type != LexerTokenType::R_PAREN) {
+        size_t i = 0;
         while (true) {
             if (peek().type != LexerTokenType::IDENTIFIER) {
                 throw std::runtime_error("Expected parameter name");
             }
-
-            parameters.push_back(advance().value);
+            parameters.push_back({});
+            parameters[i].name = advance().value;
 
             if (advance().type != LexerTokenType::COLON) {
                throw std::runtime_error("Expected ':' after parameter");
@@ -79,10 +79,12 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
                 throw std::runtime_error("Expected parameter type");
             }
 
-            parametersTypes.push_back(advance().value);
+            parameters[i].type = peek().type == LexerTokenType::INT ? "i32" : "f64";
+            advance();
 
             if (peek().type == LexerTokenType::COMMA) {
                 advance();
+                i++;
             } else {
                 break;
             }
@@ -118,5 +120,6 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
 
     advance();
 
-    return std::make_unique<FunctionDeclarationNode>(name.value, std::move(parameters), std::make_unique<BlockStatementNode>(std::move(body)), std::move(parametersTypes));
+
+    return std::make_unique<FunctionDeclarationNode>(name.value, std::move(parameters), std::make_unique<BlockStatementNode>(std::move(body)));
 }

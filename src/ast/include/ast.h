@@ -118,12 +118,16 @@ public:
 };
 
 class FunctionDeclarationNode : public StatementNode {
+
 public:
+    struct Param {
+        std::string name;
+        std::string type;
+    };
     std::string name;
-    std::vector<std::string> parameters;
+    std::vector<Param> parameters;
     std::unique_ptr<BlockStatementNode> body;
-    std::vector<std::string> parametersTypes;
-    explicit FunctionDeclarationNode(std::string name, std::vector<std::string> parameters, std::unique_ptr<BlockStatementNode> body, const std::vector<std::string>& parametersTypes);
+    explicit FunctionDeclarationNode(std::string name, std::vector<Param> parameters, std::unique_ptr<BlockStatementNode> body);
     void accept(ASTVisitor &visitor) override;
 };
 
@@ -189,6 +193,7 @@ class DoWhileStatementNode : public StatementNode {
 class PrintlnStatementNode : public StatementNode {
 public:
     std::unique_ptr<ExpressionNode> expression;
+    std::string type;
     explicit PrintlnStatementNode(std::unique_ptr<ExpressionNode> expression);
     void accept(ASTVisitor &visitor) override;
 };

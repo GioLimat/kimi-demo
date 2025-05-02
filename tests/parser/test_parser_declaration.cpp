@@ -52,7 +52,7 @@ TEST(ParserDeclaration, FnDeclarationWithReturnImplicit) {
 
     auto fnDeclaration = dynamic_cast<FunctionDeclarationNode*>(statement.get());
     ASSERT_EQ(fnDeclaration->name, "sum");
-    ASSERT_EQ(fnDeclaration->parameters, std::vector<std::string>({"a", "b"}));
+    ASSERT_EQ(fnDeclaration->parameters[0].type, "i32");
     ASSERT_EQ(fnDeclaration->body.get()->statements.size(), 2);
 }
 

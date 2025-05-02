@@ -39,13 +39,12 @@ VarDeclarationNode::VarDeclarationNode(std::string name,
       initializer(std::move(initializer)) {}
 
 FunctionDeclarationNode::FunctionDeclarationNode(std::string name,
-                                                 std::vector<std::string> parameters,
-                                                 std::unique_ptr<BlockStatementNode> body,
-                                                 const std::vector<std::string>& parametersTypes)
+                                                std::vector<Param> parameters,
+                                                 std::unique_ptr<BlockStatementNode> body
+                                                )
     : name(std::move(name)),
       parameters(std::move(parameters)),
-      body(std::move(body)),
-        parametersTypes(parametersTypes) {}
+      body(std::move(body)) {}
 
 CallFunctionNode::CallFunctionNode(std::string name,
                                    std::vector<std::unique_ptr<ExpressionNode>> arguments)
