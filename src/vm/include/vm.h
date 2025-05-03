@@ -1,0 +1,58 @@
+//
+// Created by home on 03/05/25.
+//
+
+#ifndef VM_H
+#define VM_H
+#include <cstdint>
+#include <cstring>
+#include <stack>
+#include <stdexcept>
+#include <unordered_map>
+#include <vector>
+
+#include "value.h"
+
+class VM {
+    struct CallFrame {
+        std::vector<ValueT> locals;
+        size_t ip;
+    };
+    struct FunctionInfo {
+        uint8_t id;
+    };
+public:
+    explicit VM(const std::vector<uint8_t>& bytecode);
+
+    void run();
+private:
+    std::vector<uint8_t> bytecode;
+    size_t ip;
+    std::stack<CallFrame> callStack;
+    std::stack<ValueT> loadStack;
+    std::unordered_map<std::string, FunctionInfo> functionsTable;
+
+    uint8_t read();
+    ValueT readPayload(uint8_t type);
+
+    template<typename Func>
+void binaryOp(Func op) {
+        ValueT rhs = loadStack.top(); loadStack.pop();
+        ValueT lhs = loadStack.top(); loadStack.pop();
+
+        const ValueT result = std::visit([&]<typename T0, typename T1>(T0 a, T1 b) -> ValueT {
+            using A = T0;
+            using B = T1;
+
+            if constexpr (std::is_same_v<A, B>) {
+                return op(a, b);
+            } else {
+                throw std::runtime_error("Type mismatch in binary operation");
+            }
+        }, lhs, rhs);
+
+        loadStack.push(result);
+    }
+};
+
+#endif //VM_H

@@ -33,10 +33,17 @@ public:
 class ExpressionNode : public ASTNode {
     public:
     virtual ~ExpressionNode() = default;
+    ExpressionNode() = default;
     void accept(ASTVisitor &visitor) override;
-
 };
 
+
+class GenericExpressionNode : public ExpressionNode {
+public:
+    std::unique_ptr<ExpressionNode> node;
+    explicit GenericExpressionNode(std::unique_ptr<ExpressionNode> node);
+    void accept(ASTVisitor &visitor) override;
+};
 
 class NumberNode : public ExpressionNode {
     public:
@@ -127,6 +134,7 @@ public:
     std::string name;
     std::vector<Param> parameters;
     std::unique_ptr<BlockStatementNode> body;
+    std::string returnType;
     explicit FunctionDeclarationNode(std::string name, std::vector<Param> parameters, std::unique_ptr<BlockStatementNode> body);
     void accept(ASTVisitor &visitor) override;
 };

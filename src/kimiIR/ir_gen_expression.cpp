@@ -32,3 +32,8 @@ void IRGen::visitCallFunction(CallFunctionNode *node) {
     }
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::CALL_END) + " " + node->name);
 }
+
+
+void IRGen::visitGenericExpressionNode(GenericExpressionNode *node) {
+    node->node->accept(*this);
+}

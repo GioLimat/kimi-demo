@@ -9,8 +9,6 @@
 
 
 
-
-
 NumberNode::NumberNode(std::string value)
     : value(std::move(value)) {}
 
@@ -80,6 +78,10 @@ DoWhileStatementNode::DoWhileStatementNode(std::unique_ptr<WhileStatementNode> w
 
 
 PrintlnStatementNode::PrintlnStatementNode(std::unique_ptr<ExpressionNode> expression) : expression(std::move(expression)) {}
+
+
+GenericExpressionNode::GenericExpressionNode(std::unique_ptr<ExpressionNode> node) : node(std::move(node)) {}
+
 
 
 
@@ -156,4 +158,8 @@ void StatementNode::accept(ASTVisitor &visitor) {
 
 void ExpressionNode::accept(ASTVisitor &visitor) {
         visitor.visitExpressionNode(this);
+}
+
+void GenericExpressionNode::accept(ASTVisitor &visitor) {
+        visitor.visitGenericExpressionNode(this);
 }

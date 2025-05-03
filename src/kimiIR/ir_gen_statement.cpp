@@ -2,6 +2,8 @@
 // Created by home on 02/05/25.
 //
 
+#include <iostream>
+
 #include "ir_instructions.h"
 #include "ir_gen.h"
 
@@ -47,4 +49,19 @@ void IRGen::visitDoWhileStatement(DoWhileStatementNode *node) {
 void IRGen::visitPrintln(PrintlnStatementNode *node) {
     node->expression->accept(*this);
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::PRINT) + " : " + node->type);
+}
+
+
+void IRGen::visitReturnStatement(ReturnStatementNode *node) {
+    if (node->returnValue) {
+        node->returnValue->accept(*this);
+    }
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::RET) + " : " + node->returnType);
+}
+
+
+
+
+void IRGen::visitExpressionStatement(ExpressionStatementNode *node) {
+    if (node->expression) node->expression->accept(*this);
 }

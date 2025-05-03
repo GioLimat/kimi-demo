@@ -4,6 +4,7 @@
 
 #include "parse_declaration.h"
 #include <ranges>
+#include <bits/locale_facets_nonio.h>
 
 
 std::unique_ptr<StatementNode> ParserDeclaration::parseDeclaration() {
@@ -111,15 +112,15 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
     current = blockEnd + 1;
 
     if (!body.empty()) {
-        if (auto* last = body.back().get(); !dynamic_cast<ReturnStatementNode*>(last)) {
-            if (auto* exprStmt = dynamic_cast<ExpressionStatementNode*>(last)) {
-                body.back() = std::make_unique<ReturnStatementNode>(std::move(exprStmt->expression));
-            }
+        ASTNode* last = body.back().get();
+        if (!dynamic_cast<ReturnStatementNode*>(last)) {
+
         }
+    } else {
+        body.push_back(std::make_unique<ReturnStatementNode>(nullptr));
     }
 
     advance();
-
 
     return std::make_unique<FunctionDeclarationNode>(name.value, std::move(parameters), std::make_unique<BlockStatementNode>(std::move(body)));
 }

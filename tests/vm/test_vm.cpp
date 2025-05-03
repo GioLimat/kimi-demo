@@ -1,7 +1,6 @@
 //
-// Created by home on 02/05/25.
+// Created by home on 03/05/25.
 //
-
 #include <iomanip>
 
 #include "ir_gen.h"
@@ -13,8 +12,9 @@
 
 #include "bygen.h"
 #include "semantic_analyzer.h"
+#include "vm.h"
 
-std::vector<uint8_t>  genBy(const std::string& code) {
+void  runVm(const std::string& code) {
     Lexer lexer(code);
     auto tokens = lexer.tokenize();
     Parser parser(tokens);
@@ -27,22 +27,12 @@ std::vector<uint8_t>  genBy(const std::string& code) {
         std::cout << instruction << std::endl;
     }
     ByGen by_gen = ByGen(ir);
-    return by_gen.generate();
+    auto gen = by_gen.generate();
+    VM vm(gen);
+    vm.run();
 }
 
 
-TEST(Bygen, SimpleBytecode) {
-    auto byte = genBy("fn b(a : Int){ var x = 1; return x + 4 }");
-    for (auto b : byte) {
-        auto v = static_cast<unsigned int>(b);
-        std::cout
-            << "0x"
-            << std::uppercase
-            << std::hex
-            << std::setw(2)
-            << std::setfill('0')
-            << v
-            << std::dec
-            << std::endl;
-    }
+TEST(Bygen, SimpleCode) {
+    runVm("println(2);");
 }

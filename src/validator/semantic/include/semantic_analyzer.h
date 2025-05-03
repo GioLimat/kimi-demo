@@ -21,10 +21,11 @@ public:
     struct FunctionInfo {
         std::string name;
         std::vector<FunctionDeclarationNode::Param> parameters;
+        std::string returnType;
     };
     using Scope = std::stack<std::unordered_map<std::string, std::variant<VariableInfo, FunctionInfo>>>;
 private:
-
+    std::string currentFn;
     Scope scopes;
 
     void enterScope();
@@ -60,6 +61,8 @@ private:
     void visitDoWhileStatement(DoWhileStatementNode *node) override;
     void visitPrintln(PrintlnStatementNode *node) override;
     void visitCallFunction(CallFunctionNode *node) override;
+    void visitReturnStatement(ReturnStatementNode *node) override;
+    void visitGenericExpressionNode(GenericExpressionNode *node) override;
 
 };
 

@@ -13,7 +13,7 @@ class TypeInfer : public DefaultASTVisitor {
 private:
     static SemanticAnalyzer::Scope* scopes;
     static SemanticAnalyzer::VariableInfo lookupVariable(const std::string &name);
-    mutable std::string currentType;
+    mutable std::string currentType = "void";
 
 public:
     static std::string analyzeExpression(ExpressionNode* expr,

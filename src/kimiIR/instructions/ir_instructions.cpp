@@ -57,6 +57,7 @@ std::string IRMapper::getInstruction(const IRInstruction ir) {
         case IRInstruction::END_CONDITION: return "END_CONDITION";
         case IRInstruction::CALL: return "CALL";
         case IRInstruction::CALL_END: return "CALL_END";
+        case IRInstruction::RET: return "RET";
         default: return "";
     }
 }

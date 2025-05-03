@@ -63,6 +63,7 @@ void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
 
 
 void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
+    currentFn = node->name;
     declareFunction(node->name, node->parameters);
     enterScope();
     for (const auto& param : node->parameters) {
@@ -71,7 +72,13 @@ void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
     for (const auto& child : node->body->statements) {
         child->accept(*this);
     }
+
+    auto fn = lookup<FunctionInfo>(node->name, "Function not declared");
+    if (fn.returnType.empty()) {
+        fn.returnType = "void";
+    }
     exitScope();
+    currentFn = "";
 }
 
 
@@ -110,6 +117,19 @@ void SemanticAnalyzer::visitPrintln(PrintlnStatementNode *node) {
     node->type = TypeInfer::analyzeExpression(node->expression.get(), &scopes);
 }
 
+void SemanticAnalyzer::visitReturnStatement(ReturnStatementNode *node) {
+    if (node->returnValue) {
+        node->returnValue->accept(*this);
+        auto returnType = TypeInfer::analyzeExpression(node->returnValue.get(), &scopes);
+        node->returnType = returnType;
+        lookup<FunctionInfo>(currentFn, "Function " + currentFn + " not declared in this scope").returnType = returnType;
+    }
+    else {
+        node->returnType = "void";
+        lookup<FunctionInfo>(currentFn, "Function " + currentFn + " not declared in this scope").returnType = "void";
+    }
+}
+
 
 void SemanticAnalyzer::visitCallFunction(CallFunctionNode *node) {
     auto functionInfo = lookup<FunctionInfo>(node->name, "Function " + node->name + " not declared in this scope");
@@ -129,12 +149,18 @@ void SemanticAnalyzer::visitCallFunction(CallFunctionNode *node) {
 }
 
 
+void SemanticAnalyzer::visitGenericExpressionNode(GenericExpressionNode *node) {
+    node->node->accept(*this);
+}
+
+
+
 
 void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters) {
     if (scopes.top().contains(name)) {
         throw std::runtime_error("Function " + name + " already declared in this scope");
     }
-    scopes.top()[name] = FunctionInfo{name, parameters};
+    scopes.top()[name] = FunctionInfo{name, parameters, "void"};
 }
 
 

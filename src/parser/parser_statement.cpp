@@ -40,11 +40,6 @@ std::unique_ptr<StatementNode> ParserStatement::parseReturnStatement() {
     }
     auto expr = delegateToExpression(exprEnd);
     current = exprEnd;
-
-    if (peek().type != LexerTokenType::SEMICOLON) {
-        throw std::runtime_error("Expected ';' or '}' after return expression");
-    }
-
     advance();
 
     return std::make_unique<ReturnStatementNode>(std::move(expr));
