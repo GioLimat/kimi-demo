@@ -3,6 +3,7 @@
 //
 #include "semantic_analyzer.h"
 
+#include <complex>
 #include <iostream>
 
 #include "type_analyzer.h"
@@ -107,6 +108,24 @@ void SemanticAnalyzer::visitDoWhileStatement(DoWhileStatementNode *node) {
 
 void SemanticAnalyzer::visitPrintln(PrintlnStatementNode *node) {
     node->type = TypeInfer::analyzeExpression(node->expression.get(), &scopes);
+}
+
+
+void SemanticAnalyzer::visitCallFunction(CallFunctionNode *node) {
+    auto functionInfo = lookup<FunctionInfo>(node->name, "Function " + node->name + " not declared in this scope");
+    if (functionInfo.name != node->name) {
+        throw std::runtime_error("Function " + node->name + " not declared in this scope");
+    }
+
+    if (functionInfo.parameters.size() != node->arguments.size()) {
+        throw std::runtime_error("Function " + node->name + " expects " +
+                                 std::to_string(functionInfo.parameters.size()) +
+                                 " arguments, but got " + std::to_string(node->arguments.size()));
+    }
+
+    for (size_t i = 0; i < functionInfo.parameters.size(); i++) {
+        node->arguments[i]->accept(*this);
+    }
 }
 
 

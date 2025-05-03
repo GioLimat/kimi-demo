@@ -24,3 +24,11 @@ void IRGen::visitIdentifier(IdentifierExprNode *identifier) {
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::LOAD) + " " + identifier->name + " : " + identifier->type);
 }
 
+
+void IRGen::visitCallFunction(CallFunctionNode *node) {
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::CALL) + " " + node->name);
+    for (const auto &arg : node->arguments) {
+        arg->accept(*this);
+    }
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::CALL_END) + " " + node->name);
+}

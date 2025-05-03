@@ -23,6 +23,8 @@ enum class IRInstruction {
   // Function
   FN,
   FN_PARAM,
+  CALL,
+  CALL_END,
 
   // DO WHILE
   DO,

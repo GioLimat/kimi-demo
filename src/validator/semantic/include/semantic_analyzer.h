@@ -59,6 +59,7 @@ private:
     void visitWhileStatement(WhileStatementNode *node) override;
     void visitDoWhileStatement(DoWhileStatementNode *node) override;
     void visitPrintln(PrintlnStatementNode *node) override;
+    void visitCallFunction(CallFunctionNode *node) override;
 
 };
 

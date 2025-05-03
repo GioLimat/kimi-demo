@@ -25,9 +25,51 @@ std::vector<std::string> ByGen::splitBySpace(const std::string& str) const {
     return tokens;
 }
 
+uint32_t ByGen::getIdentifierId(const std::string &name) {
+    std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
+    while (!temp.empty()) {
+        if (temp.top().contains(name)) {
+            return temp.top()[name];
+        }
+        temp.pop();
+    }
+    throw std::runtime_error("Unknown identifier name " +name );
+}
+
+void ByGen::declareIdentifier(const std::string &name) {
+    uint32_t varId;
+    std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
+    bool found = false;
+    while (!temp.empty()) {
+        auto& scope = temp.top();
+        auto it = scope.find(name);
+        if (it != scope.end()) {
+            varId = it->second;
+            found = true;
+            break;
+        }
+        temp.pop();
+    }
+    if (!found) {
+        auto& currentScope = symbolTable.top();
+        varId = nextId++;
+        currentScope[name] = varId;
+    }
+}
+
+
+
+void ByGen::pushULEB128Identifier(uint32_t val) {
+    while (val >= 0x80) {
+        bytecode.push_back(static_cast<uint8_t>((val & 0x7F) | 0x80));
+        val >>= 7;
+    }
+    bytecode.push_back(static_cast<uint8_t>(val));
+}
+
 
 std::vector<uint8_t>  ByGen::generate() {
-    std::vector<uint8_t> bytecode;
+
 
     for (const auto& instruction : ir) {
         const auto parts  = splitBySpace(instruction);
@@ -41,6 +83,7 @@ std::vector<uint8_t>  ByGen::generate() {
             symbolTable.pop();
             continue;
         }
+
         bytecode.push_back(ByMapper::getInstruction(instructionType));
         bytecode.push_back(0x00);
 
@@ -65,36 +108,54 @@ std::vector<uint8_t>  ByGen::generate() {
 
         if (instructionType == "STORE") {
             const std::string& name = parts[1];
-            uint32_t varId;
-            std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
-            bool found = false;
-            while (!temp.empty()) {
-                auto& scope = temp.top();
-                auto it = scope.find(name);
-                if (it != scope.end()) {
-                    varId = it->second;
-                    found = true;
-                    break;
-                }
-                temp.pop();
-            }
-            if (!found) {
-                auto& currentScope = symbolTable.top();
-                varId = nextVarId++;
-                currentScope[name] = varId;
-            }
 
-            bytecode.push_back(ByMapper::getType(type));
+            declareIdentifier(name);
 
-            uint32_t val = varId;
-            while (val >= 0x80) {
-                bytecode.push_back(static_cast<uint8_t>((val & 0x7F) | 0x80));
-                val >>= 7;
-            }
-            bytecode.push_back(static_cast<uint8_t>(val));
+            const uint32_t val = getIdentifierId(name);
+
+            pushULEB128Identifier(val);
+
             continue;
         }
 
+        if (instructionType == "LOAD") {
+            const std::string& varName = parts[1];
+
+            const uint32_t varId = getIdentifierId(varName);
+
+            pushULEB128Identifier(varId);
+
+            continue;
+        }
+        if (instructionType == "FN") {
+            const std::string& fnName = parts[1] + "_FN";
+
+            declareIdentifier(fnName);
+
+            const uint32_t val = getIdentifierId(fnName);
+
+            pushULEB128Identifier(val);
+            continue;
+        }
+        if (instructionType == "FN_PARAM") {
+            const std::string& paramName = parts[1];
+
+            symbolTable.top()[paramName] = nextId++;
+
+            pushULEB128Identifier(symbolTable.top()[paramName]);
+            continue;
+        }
+        if (instructionType == "CALL") {
+            const std::string& fnName = parts[1] + "_FN";
+
+            const uint32_t val = getIdentifierId(fnName);
+
+            pushULEB128Identifier(val);
+
+            continue;
+        }
+
+        bytecode.push_back(0x00);
     }
 
     return bytecode;

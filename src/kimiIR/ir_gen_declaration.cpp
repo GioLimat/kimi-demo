@@ -35,12 +35,11 @@ void IRGen::visitVarDeclaration(VarDeclarationNode *varDeclaration) {
 
 void IRGen::visitFunctionDeclaration(FunctionDeclarationNode *function) {
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::FN) + " " + function->name);
-
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
     for (const auto &param : function->parameters) {
         auto instruction = IRMapper::getInstruction(IRInstruction::FN_PARAM) + " " + param.name + " : " + param.type;
         bytecode.push_back(instruction);
     }
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
     for (const auto &node : function->body->statements) {
         node->accept(*this);
     }

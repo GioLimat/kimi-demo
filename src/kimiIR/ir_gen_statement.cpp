@@ -11,7 +11,6 @@ void IRGen::visitIfStatement(IfStatementNode *node) {
     node->condition->accept(*this);
 
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_CONDITION));
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
     for (const auto& n : node->thenBranch->statements) {
         n->accept(*this);
     }
@@ -27,7 +26,6 @@ void IRGen::visitWhileStatement(WhileStatementNode *node) {
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::WHILE));
     node->condition->accept(*this);
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_CONDITION));
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
     for (const auto& n : node->body->statements) {
         n->accept(*this);
     }

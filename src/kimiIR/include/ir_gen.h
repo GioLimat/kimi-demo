@@ -23,6 +23,7 @@ class IRGen : public DefaultASTVisitor {
     void visitWhileStatement(WhileStatementNode *node) override;
     void visitDoWhileStatement(DoWhileStatementNode *node) override;
     void visitPrintln(PrintlnStatementNode *node) override;
+    void visitCallFunction(CallFunctionNode *node) override;
 
     protected:
     std::vector<std::string> bytecode;

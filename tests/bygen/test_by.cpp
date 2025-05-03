@@ -32,7 +32,7 @@ std::vector<uint8_t>  genBy(const std::string& code) {
 
 
 TEST(Bygen, SimpleBytecode) {
-    auto byte = genBy("var a = 1; var b = 2;");
+    auto byte = genBy("fn b(a : Int){ println(a);} b(1);");
     for (auto b : byte) {
         auto v = static_cast<unsigned int>(b);
         std::cout
