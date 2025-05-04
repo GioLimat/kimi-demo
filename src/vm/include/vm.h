@@ -16,21 +16,26 @@
 class VM {
     struct CallFrame {
         std::vector<ValueT> locals;
+        size_t returnIp;
         size_t ip;
     };
     struct FunctionInfo {
-        uint8_t id;
+        size_t startIp;
+        size_t endIp;
+        size_t params;
     };
 public:
     explicit VM(const std::vector<uint8_t>& bytecode);
 
     void run();
+    void preprocessFunctions();
 private:
     std::vector<uint8_t> bytecode;
     size_t ip;
+    size_t currentCallId;
     std::stack<CallFrame> callStack;
     std::stack<ValueT> loadStack;
-    std::unordered_map<std::string, FunctionInfo> functionsTable;
+    std::unordered_map<size_t, FunctionInfo> functionTable;
 
     uint8_t read();
     ValueT readPayload(uint8_t type);

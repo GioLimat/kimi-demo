@@ -43,6 +43,5 @@ void IRGen::visitFunctionDeclaration(FunctionDeclarationNode *function) {
     for (const auto &node : function->body->statements) {
         node->accept(*this);
     }
-
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK));
 }

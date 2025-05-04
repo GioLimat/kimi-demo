@@ -75,14 +75,7 @@ std::vector<uint8_t>  ByGen::generate() {
         const auto parts  = splitBySpace(instruction);
         const auto& instructionType = parts[0];
         // Leave the current iteration and crate or destroy a scope
-        if (instructionType == "INIT_BLOCK") {
-            symbolTable.emplace();
-            continue;
-        }
-        if (instructionType == "END_BLOCK") {
-            symbolTable.pop();
-            continue;
-        }
+
 
         bytecode.push_back(ByMapper::getInstruction(instructionType));
         bytecode.push_back(0x00);
@@ -96,6 +89,17 @@ std::vector<uint8_t>  ByGen::generate() {
         }
         bytecode.push_back(ByMapper::getType(type));
 
+
+        if (instructionType == "INIT_BLOCK") {
+            symbolTable.emplace();
+            bytecode.push_back(0x00);
+            continue;
+        }
+        if (instructionType == "END_BLOCK") {
+            symbolTable.pop();
+            bytecode.push_back(0x00);
+            continue;
+        }
         if (instructionType == "CONST") {
             uint32_t val = std::stoul(parts[1]);
             while (val >= 0x80) {
@@ -154,6 +158,7 @@ std::vector<uint8_t>  ByGen::generate() {
 
             continue;
         }
+
 
         bytecode.push_back(0x00);
     }

@@ -29,10 +29,11 @@ void  runVm(const std::string& code) {
     ByGen by_gen = ByGen(ir);
     auto gen = by_gen.generate();
     VM vm(gen);
+    vm.preprocessFunctions();
     vm.run();
 }
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("println(2);");
+    runVm("var x = 4; println(x * 4 - 5);");
 }
