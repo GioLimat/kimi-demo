@@ -24,7 +24,9 @@ uint8_t VM::read() {
 ValueT VM::readPayload(const uint8_t type) {
     switch (type) {
         case 0x01: return ValueT{read()};
-        default: return ValueT{};
+        default:
+            read();
+            return ValueT{};
     }
 }
 
@@ -35,7 +37,7 @@ void VM::preprocessFunctions() {
         if (op == 0x05) {
             uint8_t funcId = bytecode[scanIp + 3];
 
-            size_t ip0 = scanIp + 4;
+            size_t ip0 = scanIp + 8;
             size_t countParams = 0;
             while (ip0 < bytecode.size() && bytecode[ip0] == 0x06) {
                 countParams++;
@@ -53,6 +55,7 @@ void VM::preprocessFunctions() {
             }
             size_t bodyEnd = ip1 - 4;
             functionTable[funcId] = FunctionInfo{ bodyStart, bodyEnd, countParams };
+
             scanIp = ip1;
         } else {
             scanIp += 4;
@@ -98,6 +101,14 @@ void VM::run() {
                 ip = functionTable[std::get<int32_t>(payload)].endIp + 4;
                 break;
             }
+            case 0x07: {
+                if (callStack.size() > 1) {
+                    CallFrame finished = callStack.top();
+                    callStack.pop();
+                    ip = finished.returnIp;
+                }
+                break;
+            }
 
             case 0x0E: //ADD
                 binaryOp([](auto a, auto b) { return a + b; });
@@ -121,7 +132,6 @@ void VM::run() {
             case 0x17 : { //CALL_END
                 auto& funcInfo = functionTable[currentCallId];
                 CallFrame frame;
-                std::cout << "CALLING" << std::endl;
                 frame.ip = funcInfo.startIp;
                 frame.returnIp = ip + 4;
                 frame.locals.resize(funcInfo.params);
@@ -132,7 +142,6 @@ void VM::run() {
                 }
 
                 callStack.emplace(frame);
-
                 ip = funcInfo.startIp;
                 break;
             }

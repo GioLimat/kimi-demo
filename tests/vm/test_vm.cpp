@@ -35,5 +35,5 @@ void  runVm(const std::string& code) {
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("var x = 4; println(x * 4 - 5);");
+    runVm("fn sum(a : Int, b : Int){ println(a + b); } var x = 4;   sum(x, 5);");
 }

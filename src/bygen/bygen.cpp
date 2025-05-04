@@ -144,7 +144,7 @@ std::vector<uint8_t>  ByGen::generate() {
         if (instructionType == "FN_PARAM") {
             const std::string& paramName = parts[1];
 
-            symbolTable.top()[paramName] = nextId++;
+            symbolTable.top()[paramName] = nextId++ - 1;
 
             pushULEB128Identifier(symbolTable.top()[paramName]);
             continue;
