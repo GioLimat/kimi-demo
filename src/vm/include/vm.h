@@ -30,6 +30,7 @@ public:
     void run();
     void preprocessFunctions();
 private:
+    std::vector<ValueT> globals;
     std::vector<uint8_t> bytecode;
     size_t ip;
     size_t currentCallId;

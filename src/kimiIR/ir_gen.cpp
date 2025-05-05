@@ -11,6 +11,7 @@ IRGen::IRGen(const std::unique_ptr<AST> &root) : root(root) {
 
 
 std::vector<std::string> IRGen::generate() {
+    scopes.emplace();
     for (const auto& node : root->children) {
         node->accept(*this);
     }

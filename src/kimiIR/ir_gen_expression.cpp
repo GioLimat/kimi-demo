@@ -21,7 +21,9 @@ void IRGen::visitNumber(NumberNode *number) {
 
 
 void IRGen::visitIdentifier(IdentifierExprNode *identifier) {
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LOAD) + " " + identifier->name + " : " + identifier->type);
+    auto it = lookup<SemanticAnalyzer::VariableInfo>(identifier->name, "Variable not found: " + identifier->name);
+    if (it.isGlobal) bytecode.push_back(IRMapper::getInstruction(IRInstruction::GLOAD) + " " + identifier->name + " : " + identifier->type);
+    else bytecode.push_back(IRMapper::getInstruction(IRInstruction::LOAD) + " " + identifier->name + " : " + identifier->type);
 }
 
 

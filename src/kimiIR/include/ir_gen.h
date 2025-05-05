@@ -5,10 +5,13 @@
 #ifndef IR_GEN_H
 #define IR_GEN_H
 
+#include <stack>
 #include <vector>
 #include "ast.h"
 #include <string>
+#include <unordered_map>
 
+#include "semantic_analyzer.h"
 #include "visitor.h"
 
 class IRGen : public DefaultASTVisitor {
@@ -30,6 +33,20 @@ class IRGen : public DefaultASTVisitor {
 
     protected:
     std::vector<std::string> bytecode;
+    SemanticAnalyzer::Scope scopes;
+    template <typename  T>
+    T lookup(const std::string& name, const std::string& message) const {
+        auto tempScopes = scopes;
+
+        while (!tempScopes.empty()) {
+            if (const auto& currentScope = tempScopes.top(); currentScope.contains(name)) {
+                return std::get<T>(currentScope.at(name));
+            }
+            tempScopes.pop();
+        }
+
+        throw std::runtime_error(message);
+    }
 public:
     explicit IRGen(const std::unique_ptr<AST> &root);
     std::vector<std::string> generate();

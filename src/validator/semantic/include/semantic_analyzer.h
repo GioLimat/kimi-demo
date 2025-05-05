@@ -17,6 +17,7 @@ public:
     struct VariableInfo {
         std::string type;
         bool isConst;
+        bool isGlobal;
     };
     struct FunctionInfo {
         std::string name;
@@ -28,9 +29,10 @@ private:
     std::string currentFn;
     Scope scopes;
 
+    void printAllScopes();
     void enterScope();
     void exitScope();
-    void declareVariable(const std::string& name, const std::string& type, bool isConst);
+    void declareVariable(const std::string& name, const std::string& type, bool isConst, bool isGlobal);
     void declareFunction(const std::string& name,
         const std::vector<FunctionDeclarationNode::Param>& parameters);
 

@@ -115,6 +115,7 @@ public:
 class VarDeclarationNode : public StatementNode {
 public:
     bool isConst;
+    bool isGlobal;
     std::string name;
     std::unique_ptr<ExpressionNode> initializer;
     std::string declaredType;

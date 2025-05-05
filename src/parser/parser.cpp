@@ -222,13 +222,16 @@ std::unique_ptr<AST> Parser::parse() {
     std::vector<std::unique_ptr<ASTNode>> ast;
     while (!isAtEnd()) {
         if (isDeclaration(peek())) {
+
             int end;
             try {
-                end = findEndBraceDisconsideredFirst(current) + 1;
+                if (peek().type == LexerTokenType::VAR || peek().type == LexerTokenType::VAL) end = findEndOfExpression(current) + 1;
+                else end = findEndBraceDisconsideredFirst(current) + 1;
             }
             catch (...) {
                 end = findEndOfExpression(current) + 1;
             }
+            std::cout << "Parsing " << peek().value << " End is " <<  end << " Size " << tokens.size() << std::endl;
             ast.push_back(delegateToDeclaration(end));
             current = end;
         }
@@ -239,6 +242,7 @@ std::unique_ptr<AST> Parser::parse() {
                 if (peek().type == LexerTokenType::DO) {
                     end = findEndParenDisconsideredFirst(current) + 1;
                 }
+                else if (peek().type == LexerTokenType::PRINTLN || peek().type == LexerTokenType::RETURN) end = findEndOfExpression(current) + 1;
                 else end = findEndBraceDisconsideredFirst(current) + 1;
             }
             catch (...) {

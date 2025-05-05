@@ -25,8 +25,7 @@ ValueT VM::readPayload(const uint8_t type) {
     switch (type) {
         case 0x01: return ValueT{read()};
         default:
-            read();
-            return ValueT{};
+            return ValueT{read()};
     }
 }
 
@@ -84,12 +83,18 @@ void VM::run() {
                 break;
             case 0x03:  { // STORE
                 const int32_t index = std::get<int32_t>(payload);
-                auto& locals = callStack.top().locals;
-                if (index >= locals.size()) {
-                    locals.resize(index + 1);
-                }
-                locals[index] = loadStack.top();
+                const ValueT val = loadStack.top();
                 loadStack.pop();
+
+                if (callStack.size() == 1) {
+                    if (index >= globals.size()) globals.resize(index + 1);
+                    globals[index] = val;
+                } else {
+                    auto& locals = callStack.top().locals;
+                    if (index >= locals.size()) locals.resize(index + 1);
+                    locals[index] = val;
+                }
+
                 break;
             }
             case 0x04: //PRINT
@@ -133,7 +138,7 @@ void VM::run() {
                 auto& funcInfo = functionTable[currentCallId];
                 CallFrame frame;
                 frame.ip = funcInfo.startIp;
-                frame.returnIp = ip + 4;
+                frame.returnIp = ip;
                 frame.locals.resize(funcInfo.params);
 
                 for (size_t i = 0; i < funcInfo.params; i++) {
@@ -141,9 +146,16 @@ void VM::run() {
                     loadStack.pop();
                 }
 
+
                 callStack.emplace(frame);
+
                 ip = funcInfo.startIp;
                 break;
+            }
+            case 0x19: { //GLOAD
+                loadStack.emplace(globals[std::get<int32_t>(payload)]);
+                break;
+
             }
         }
 

@@ -14,6 +14,7 @@ void SemanticAnalyzer::analyze(const AST& ast) {
     for (auto& node : ast.children) {
         node->accept(*this);
     }
+    exitScope();
 }
 
 void SemanticAnalyzer::visitBinaryExpr(BinaryExprNode *node) {
@@ -41,16 +42,22 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     else if (var->declaredType.empty()) {
         throw std::runtime_error("Variable " + var->name + " must have a type or be initialized, to type infer");
     }
+    if (scopes.size() == 1) {
+        var->isGlobal = true;
+    }
+    else {
+        var->isGlobal = false;
+    }
 
     const std::string finalType = var->declaredType.empty() ? inferredType : var->declaredType;
-    declareVariable(var->name, finalType, var->isConst);
+    declareVariable(var->name, finalType, var->isConst, var->isGlobal);
     var->type = finalType;
 }
 
 void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
     TypeInfer::analyzeExpression(expr, &scopes);
 
-    const auto [type, isConst] = lookup<VariableInfo>(expr->name, "Variable " + expr->name + " not declared in this scope");
+    const auto [type, isConst, isGlobal] = lookup<VariableInfo>(expr->name, "Variable " + expr->name + " not declared in this scope");
     if (isConst) {
         throw std::runtime_error("Cannot assign to const variable " + expr->name);
     }
@@ -67,7 +74,7 @@ void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
     declareFunction(node->name, node->parameters);
     enterScope();
     for (const auto& param : node->parameters) {
-        declareVariable(param.name, param.type, false);
+        declareVariable(param.name, param.type, false, false);
     }
     for (const auto& child : node->body->statements) {
         child->accept(*this);
@@ -131,7 +138,7 @@ void SemanticAnalyzer::visitReturnStatement(ReturnStatementNode *node) {
 }
 
 
-void SemanticAnalyzer::visitCallFunction(CallFunctionNode *node) {
+void SemanticAnalyzer::visitCallFunction(CallFunctionNode *node) {;
     auto functionInfo = lookup<FunctionInfo>(node->name, "Function " + node->name + " not declared in this scope");
     if (functionInfo.name != node->name) {
         throw std::runtime_error("Function " + node->name + " not declared in this scope");
@@ -165,11 +172,11 @@ void SemanticAnalyzer::declareFunction(const std::string &name, const std::vecto
 
 
 
-void SemanticAnalyzer::declareVariable(const std::string& name, const std::string& type, const bool isConst) {
+void SemanticAnalyzer::declareVariable(const std::string& name, const std::string& type, const bool isConst, const bool isGlobal) {
     if (scopes.top().contains(name)) {
         throw std::runtime_error("Variable " + name + " already declared in this scope");
     }
-    scopes.top()[name] = VariableInfo{type, isConst};
+    scopes.top()[name] = VariableInfo{type, isConst, isGlobal};
 }
 
 
@@ -197,3 +204,22 @@ void SemanticAnalyzer::exitScope() {
     scopes.pop();
 }
 
+
+void SemanticAnalyzer::printAllScopes() {
+    Scope scope = scopes;
+
+    for (int i = 0; i < scopes.size(); ++i) {
+        std::cout << "Scope " << i << ":" << std::endl;
+        for (const auto& [name, info] : scope.top()) {
+            if (std::holds_alternative<VariableInfo>(info)) {
+                const auto& varInfo = std::get<VariableInfo>(info);
+                std::cout << "  Variable: " << name << ", Type: " << varInfo.type << ", IsConst: " << varInfo.isConst << std::endl;
+            }
+            else if (std::holds_alternative<FunctionInfo>(info)) {
+                const auto& funcInfo = std::get<FunctionInfo>(info);
+                std::cout << "  Function: " << funcInfo.name << ", ReturnType: " << funcInfo.returnType << std::endl;
+            }
+        }
+        scope.pop();
+    }
+}

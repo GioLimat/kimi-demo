@@ -10,7 +10,9 @@
 
 class ByGen {
     std::stack<std::unordered_map<std::string, uint32_t>> symbolTable;
-    uint32_t nextId = 0;
+    std::unordered_map<std::string, uint32_t> globalVariables;
+    size_t globalNextId = 0;
+    size_t nextId = 0;
     std::vector<uint8_t> bytecode;
     std::vector<std::string> ir;
     [[nodiscard]] std::vector<std::string> splitBySpace(const std::string& str) const;

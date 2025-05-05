@@ -26,8 +26,21 @@ void  runVm(const std::string& code) {
     for (auto& instruction : ir) {
         std::cout << instruction << std::endl;
     }
-    ByGen by_gen = ByGen(ir);
+    auto by_gen = ByGen(ir);
     auto gen = by_gen.generate();
+    for (auto b : gen) {
+        auto v = static_cast<unsigned int>(b);
+        std::cout
+            << "0x"
+            << std::uppercase
+            << std::hex
+            << std::setw(2)
+            << std::setfill('0')
+            << v
+            << std::dec
+           << " ";
+    }
+    std::cout << std::endl;
     VM vm(gen);
     vm.preprocessFunctions();
     vm.run();
@@ -35,5 +48,5 @@ void  runVm(const std::string& code) {
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("fn sum(a : Int, b : Int){ println(a + b); } var x = 4;   sum(x, 5);");
+    runVm("var b = 2; fn sum(a : Int) { println(a + b);}  sum(8 + b);");
 }

@@ -26,6 +26,13 @@ std::vector<std::string> ByGen::splitBySpace(const std::string& str) const {
 }
 
 uint32_t ByGen::getIdentifierId(const std::string &name) {
+
+    if (symbolTable.size() == 1) {
+        if (globalVariables.contains(name)) {
+            return globalVariables[name];
+        }    std::cout << symbolTable.size() << std::endl;
+        throw std::runtime_error("Unknown identifier name " +name );
+    }
     std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
     while (!temp.empty()) {
         if (temp.top().contains(name)) {
@@ -33,12 +40,21 @@ uint32_t ByGen::getIdentifierId(const std::string &name) {
         }
         temp.pop();
     }
+    if (globalVariables.contains(name)) {
+        return globalVariables[name];
+    }
     throw std::runtime_error("Unknown identifier name " +name );
 }
 
 void ByGen::declareIdentifier(const std::string &name) {
+    if (symbolTable.size()  == 1) {
+        globalVariables[name] = globalNextId++;
+        return;
+    }
     uint32_t varId;
     std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
+
+
     bool found = false;
     while (!temp.empty()) {
         auto& scope = temp.top();
@@ -122,7 +138,7 @@ std::vector<uint8_t>  ByGen::generate() {
             continue;
         }
 
-        if (instructionType == "LOAD") {
+        if (instructionType == "LOAD" || instructionType == "GLOAD") {
             const std::string& varName = parts[1];
 
             const uint32_t varId = getIdentifierId(varName);
@@ -144,7 +160,8 @@ std::vector<uint8_t>  ByGen::generate() {
         if (instructionType == "FN_PARAM") {
             const std::string& paramName = parts[1];
 
-            symbolTable.top()[paramName] = nextId++ - 1;
+            uint32_t varId = nextId++;
+            symbolTable.top()[paramName] = varId;
 
             pushULEB128Identifier(symbolTable.top()[paramName]);
             continue;

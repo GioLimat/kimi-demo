@@ -13,6 +13,7 @@ enum class IRInstruction {
 
   // Load from stack
   LOAD,
+  GLOAD,
 
   // Store at stack
   STORE,
