@@ -75,13 +75,12 @@ void ByGen::declareIdentifier(const std::string &name) {
 
 
 
-void ByGen::pushULEB128Identifier(uint32_t val) {
-    while (val >= 0x80) {
-        bytecode.push_back(static_cast<uint8_t>((val & 0x7F) | 0x80));
-        val >>= 7;
-    }
-    bytecode.push_back(static_cast<uint8_t>(val));
+void ByGen::emitBasedOnType(const std::string &type) {
+    if (type == "i32") emitLiteralLE<int32_t>(0);
+    else if (type == "f64") emitLiteralLE<double>(0.0);
+    else emitLiteralLE<int32_t>(0);
 }
+
 
 
 std::vector<uint8_t>  ByGen::generate() {
@@ -90,8 +89,6 @@ std::vector<uint8_t>  ByGen::generate() {
     for (const auto& instruction : ir) {
         const auto parts  = splitBySpace(instruction);
         const auto& instructionType = parts[0];
-        // Leave the current iteration and crate or destroy a scope
-
 
         bytecode.push_back(ByMapper::getInstruction(instructionType));
         bytecode.push_back(0x00);
@@ -108,21 +105,22 @@ std::vector<uint8_t>  ByGen::generate() {
 
         if (instructionType == "INIT_BLOCK") {
             symbolTable.emplace();
-            bytecode.push_back(0x00);
+            emitLiteralLE<int32_t>(static_cast<int32_t>(0x00));
             continue;
         }
         if (instructionType == "END_BLOCK") {
             symbolTable.pop();
-            bytecode.push_back(0x00);
+            emitLiteralLE<int32_t>(static_cast<int32_t>(0x00));
             continue;
         }
         if (instructionType == "CONST") {
-            uint32_t val = std::stoul(parts[1]);
-            while (val >= 0x80) {
-                bytecode.push_back(static_cast<uint8_t>((val & 0x7F) | 0x80));
-                val >>= 7;
+            if (type == "i32") {
+                int32_t v = std::stoi(parts[1]);
+                emitLiteralLE<int32_t>(v);
+            } else if (type == "f64") {
+                double v = std::stod(parts[1]);
+                emitLiteralLE<double>(v);
             }
-            bytecode.push_back(static_cast<uint8_t>(val));
             continue;
         }
 
@@ -133,8 +131,7 @@ std::vector<uint8_t>  ByGen::generate() {
 
             const uint32_t val = getIdentifierId(name);
 
-            pushULEB128Identifier(val);
-
+            emitLiteralLE<int32_t>(val);
             continue;
         }
 
@@ -143,8 +140,7 @@ std::vector<uint8_t>  ByGen::generate() {
 
             const uint32_t varId = getIdentifierId(varName);
 
-            pushULEB128Identifier(varId);
-
+            if (type == "i32") emitLiteralLE<int32_t>(static_cast<int32_t>(varId));
             continue;
         }
         if (instructionType == "FN") {
@@ -154,7 +150,7 @@ std::vector<uint8_t>  ByGen::generate() {
 
             const uint32_t val = getIdentifierId(fnName);
 
-            pushULEB128Identifier(val);
+            emitLiteralLE<int32_t>(static_cast<int32_t>(val));
             continue;
         }
         if (instructionType == "FN_PARAM") {
@@ -163,7 +159,8 @@ std::vector<uint8_t>  ByGen::generate() {
             uint32_t varId = nextId++;
             symbolTable.top()[paramName] = varId;
 
-            pushULEB128Identifier(symbolTable.top()[paramName]);
+            if (type == "i32") emitLiteralLE<int32_t>(static_cast<int32_t>(varId));
+            if (type == "f64") emitLiteralLE<double>(varId);
             continue;
         }
         if (instructionType == "CALL") {
@@ -171,13 +168,12 @@ std::vector<uint8_t>  ByGen::generate() {
 
             const uint32_t val = getIdentifierId(fnName);
 
-            pushULEB128Identifier(val);
+            emitLiteralLE<int32_t>(static_cast<int32_t>(val));
 
             continue;
         }
 
-
-        bytecode.push_back(0x00);
+        emitBasedOnType(type);
     }
 
     return bytecode;

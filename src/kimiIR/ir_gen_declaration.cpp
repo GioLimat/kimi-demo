@@ -13,7 +13,7 @@ void IRGen::visitVarDeclaration(VarDeclarationNode *varDeclaration) {
        varDeclaration->initializer->accept(*this);
     }
 
-    auto instruction = IRMapper::getInstruction(IRInstruction::STORE) + " " + varDeclaration->name + " : " + varDeclaration->type + " ";
+    auto instruction = IRMapper::getInstruction(IRInstruction::STORE) + " " + varDeclaration->name + " : " + "i32" + " ";
     std::string meta;
 
     if (varDeclaration->isConst) {

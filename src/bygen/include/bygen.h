@@ -18,7 +18,23 @@ class ByGen {
     [[nodiscard]] std::vector<std::string> splitBySpace(const std::string& str) const;
     uint32_t getIdentifierId(const std::string& name);
     void declareIdentifier(const std::string& name);
-    void pushULEB128Identifier(uint32_t val);
+
+    template<typename T>
+    void emitBasedOnType(const std::string& type, T value) {
+        if (type == "i32") emit<int32_t>(value);
+        if (type == "f64") emit<double>(value);
+    };
+
+    void emitBasedOnType(const std::string& type);
+
+    template<typename T>
+    void emitLiteralLE(const T& value) {
+            static_assert(std::is_arithmetic_v<T>, "Only arithmetic types supported");
+            const auto* bytes = reinterpret_cast<const uint8_t*>(&value);
+            for (size_t i = 0; i < sizeof(T); ++i) {
+                bytecode.push_back(bytes[i]);
+            }
+    }
 public:
     ByGen(std::vector<std::string> ir);
     std::vector<uint8_t>  generate();

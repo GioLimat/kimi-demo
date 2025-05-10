@@ -41,23 +41,25 @@ private:
     uint8_t read();
     ValueT readPayload(uint8_t type);
 
+    size_t instruLen(size_t pos);
+
     template<typename Func>
-void binaryOp(Func op) {
-        ValueT rhs = loadStack.top(); loadStack.pop();
-        ValueT lhs = loadStack.top(); loadStack.pop();
+    void binaryOp(Func op) {
+            ValueT rhs = loadStack.top(); loadStack.pop();
+            ValueT lhs = loadStack.top(); loadStack.pop();
 
-        const ValueT result = std::visit([&]<typename T0, typename T1>(T0 a, T1 b) -> ValueT {
-            using A = T0;
-            using B = T1;
+            const ValueT result = std::visit([&]<typename T0, typename T1>(T0 a, T1 b) -> ValueT {
+                using A = T0;
+                using B = T1;
 
-            if constexpr (std::is_same_v<A, B>) {
-                return op(a, b);
-            } else {
-                throw std::runtime_error("Type mismatch in binary operation");
-            }
-        }, lhs, rhs);
+                if constexpr (std::is_same_v<A, B>) {
+                    return op(a, b);
+                } else {
+                    throw std::runtime_error("Type mismatch in binary operation");
+                }
+            }, lhs, rhs);
 
-        loadStack.push(result);
+            loadStack.push(result);
     }
 };
 

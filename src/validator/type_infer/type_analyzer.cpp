@@ -26,6 +26,11 @@ void TypeInfer::visitBoolean(BooleanNode* node) {
     currentType = "bool";
 }
 
+void TypeInfer::visitCallFunction(CallFunctionNode *node) {
+    currentType = node->returnType;
+}
+
+
 void TypeInfer::visitIdentifier(IdentifierExprNode* node) {
     try {
         std::string type = lookupVariable(node->name).type;

@@ -18,6 +18,8 @@ void SemanticAnalyzer::analyze(const AST& ast) {
 }
 
 void SemanticAnalyzer::visitBinaryExpr(BinaryExprNode *node) {
+    node->left->accept(*this);
+    node->right->accept(*this);
     TypeInfer::analyzeExpression(node, &scopes);
 }
 
@@ -30,6 +32,7 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     std::string inferredType;
 
     if (var->initializer) {
+        var->initializer->accept(*this);
         inferredType = TypeInfer::analyzeExpression(var->initializer.get(), &scopes);
 
         if (!var->declaredType.empty() && var->declaredType != inferredType) {
@@ -71,7 +74,7 @@ void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
 
 void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
     currentFn = node->name;
-    declareFunction(node->name, node->parameters);
+    declareFunction(node->name, node->parameters, node->returnType);
     enterScope();
     for (const auto& param : node->parameters) {
         declareVariable(param.name, param.type, false, false);
@@ -129,7 +132,15 @@ void SemanticAnalyzer::visitReturnStatement(ReturnStatementNode *node) {
         node->returnValue->accept(*this);
         auto returnType = TypeInfer::analyzeExpression(node->returnValue.get(), &scopes);
         node->returnType = returnType;
-        lookup<FunctionInfo>(currentFn, "Function " + currentFn + " not declared in this scope").returnType = returnType;
+        auto fn = lookup<FunctionInfo>(currentFn, "Function " + currentFn + " not declared in this scope");
+        if (returnType != fn.returnType && fn.returnType != "infer") {
+            throw std::runtime_error("Return type mismatch in function " + currentFn +
+                                     ": expected " + lookup<FunctionInfo>(currentFn, "Function " + currentFn + " not declared in this scope").returnType +
+                                     ", got " + returnType);
+        }
+        if (fn.returnType == "infer") {
+            updateScope(currentFn, FunctionInfo(currentFn, fn.parameters, returnType, returnType));
+        }
     }
     else {
         node->returnType = "void";
@@ -144,6 +155,7 @@ void SemanticAnalyzer::visitCallFunction(CallFunctionNode *node) {;
         throw std::runtime_error("Function " + node->name + " not declared in this scope");
     }
 
+
     if (functionInfo.parameters.size() != node->arguments.size()) {
         throw std::runtime_error("Function " + node->name + " expects " +
                                  std::to_string(functionInfo.parameters.size()) +
@@ -153,6 +165,7 @@ void SemanticAnalyzer::visitCallFunction(CallFunctionNode *node) {;
     for (size_t i = 0; i < functionInfo.parameters.size(); i++) {
         node->arguments[i]->accept(*this);
     }
+    node->returnType = functionInfo.returnType;
 }
 
 
@@ -161,13 +174,11 @@ void SemanticAnalyzer::visitGenericExpressionNode(GenericExpressionNode *node) {
 }
 
 
-
-
-void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters) {
+void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters, const std::string &returnType) {
     if (scopes.top().contains(name)) {
         throw std::runtime_error("Function " + name + " already declared in this scope");
     }
-    scopes.top()[name] = FunctionInfo{name, parameters, "void"};
+    scopes.top()[name] = FunctionInfo{name, parameters, returnType};
 }
 
 

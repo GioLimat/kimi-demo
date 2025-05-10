@@ -3,6 +3,8 @@
 //
 
 #include "parse_declaration.h"
+
+#include <algorithm>
 #include <ranges>
 #include <bits/locale_facets_nonio.h>
 
@@ -95,6 +97,18 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
     if (advance().type != LexerTokenType::R_PAREN) {
         throw std::runtime_error("Expected ')' after function parameters");
     }
+    std::string type = "infer";
+    if (peek().type == LexerTokenType::COLON) {
+        advance();
+        if (peek().type == LexerTokenType::INT) {
+            type = "i32";
+        }
+        else if (peek().type == LexerTokenType::FLOAT) {
+            type = "f64";
+        }
+        else type = "void";
+        advance();
+    }
 
     if (peek().type != LexerTokenType::L_BRACE) {
         throw std::runtime_error("Expected '{' after function body");
@@ -112,15 +126,35 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
     current = blockEnd + 1;
 
     if (!body.empty()) {
-        ASTNode* last = body.back().get();
-        if (!dynamic_cast<ReturnStatementNode*>(last)) {
+        auto lastPtr = std::move(body.back());
+        body.pop_back();
 
+        if (!dynamic_cast<ReturnStatementNode*>(lastPtr.get())) {
+            if (auto expr = dynamic_cast<ExpressionNode*>(lastPtr.get())) {
+                std::unique_ptr<ExpressionNode> exprPtr(
+                    dynamic_cast<ExpressionNode*>(lastPtr.release())
+                );
+                body.push_back(
+                    std::make_unique<ReturnStatementNode>(std::move(exprPtr))
+                );
+            }
+            else {
+                body.push_back(std::make_unique<ReturnStatementNode>(nullptr));
+            }
         }
-    } else {
+        else {
+            body.push_back(std::move(lastPtr));
+        }
+    }
+    else {
         body.push_back(std::make_unique<ReturnStatementNode>(nullptr));
     }
 
+
     advance();
 
-    return std::make_unique<FunctionDeclarationNode>(name.value, std::move(parameters), std::make_unique<BlockStatementNode>(std::move(body)));
+    auto fn = FunctionDeclarationNode(name.value, std::move(parameters), std::make_unique<BlockStatementNode>(std::move(body)));
+    fn.returnType = type;
+
+    return std::make_unique<FunctionDeclarationNode>(std::move(fn));
 }

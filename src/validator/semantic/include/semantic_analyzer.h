@@ -23,6 +23,7 @@ public:
         std::string name;
         std::vector<FunctionDeclarationNode::Param> parameters;
         std::string returnType;
+        std::string inferType;
     };
     using Scope = std::stack<std::unordered_map<std::string, std::variant<VariableInfo, FunctionInfo>>>;
 private:
@@ -34,7 +35,7 @@ private:
     void exitScope();
     void declareVariable(const std::string& name, const std::string& type, bool isConst, bool isGlobal);
     void declareFunction(const std::string& name,
-        const std::vector<FunctionDeclarationNode::Param>& parameters);
+        const std::vector<FunctionDeclarationNode::Param>& parameters, const std::string& returnType);
 
     template <typename  T>
     T lookup(const std::string& name, const std::string& message) const {
@@ -42,12 +43,45 @@ private:
 
         while (!tempScopes.empty()) {
             if (const auto& currentScope = tempScopes.top(); currentScope.contains(name)) {
-                return std::get<T>(currentScope.at(name));
+                auto payload = currentScope.at(name);
+                return std::get<T>(payload);
             }
             tempScopes.pop();
         }
 
         throw std::runtime_error(message);
+    }
+
+
+    template <typename T>
+    void updateScope(const std::string& name, const T& value) {
+        std::stack<std::unordered_map<std::string, std::variant<VariableInfo, FunctionInfo>>> temp;
+        bool updated = false;
+
+
+        while (!scopes.empty()) {
+            auto& currentScope = scopes.top();
+            if (currentScope.contains(name)) {
+                currentScope[name] = value;
+                updated = true;
+                break;
+            }
+            temp.push(std::move(currentScope));
+            scopes.pop();
+        }
+
+        if (!updated) {
+            while (!temp.empty()) {
+                scopes.push(std::move(temp.top()));
+                temp.pop();
+            }
+            throw std::runtime_error("Name '" + name + "' not declared in any scope");
+        }
+
+        while (!temp.empty()) {
+            scopes.push(std::move(temp.top()));
+            temp.pop();
+        }
     }
 
     [[nodiscard]] FunctionInfo lookupFunction(const std::string& name, std::vector<FunctionDeclarationNode::Param> parameters) const;

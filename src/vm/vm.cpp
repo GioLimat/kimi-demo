@@ -23,43 +23,79 @@ uint8_t VM::read() {
 
 ValueT VM::readPayload(const uint8_t type) {
     switch (type) {
-        case 0x01: return ValueT{read()};
-        default:
-            return ValueT{read()};
+        case 0x01: { // i32 (4 bytes)
+            uint32_t raw = 0;
+            for (int i = 0; i < 4; ++i) {
+                raw |= static_cast<uint32_t>(read()) << (8 * i);
+            }
+            return ValueT{static_cast<int32_t>(raw)};
+        }
+        case 0x04: { // f64 (8 bytes)
+            uint64_t raw = 0;
+            for (int i = 0; i < 8; ++i) {
+                raw |= static_cast<uint64_t>(read()) << (8 * i);
+            }
+            double val;
+            std::memcpy(&val, &raw, sizeof(double));
+            return ValueT{val};
+        }
+        default: {
+            for (int i = 0; i < 4; ++i) read();
+            return ValueT{};
+        }
     }
 }
+
+size_t VM::instruLen(const size_t pos) {
+    if (pos + 3 > bytecode.size()) return 0;
+    const uint8_t type = bytecode[pos+2];
+    size_t payload = 0;
+    switch(type) {
+        case 0x01: payload = 4; break;
+        case 0x04: payload = 8; break;
+        default:   payload = 4; break;
+    }
+    return 3 + payload;
+}
+
 
 void VM::preprocessFunctions() {
     size_t scanIp = 0;
     while (scanIp < bytecode.size()) {
         uint8_t op = bytecode[scanIp];
-        if (op == 0x05) {
+        if (op == 0x05) { // FN
             uint8_t funcId = bytecode[scanIp + 3];
 
-            size_t ip0 = scanIp + 8;
-            size_t countParams = 0;
-            while (ip0 < bytecode.size() && bytecode[ip0] == 0x06) {
-                countParams++;
-                ip0 += 4;
-            }
-            size_t bodyStart = ip0;
+            size_t p = scanIp;
+            p += instruLen(p);
 
-            size_t ip1 = bodyStart;
-            int depth = 1;
-            while (ip1 < bytecode.size() && depth > 0) {
-                uint8_t cur = bytecode[ip1];
-                if (cur == 0x05) depth++;
-                else if (cur == 0x07) depth--;
-                ip1 += 4;
+            if (p < bytecode.size() && bytecode[p] == 0x08) {
+                p += instruLen(p);
             }
-            size_t bodyEnd = ip1 - 4;
+
+            size_t countParams = 0;
+            while (p < bytecode.size() && bytecode[p] == 0x06) {
+                ++countParams;
+                p += instruLen(p);
+            }
+            size_t bodyStart = p;
+
+            size_t q = bodyStart;
+            int depth = 1;
+            while (q < bytecode.size() && depth > 0) {
+                uint8_t cur = bytecode[q];
+                if (cur == 0x05)       ++depth;
+                else if (cur == 0x07)  --depth;
+                q += instruLen(q);
+            }
+            size_t bodyEnd = q - instruLen(q);
+
             functionTable[funcId] = FunctionInfo{ bodyStart, bodyEnd, countParams };
 
-            scanIp = ip1;
+            scanIp = q;
         } else {
-            scanIp += 4;
-
-    }
+            scanIp += instruLen(scanIp);
+        }
     }
 }
 
@@ -78,32 +114,43 @@ void VM::run() {
             case 0x01: //CONST
                 loadStack.emplace(payload);
                 break;
-            case 0x02: //LOAD
-                loadStack.emplace(callStack.top().locals.at(std::get<int32_t>(payload)));
+            case 0x02: {
+                //LOAD
+                int32_t idx = std::get<int32_t>(payload);
+                loadStack.emplace(callStack.top().locals.at(idx));
                 break;
+            }
             case 0x03:  { // STORE
-                const int32_t index = std::get<int32_t>(payload);
-                const ValueT val = loadStack.top();
+                int32_t idx = std::get<int32_t>(payload);
+
+                ValueT val = loadStack.top();
                 loadStack.pop();
 
-                if (callStack.size() == 1) {
-                    if (index >= globals.size()) globals.resize(index + 1);
-                    globals[index] = val;
-                } else {
-                    auto& locals = callStack.top().locals;
-                    if (index >= locals.size()) locals.resize(index + 1);
-                    locals[index] = val;
-                }
+                std::vector<ValueT> &dest =
+                    (callStack.size() == 1
+                        ? globals
+                        : callStack.top().locals);
 
+                if (static_cast<size_t>(idx) >= dest.size()) {
+                    dest.resize(static_cast<size_t>(idx) + 1);
+                }
+                dest[static_cast<size_t>(idx)] = val;
                 break;
             }
             case 0x04: //PRINT
-                std::cout << std::get<int32_t>(loadStack.top()) << std::endl;
+                switch (type) {
+                    case 0x01: //i32
+                        std::cout << std::get<int32_t>(loadStack.top()) << std::endl;
+                        break;
+                    case 0x04:  //i64
+                        std::cout << std::get<double>(loadStack.top()) << std::endl;
+                        break;
+                }
                 loadStack.pop();
                 break;
             case 0x05: {
                 //FN
-                ip = functionTable[std::get<int32_t>(payload)].endIp + 4;
+                ip = functionTable[std::get<int32_t>(payload)].endIp;
                 break;
             }
             case 0x07: {
@@ -150,6 +197,21 @@ void VM::run() {
                 callStack.emplace(frame);
 
                 ip = funcInfo.startIp;
+                break;
+            }
+            case 0x18: { //RET
+                ValueT retVal{};
+                if (!loadStack.empty()) {
+                    retVal = loadStack.top();
+                    loadStack.pop();
+                }
+
+                CallFrame finished = callStack.top();
+                callStack.pop();
+
+                ip = finished.returnIp;
+
+                loadStack.emplace(retVal);
                 break;
             }
             case 0x19: { //GLOAD

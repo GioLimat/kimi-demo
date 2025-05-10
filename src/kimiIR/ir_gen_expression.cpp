@@ -22,13 +22,13 @@ void IRGen::visitNumber(NumberNode *number) {
 
 void IRGen::visitIdentifier(IdentifierExprNode *identifier) {
     auto it = lookup<SemanticAnalyzer::VariableInfo>(identifier->name, "Variable not found: " + identifier->name);
-    if (it.isGlobal) bytecode.push_back(IRMapper::getInstruction(IRInstruction::GLOAD) + " " + identifier->name + " : " + identifier->type);
-    else bytecode.push_back(IRMapper::getInstruction(IRInstruction::LOAD) + " " + identifier->name + " : " + identifier->type);
+    if (it.isGlobal) bytecode.push_back(IRMapper::getInstruction(IRInstruction::GLOAD) + " " + identifier->name + " : " + "i32");
+    else bytecode.push_back(IRMapper::getInstruction(IRInstruction::LOAD) + " " + identifier->name + " : " + "i32");
 }
 
 
 void IRGen::visitCallFunction(CallFunctionNode *node) {
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::CALL) + " " + node->name);
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::CALL) + " " + node->name + " " + ": i32");
     for (const auto &arg : node->arguments) {
         arg->accept(*this);
     }

@@ -136,6 +136,7 @@ public:
     std::vector<Param> parameters;
     std::unique_ptr<BlockStatementNode> body;
     std::string returnType;
+    std::string inferType;
     explicit FunctionDeclarationNode(std::string name, std::vector<Param> parameters, std::unique_ptr<BlockStatementNode> body);
     void accept(ASTVisitor &visitor) override;
 };

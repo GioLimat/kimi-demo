@@ -48,5 +48,5 @@ void  runVm(const std::string& code) {
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("var b = 2; fn sum(a : Int) { println(a + b);}  sum(8 + b);");
+    runVm("fn sum(a : Float, b : Float) { a + b}  val x =  sum(4.4, sum(2.4, 2.4)); println(x);");
 }

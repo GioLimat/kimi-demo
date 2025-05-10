@@ -19,6 +19,8 @@ public:
     static std::string analyzeExpression(ExpressionNode* expr,
         SemanticAnalyzer::Scope* declared);
 
+
+    void visitCallFunction(CallFunctionNode *node) override;;
     void visitNumber(NumberNode* node) override;
     void visitIdentifier(IdentifierExprNode* node) override;
     void visitBoolean(BooleanNode* node) override;
