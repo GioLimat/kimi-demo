@@ -38,6 +38,7 @@ protected:
     [[nodiscard]] int findEndParenDisconsideredFirst(size_t start) const;
     [[nodiscard]] int findEndOfExpression(size_t start) const;
     [[nodiscard]] int findEndOfParenBlock(size_t start) const;
+    [[ nodiscard ]] int findEndOfIfElse(size_t start) const;
     std::vector<LexerToken> tokensByCurrentBlock(int& blockEnd_);
 
 private:

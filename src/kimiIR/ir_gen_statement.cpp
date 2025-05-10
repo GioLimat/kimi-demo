@@ -8,19 +8,27 @@
 #include "ir_gen.h"
 
 
-void IRGen::visitIfStatement(IfStatementNode *node) {
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::IF));
-    node->condition->accept(*this);
+void IRGen::visitBlockStatement(BlockStatementNode *node) {
+    for (const auto& n : node->statements) {
+        n->accept(*this);
+    }
+}
 
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_CONDITION));
-    for (const auto& n : node->thenBranch->statements) {
+
+void IRGen::visitIfStatement(IfStatementNode *node) {
+    node->condition->accept(*this);
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::IF_FALSE) + " L" + std::to_string(currentLabel));
+
+    for (auto &n : node->thenBranch->statements) {
         n->accept(*this);
     }
     if (node->elseBranch) {
+        currentLabel++;
+        bytecode.push_back(IRMapper::getInstruction(IRInstruction::JMP) + " L" + std::to_string(currentLabel));
+        bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(currentLabel - 1));
         node->elseBranch->accept(*this);
     }
-
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK));
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(currentLabel));
 }
 
 

@@ -120,10 +120,26 @@ int Parser::findMatchingBrace(int start) const {
             }
         }
     }
-
     throw std::runtime_error("No matching '}' found for '{'.");
 }
 
+int Parser::findEndOfIfElse(size_t start) const {
+    size_t i = start;
+    if (tokens[i].type != LexerTokenType::IF) return start;
+    i++;
+    i = findEndOfParenBlock(i);
+    i = findMatchingBrace(i);
+    int next = i + 1;
+    while (next < static_cast<int>(tokens.size()) && tokens[next].type == LexerTokenType::ELSE) {
+        next++;
+        if (next < static_cast<int>(tokens.size()) && tokens[next].type == LexerTokenType::L_BRACE) {
+
+            next = findMatchingBrace(next);
+        }
+        break;
+    }
+    return next;
+}
 
 
 int Parser::findIndex(const size_t start, const LexerTokenType token) const {
@@ -214,7 +230,8 @@ bool Parser::isStatement(const LexerToken &token) {
 bool Parser::isNotExpression(const LexerToken &token) {
     return token.type == LexerTokenType::L_BRACE ||
            token.type == LexerTokenType::R_BRACE ||
-           token.type == LexerTokenType::SEMICOLON;
+           token.type == LexerTokenType::SEMICOLON ||
+           token.type == LexerTokenType::ELSE && (!isDeclaration(token) && !isStatement(token));
 }
 
 
@@ -231,7 +248,6 @@ std::unique_ptr<AST> Parser::parse() {
             catch (...) {
                 end = findEndOfExpression(current) + 1;
             }
-            std::cout << "Parsing " << peek().value << " End is " <<  end << " Size " << tokens.size() << std::endl;
             ast.push_back(delegateToDeclaration(end));
             current = end;
         }
@@ -242,13 +258,13 @@ std::unique_ptr<AST> Parser::parse() {
                 if (peek().type == LexerTokenType::DO) {
                     end = findEndParenDisconsideredFirst(current) + 1;
                 }
-                else if (peek().type == LexerTokenType::PRINTLN || peek().type == LexerTokenType::RETURN) end = findEndOfExpression(current) + 1;
+                else if (peek().type == LexerTokenType::PRINTLN || peek().type == LexerTokenType::RETURN) end = findEndOfExpression(current);
+                else if (peek().type == LexerTokenType::IF) end = findEndOfIfElse(current) + 1;
                 else end = findEndBraceDisconsideredFirst(current) + 1;
             }
-            catch (...) {
+            catch (std::exception &e) {
                 end = findEndOfExpression(current) + 1;
             }
-
 
             ast.push_back(delegateToStatement(end));
             current = end;

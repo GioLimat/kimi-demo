@@ -22,6 +22,7 @@ class IRGen : public DefaultASTVisitor {
     void visitIdentifier(IdentifierExprNode *identifier) override;
     void visitVarDeclaration(VarDeclarationNode *varDeclaration) override;
     void visitFunctionDeclaration(FunctionDeclarationNode *functionDeclaration) override;
+    void visitBlockStatement(BlockStatementNode *node) override;
     void visitIfStatement(IfStatementNode *node) override;
     void visitWhileStatement(WhileStatementNode *node) override;
     void visitDoWhileStatement(DoWhileStatementNode *node) override;
@@ -34,6 +35,9 @@ class IRGen : public DefaultASTVisitor {
     protected:
     std::vector<std::string> bytecode;
     SemanticAnalyzer::Scope scopes;
+    size_t currentLabel = 1;
+
+
     template <typename  T>
     T lookup(const std::string& name, const std::string& message) const {
         auto tempScopes = scopes;

@@ -50,15 +50,16 @@ std::string IRMapper::getInstruction(const IRInstruction ir) {
         case IRInstruction::FN_PARAM: return "FN_PARAM";
         case IRInstruction::END_BLOCK: return "END_BLOCK";
         case IRInstruction::INIT_BLOCK: return "INIT_BLOCK";
-        case IRInstruction::IF: return "IF";
         case IRInstruction::DO: return "DO";
         case IRInstruction::WHILE: return "WHILE";
-        case IRInstruction::ELSE: return "ELSE";
         case IRInstruction::END_CONDITION: return "END_CONDITION";
         case IRInstruction::CALL: return "CALL";
         case IRInstruction::CALL_END: return "CALL_END";
         case IRInstruction::RET: return "RET";
         case IRInstruction::GLOAD: return "GLOAD";
+        case IRInstruction::IF_FALSE: return "IF_FALSE";
+        case IRInstruction::JMP: return "JMP";
+        case IRInstruction::LABEL: return "LABEL";
         default: return "";
     }
 }

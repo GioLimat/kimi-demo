@@ -138,7 +138,8 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
                     std::make_unique<ReturnStatementNode>(std::move(exprPtr))
                 );
             }
-            else {
+            else if (auto state = dynamic_cast<StatementNode*>(lastPtr.get())) {
+                body.push_back(std::move(lastPtr));
                 body.push_back(std::make_unique<ReturnStatementNode>(nullptr));
             }
         }

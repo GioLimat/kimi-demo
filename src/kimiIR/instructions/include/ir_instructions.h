@@ -32,9 +32,10 @@ enum class IRInstruction {
   DO,
   WHILE,
 
-  // IF
-  IF,
-  ELSE,
+  // Flow
+  IF_FALSE,
+  JMP,
+  LABEL,
 
   // BLOCKS
   INIT_BLOCK,
