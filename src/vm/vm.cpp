@@ -40,7 +40,7 @@ ValueT VM::readPayload(const uint8_t type) {
             return ValueT{val};
         }
         default: {
-            for (int i = 0; i < 4; ++i) read();
+            ip += 1;
             return ValueT{};
         }
     }
@@ -53,7 +53,7 @@ size_t VM::instruLen(const size_t pos) {
     switch(type) {
         case 0x01: payload = 4; break;
         case 0x04: payload = 8; break;
-        default:   payload = 4; break;
+        default:   payload = 0; break;
     }
     return 3 + payload;
 }
@@ -61,13 +61,17 @@ size_t VM::instruLen(const size_t pos) {
 
 void VM::preprocessFunctions() {
     size_t scanIp = 0;
+
     while (scanIp < bytecode.size()) {
         uint8_t op = bytecode[scanIp];
-        if (op == 0x05) { // FN
-            uint8_t funcId = bytecode[scanIp + 3];
 
-            size_t p = scanIp;
-            p += instruLen(p);
+        if (op == 0x05) {
+            if (scanIp + 3 >= bytecode.size()) {
+                throw std::runtime_error("Bytecode truncado na declaração de função");
+            }
+
+            uint8_t funcId = bytecode[scanIp + 3];
+            size_t p = scanIp + instruLen(scanIp);
 
             if (p < bytecode.size() && bytecode[p] == 0x08) {
                 p += instruLen(p);
@@ -78,19 +82,27 @@ void VM::preprocessFunctions() {
                 ++countParams;
                 p += instruLen(p);
             }
-            size_t bodyStart = p;
 
+            size_t bodyStart = p;
             size_t q = bodyStart;
             int depth = 1;
+            size_t lastQ = q;
+
             while (q < bytecode.size() && depth > 0) {
+                lastQ = q;
                 uint8_t cur = bytecode[q];
-                if (cur == 0x05)       ++depth;
-                else if (cur == 0x07)  --depth;
+                if (cur == 0x05) ++depth;
+                else if (cur == 0x07) --depth;
                 q += instruLen(q);
             }
-            size_t bodyEnd = q - instruLen(q);
 
+            if (depth != 0) {
+                throw std::runtime_error("Bloco de função não fechado corretamente");
+            }
+
+            size_t bodyEnd = lastQ + 3;
             functionTable[funcId] = FunctionInfo{ bodyStart, bodyEnd, countParams };
+
 
             scanIp = q;
         } else {
@@ -98,6 +110,7 @@ void VM::preprocessFunctions() {
         }
     }
 }
+
 
 
 void VM::run() {
@@ -205,7 +218,7 @@ void VM::run() {
                 auto& funcInfo = functionTable[currentCallId];
                 CallFrame frame;
                 frame.ip = funcInfo.startIp;
-                frame.returnIp = ip;
+                frame.returnIp = ip - 1;
                 frame.locals.resize(funcInfo.params);
 
                 for (size_t i = 0; i < funcInfo.params; i++) {

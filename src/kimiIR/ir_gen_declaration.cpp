@@ -37,7 +37,7 @@ void IRGen::visitVarDeclaration(VarDeclarationNode *varDeclaration) {
 
 void IRGen::visitFunctionDeclaration(FunctionDeclarationNode *function) {
     scopes.emplace();
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::FN) + " " + function->name);
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::FN) + " " + function->name + " : i32");
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
     for (const auto &param : function->parameters) {
         auto instruction = IRMapper::getInstruction(IRInstruction::FN_PARAM) + " " + param.name + " : " + param.type;

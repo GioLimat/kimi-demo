@@ -78,7 +78,6 @@ void ByGen::declareIdentifier(const std::string &name) {
 void ByGen::emitBasedOnType(const std::string &type) {
     if (type == "i32") emitLiteralLE<int32_t>(0);
     else if (type == "f64") emitLiteralLE<double>(0.0);
-    else emitLiteralLE<int32_t>(0);
 }
 
 
@@ -106,12 +105,10 @@ std::vector<uint8_t> ByGen::generate() {
 
         if (instructionType == "INIT_BLOCK") {
             symbolTable.emplace();
-            emitLiteralLE<int32_t>(static_cast<int32_t>(0x00));
             continue;
         }
         if (instructionType == "END_BLOCK") {
             symbolTable.pop();
-            emitLiteralLE<int32_t>(static_cast<int32_t>(0x00));
             continue;
         }
         if (instructionType == "CONST") {
@@ -160,8 +157,7 @@ std::vector<uint8_t> ByGen::generate() {
             uint32_t varId = nextId++;
             symbolTable.top()[paramName] = varId;
 
-            if (type == "i32") emitLiteralLE<int32_t>(static_cast<int32_t>(varId));
-            if (type == "f64") emitLiteralLE<double>(varId);
+            emitLiteralLE<int32_t>(static_cast<int32_t>(varId));
             continue;
         }
         if (instructionType == "CALL") {
@@ -191,7 +187,6 @@ std::vector<uint8_t> ByGen::generate() {
                 offset += 3;
                 if (tempType == "i32") offset += 4;
                 else if (tempType == "f64") offset += 8;
-                else offset += 4;
                 tempI++;
             }
 

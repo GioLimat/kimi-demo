@@ -32,5 +32,17 @@ std::vector<uint8_t>  genBy(const std::string& code) {
 
 
 TEST(Bygen, SimpleBytecode) {
-    auto byte = genBy("if ( 4 > 0 ) { 4 + 4 }");
+    auto byte = genBy("fn sum(){ } sum()");
+    for (const auto& b : byte) {
+        std::cout
+            << "0x"
+            << std::uppercase
+            << std::hex
+            << std::setw(2)
+            << std::setfill('0')
+            << (int)b
+            << std::dec
+           << " ";
+    }
+    std::cout << std::endl;
 }

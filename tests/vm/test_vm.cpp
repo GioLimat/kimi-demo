@@ -48,5 +48,5 @@ void  runVm(const std::string& code) {
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("println(4 > 0);");
+    runVm("fn sum() { 4 + 4} var x = sum(); println(x);");
 }

@@ -239,7 +239,6 @@ std::unique_ptr<AST> Parser::parse() {
     std::vector<std::unique_ptr<ASTNode>> ast;
     while (!isAtEnd()) {
         if (isDeclaration(peek())) {
-
             int end;
             try {
                 if (peek().type == LexerTokenType::VAR || peek().type == LexerTokenType::VAL) end = findEndOfExpression(current) + 1;
