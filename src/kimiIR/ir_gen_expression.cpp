@@ -4,11 +4,12 @@
 
 #include "ir_gen.h"
 #include "ir_instructions.h"
+#include "type_analyzer.h"
 
 
 void IRGen::visitBinaryExpr(BinaryExprNode *expression) {
     auto bin = expression;
-
+    TypeInfer::analyzeExpression(bin, &scopes);
     bin->left->accept(*this);
     bin->right->accept(*this);
     bytecode.push_back(IRMapper::getOperator(bin->op) + " : " + bin->type);

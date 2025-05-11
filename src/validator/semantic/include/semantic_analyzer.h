@@ -98,6 +98,7 @@ private:
     void visitPrintln(PrintlnStatementNode *node) override;
     void visitCallFunction(CallFunctionNode *node) override;
     void visitReturnStatement(ReturnStatementNode *node) override;
+    void visitBlockStatement(BlockStatementNode *node) override;
     void visitGenericExpressionNode(GenericExpressionNode *node) override;
 
 };

@@ -9,19 +9,23 @@
 
 
 void IRGen::visitBlockStatement(BlockStatementNode *node) {
+    scopes.emplace();
     for (const auto& n : node->statements) {
         n->accept(*this);
     }
+    scopes.pop();
 }
 
 
 void IRGen::visitIfStatement(IfStatementNode *node) {
+    scopes.emplace();
     node->condition->accept(*this);
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::IF_FALSE) + " L" + std::to_string(currentLabel));
 
     for (auto &n : node->thenBranch->statements) {
         n->accept(*this);
     }
+    scopes.pop();
     if (node->elseBranch) {
         currentLabel++;
         bytecode.push_back(IRMapper::getInstruction(IRInstruction::JMP) + " L" + std::to_string(currentLabel));

@@ -98,10 +98,11 @@ void SemanticAnalyzer::visitIfStatement(IfStatementNode *node) {
     for (const auto& child : node->thenBranch->statements) {
         child->accept(*this);
     }
+    exitScope();
     if (node->elseBranch) {
         node->elseBranch->accept(*this);
     }
-    exitScope();
+
 }
 
 void SemanticAnalyzer::visitWhileStatement(WhileStatementNode *node) {
@@ -124,7 +125,15 @@ void SemanticAnalyzer::visitDoWhileStatement(DoWhileStatementNode *node) {
 }
 
 void SemanticAnalyzer::visitPrintln(PrintlnStatementNode *node) {
-    node->type = TypeInfer::analyzeExpression(node->expression.get(), &scopes);
+    const std::set<std::string> comparisonOps = {"==", "!=", "<", ">", "<=", ">="};
+    auto preType = TypeInfer::analyzeExpression(node->expression.get(), &scopes);
+    if (auto bin = dynamic_cast<BinaryExprNode*>(node->expression.get())) {
+        if (comparisonOps.contains(bin->op)) {
+            node->type = "bool";
+        }
+        else node->type = preType;
+    }
+    else node->type = preType;
 }
 
 void SemanticAnalyzer::visitReturnStatement(ReturnStatementNode *node) {
@@ -169,9 +178,20 @@ void SemanticAnalyzer::visitCallFunction(CallFunctionNode *node) {;
 }
 
 
+void SemanticAnalyzer::visitBlockStatement(BlockStatementNode *node) {
+    enterScope();
+    for (const auto& child : node->statements) {
+        child->accept(*this);
+    }
+    exitScope();
+}
+
+
 void SemanticAnalyzer::visitGenericExpressionNode(GenericExpressionNode *node) {
     node->node->accept(*this);
 }
+
+
 
 
 void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters, const std::string &returnType) {

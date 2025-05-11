@@ -83,10 +83,11 @@ void ByGen::emitBasedOnType(const std::string &type) {
 
 
 
-std::vector<uint8_t>  ByGen::generate() {
+std::vector<uint8_t> ByGen::generate() {
 
-
+    size_t i = -1;
     for (const auto& instruction : ir) {
+        i++;
         const auto parts  = splitBySpace(instruction);
         const auto& instructionType = parts[0];
 
@@ -169,8 +170,32 @@ std::vector<uint8_t>  ByGen::generate() {
             const uint32_t val = getIdentifierId(fnName);
 
             emitLiteralLE<int32_t>(static_cast<int32_t>(val));
-
             continue;
+        }
+
+        if (instructionType == "IF_FALSE" || instructionType == "JMP") {
+            const auto label = parts[1];
+            const auto labelId = label.substr(1, label.size());
+            size_t tempI = i + 1;
+            size_t offset = 0;
+
+            while (splitBySpace(ir[tempI])[1] != label && tempI < ir.size()) {
+                const auto tempParts = splitBySpace(ir[tempI]);
+                std::string tempType;
+
+                for (size_t j = 0; j < tempParts.size(); ++j) {
+                    if (tempParts[j] == ":") {
+                        tempType = tempParts[j + 1];
+                    }
+                }
+                offset += 3;
+                if (tempType == "i32") offset += 4;
+                else if (tempType == "f64") offset += 8;
+                else offset += 4;
+                tempI++;
+            }
+
+            emitLiteralLE<int32_t>(offset);
         }
 
         emitBasedOnType(type);

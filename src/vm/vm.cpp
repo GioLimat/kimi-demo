@@ -142,8 +142,11 @@ void VM::run() {
                     case 0x01: //i32
                         std::cout << std::get<int32_t>(loadStack.top()) << std::endl;
                         break;
-                    case 0x04:  //i64
+                    case 0x04:  //F64
                         std::cout << std::get<double>(loadStack.top()) << std::endl;
+                        break;
+                    case 0x05:
+                        std::cout << (std::get<int32_t>(loadStack.top()) ? "true" : "false") << std::endl;
                         break;
                 }
                 loadStack.pop();
@@ -177,6 +180,23 @@ void VM::run() {
                     return a / b;
                 });
                 break;
+
+            case 0x13: { // GREATER
+                ValueT a = loadStack.top();
+                loadStack.pop();
+                ValueT b = loadStack.top();
+                loadStack.pop();
+                switch (type) {
+                    case 0x01:
+                        loadStack.emplace(std::get<int32_t>(a) < std::get<int32_t>(b) ? 1 : 0);
+                        break;
+                    case 0x04:
+                        loadStack.emplace(std::get<double>(a) < std::get<double>(b) ? 1 : 0);
+                        break;
+                }
+                break;
+            }
+
             case 0x16: {//CALL
                 currentCallId = std::get<int32_t>(payload);
                 break;
@@ -217,8 +237,8 @@ void VM::run() {
             case 0x19: { //GLOAD
                 loadStack.emplace(globals[std::get<int32_t>(payload)]);
                 break;
-
             }
+
         }
 
     }

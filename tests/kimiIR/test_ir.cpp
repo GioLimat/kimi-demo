@@ -19,12 +19,10 @@ std::vector<std::string> gen(const std::string& code) {
     semantic_analyzer.analyze(*ast);
     IRGen ir_gen(ast);
     return ir_gen.generate();
-    // otimizer
-    // bygen
 }
 
 TEST(IRGen, SimpleExpression) {
-    const std::string code = "if (4 > 0) { println(4); } else { println(4); }";
+    const std::string code = "if (4 > 0) { println(4); }";
     auto ir = gen(code);
     for (const auto& i : ir) {
         std::cout << i << std::endl;

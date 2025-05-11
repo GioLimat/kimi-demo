@@ -54,7 +54,7 @@ void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
 
     const std::string& op = node->op;
 
-    if (arithmeticOps.contains(op)) {
+    if (arithmeticOps.contains(op) || comparisonOps.contains(op)) {
         if ((left == "i32" || left == "f64") && (right == "i32" || right == "f64")) {
             node->type = (left == "f64" || right == "f64") ? "f64" : "i32";
             currentType = node->type;
@@ -63,7 +63,7 @@ void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
         throw std::runtime_error("Arithmetic operators require numeric types, got: " + left + " and " + right);
     }
 
-    if (logicalOps.contains(op)) {
+    if (logicalOps.contains(op) ) {
         if (left == "bool" && right == "bool") {
             node->type = "bool";
             currentType = "bool";
@@ -72,14 +72,6 @@ void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
         throw std::runtime_error("Logical operators require boolean operands, got: " + left + " and " + right);
     }
 
-    if (comparisonOps.contains(op)) {
-        if (left == right) {
-            node->type = "bool";
-            currentType = "bool";
-            return;
-        }
-        throw std::runtime_error("Cannot compare different types: " + left + " and " + right);
-    }
 
     throw std::runtime_error("Unknown binary operator: " + op);
 }

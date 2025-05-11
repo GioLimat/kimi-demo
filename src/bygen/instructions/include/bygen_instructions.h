@@ -41,7 +41,11 @@ inline std::unordered_map<std::string, uint8_t> instructionMap  = {
     {"CALL", 0x16},
     {"CALL_END", 0x17},
     {"RET", 0x18},
-    {"GLOAD", 0x19}
+
+    {"GLOAD", 0x19},
+
+    {"IF_FALSE", 0x20},
+    {"JMP", 0x21},
 };
 
 

@@ -5,6 +5,8 @@
 #ifndef TYPE_ANALYZER_H
 #define TYPE_ANALYZER_H
 
+#include <set>
+
 #include "ast.h"
 #include "semantic_analyzer.h"
 
@@ -14,6 +16,7 @@ private:
     static SemanticAnalyzer::Scope* scopes;
     static SemanticAnalyzer::VariableInfo lookupVariable(const std::string &name);
     mutable std::string currentType = "void";
+
 
 public:
     static std::string analyzeExpression(ExpressionNode* expr,

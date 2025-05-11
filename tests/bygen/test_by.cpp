@@ -32,17 +32,5 @@ std::vector<uint8_t>  genBy(const std::string& code) {
 
 
 TEST(Bygen, SimpleBytecode) {
-    auto byte = genBy("fn b(a : Int){ var x = 1; return x + 4 }");
-    for (auto b : byte) {
-        auto v = static_cast<unsigned int>(b);
-        std::cout
-            << "0x"
-            << std::uppercase
-            << std::hex
-            << std::setw(2)
-            << std::setfill('0')
-            << v
-            << std::dec
-            << std::endl;
-    }
+    auto byte = genBy("if ( 4 > 0 ) { 4 + 4 }");
 }
