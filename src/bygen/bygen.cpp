@@ -111,6 +111,7 @@ std::vector<uint8_t> ByGen::generate() {
             symbolTable.pop();
             continue;
         }
+
         if (instructionType == "CONST") {
             if (type == "i32") {
                 int32_t v = std::stoi(parts[1]);
@@ -130,6 +131,17 @@ std::vector<uint8_t> ByGen::generate() {
             const uint32_t val = getIdentifierId(name);
 
             emitLiteralLE<int32_t>(val);
+            continue;
+        }
+
+        if (instructionType == "INC" ||
+            instructionType == "DEC") {
+            const std::string& varName = parts[1];
+
+            const uint32_t varId = getIdentifierId(varName);
+
+            emitLiteralLE<int32_t>(varId);
+
             continue;
         }
 
@@ -170,7 +182,7 @@ std::vector<uint8_t> ByGen::generate() {
         }
 
         if (instructionType == "IF_FALSE" || instructionType == "JMP") {
-            const auto label = parts[1];
+            const auto& label = parts[1];
             const auto labelId = label.substr(1, label.size());
             size_t tempI = i + 1;
             size_t offset = 0;

@@ -251,7 +251,64 @@ void VM::run() {
                 loadStack.emplace(globals[std::get<int32_t>(payload)]);
                 break;
             }
+            case 0x1C :  { // NEG
+                ValueT val = loadStack.top();
+                loadStack.pop();
+                switch (type) {
+                    case 0x01:
+                        loadStack.emplace(-std::get<int32_t>(val));
+                        break;
+                    case 0x04:
+                        loadStack.emplace(-std::get<double>(val));
+                        break;
+                }
+            }
+            case 0x1D: { // INC
+                std::vector<ValueT> &dest =
+                    (callStack.size() == 1 ? globals : callStack.top().locals);
 
+                const int32_t idx = std::get<int32_t>(payload);
+                ValueT &val = dest.at(idx);
+
+                switch (type) {
+                    case 0x01: {
+                        auto &v = std::get<int32_t>(val);
+                        ++v;
+                        loadStack.emplace(v);
+                        break;
+                    }
+                    case 0x04: {
+                        auto &v = std::get<double>(val);
+                        ++v;
+                        loadStack.emplace(v);
+                        break;
+                    }
+                }
+                break;
+            }
+            case 0x1E: { // INC
+                std::vector<ValueT> &dest =
+                    (callStack.size() == 1 ? globals : callStack.top().locals);
+
+                int32_t idx = std::get<int32_t>(payload);
+                ValueT &val = dest.at(idx);
+
+                switch (type) {
+                    case 0x01: {
+                        auto &v = std::get<int32_t>(val);
+                        --v;
+                        loadStack.emplace(v);
+                        break;
+                    }
+                    case 0x04: {
+                        auto &v = std::get<double>(val);
+                        --v;
+                        loadStack.emplace(v);
+                        break;
+                    }
+                }
+                break;
+            }
         }
 
     }

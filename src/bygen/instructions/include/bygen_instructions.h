@@ -44,8 +44,11 @@ inline std::unordered_map<std::string, uint8_t> instructionMap  = {
 
     {"GLOAD", 0x19},
 
-    {"IF_FALSE", 0x20},
-    {"JMP", 0x21},
+    {"IF_FALSE", 0x1A},
+    {"JMP", 0x1B},
+    {"NEG", 0x1C},
+    {"INC", 0x1D},
+    {"DEC", 0x1E},
 };
 
 

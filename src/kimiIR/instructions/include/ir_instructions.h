@@ -37,6 +37,11 @@ enum class IRInstruction {
   JMP,
   LABEL,
 
+  //Unary
+  NEG,
+  INC,
+  DEC,
+
   // BLOCKS
   INIT_BLOCK,
   END_BLOCK,

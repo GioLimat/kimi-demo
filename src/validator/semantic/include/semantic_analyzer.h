@@ -89,6 +89,7 @@ private:
 
     void visitIdentifier(IdentifierExprNode *node) override;
     void visitVarDeclaration(VarDeclarationNode* var) override;
+    void visitUnaryExpr(UnaryExprNode *node) override;
     void visitAssignmentExpr(AssignmentExprNode* expr) override;
     void visitBinaryExpr(BinaryExprNode *node) override;
     void visitFunctionDeclaration(FunctionDeclarationNode *node) override;

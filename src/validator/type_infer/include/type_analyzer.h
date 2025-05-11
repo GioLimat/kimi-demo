@@ -28,6 +28,7 @@ public:
     void visitIdentifier(IdentifierExprNode* node) override;
     void visitBoolean(BooleanNode* node) override;
     void visitBinaryExpr(BinaryExprNode* node) override;
+    void visitUnaryExpr(UnaryExprNode* node) override;
 };
 
 

@@ -76,6 +76,13 @@ void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
     throw std::runtime_error("Unknown binary operator: " + op);
 }
 
+
+void TypeInfer::visitUnaryExpr(UnaryExprNode *node) {
+    node->operand->accept(*this);
+    node->type = currentType;
+}
+
+
 SemanticAnalyzer::VariableInfo TypeInfer::lookupVariable(const std::string &name) {
     if (!scopes) {
         throw std::runtime_error("Scope stack is not initialized in TypeInfer");

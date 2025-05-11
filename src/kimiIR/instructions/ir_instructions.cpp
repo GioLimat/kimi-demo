@@ -60,6 +60,9 @@ std::string IRMapper::getInstruction(const IRInstruction ir) {
         case IRInstruction::IF_FALSE: return "IF_FALSE";
         case IRInstruction::JMP: return "JMP";
         case IRInstruction::LABEL: return "LABEL";
+        case IRInstruction::NEG: return "NEG";
+        case IRInstruction::INC:  return "INC";
+        case IRInstruction::DEC:  return "DEC";
         default: return "";
     }
 }

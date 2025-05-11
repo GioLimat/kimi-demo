@@ -37,6 +37,28 @@ void IRGen::visitCallFunction(CallFunctionNode *node) {
 }
 
 
+void IRGen::visitUnaryExpr(UnaryExprNode *node) {
+    node->operand->accept(*this);
+    if (node->op == "-") bytecode.push_back(IRMapper::getInstruction(IRInstruction::NEG) + " : " + node->type);
+    else if (node->op == "--" || node->op == "++") {
+        auto ident = dynamic_cast<IdentifierExprNode*>(node->operand.get());
+        if (ident == nullptr) throw std::runtime_error("Undefined identifier");
+        if (node->op == "--") bytecode.push_back(IRMapper::getInstruction(IRInstruction::DEC) + " " + ident->name + " : " + node->type);
+        else bytecode.push_back(IRMapper::getInstruction(IRInstruction::INC) + " " + ident->name + " : " + node->type);
+    }
+    else bytecode.push_back(IRMapper::getOperator(node->op) + " : " + node->type);
+}
+
+
+void IRGen::visitAssignmentExpr(AssignmentExprNode *node) {
+    node->value->accept(*this);
+    auto it = lookup<SemanticAnalyzer::VariableInfo>(node->name, "Variable not found: " + node->name);
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::STORE) + " " + node->name + " : " + node->type);
+}
+
+
 void IRGen::visitGenericExpressionNode(GenericExpressionNode *node) {
     node->node->accept(*this);
 }
+
+

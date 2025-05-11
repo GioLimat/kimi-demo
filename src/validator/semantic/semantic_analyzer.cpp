@@ -192,6 +192,12 @@ void SemanticAnalyzer::visitGenericExpressionNode(GenericExpressionNode *node) {
 }
 
 
+void SemanticAnalyzer::visitUnaryExpr(UnaryExprNode *node) {
+    node->operand->accept(*this);
+    node->type = TypeInfer::analyzeExpression(node, &scopes);
+}
+
+
 
 
 void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters, const std::string &returnType) {

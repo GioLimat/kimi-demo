@@ -72,8 +72,3 @@ void IRGen::visitReturnStatement(ReturnStatementNode *node) {
 }
 
 
-
-
-void IRGen::visitExpressionStatement(ExpressionStatementNode *node) {
-    if (node->expression) node->expression->accept(*this);
-}
