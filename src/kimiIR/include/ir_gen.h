@@ -32,6 +32,7 @@ class IRGen : public DefaultASTVisitor {
     void visitReturnStatement(ReturnStatementNode *node) override;
     void visitUnaryExpr(UnaryExprNode *node) override;
     void visitGenericExpressionNode(GenericExpressionNode *node) override;
+    void visitPostFixExpr(PostFixExprNode *node) override;
 
     protected:
     std::vector<std::string> bytecode;

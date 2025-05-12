@@ -83,6 +83,10 @@ PrintlnStatementNode::PrintlnStatementNode(std::unique_ptr<ExpressionNode> expre
 GenericExpressionNode::GenericExpressionNode(std::unique_ptr<ExpressionNode> node) : node(std::move(node)) {}
 
 
+PostFixExprNode::PostFixExprNode(std::string op, std::unique_ptr<ExpressionNode> operand) : op(std::move(op)), operand(std::move(operand)) {}
+
+
+
 
 
  //VISITORS
@@ -162,4 +166,9 @@ void ExpressionNode::accept(ASTVisitor &visitor) {
 
 void GenericExpressionNode::accept(ASTVisitor &visitor) {
         visitor.visitGenericExpressionNode(this);
+}
+
+
+void PostFixExprNode::accept(ASTVisitor &visitor) {
+        visitor.visitPostFixExpr(this);
 }

@@ -10,14 +10,12 @@
 
 class ByGen {
     std::stack<std::unordered_map<std::string, uint32_t>> symbolTable;
-    std::unordered_map<std::string, uint32_t> globalVariables;
-    size_t globalNextId = 0;
     size_t nextId = 0;
     std::vector<uint8_t> bytecode;
     std::vector<std::string> ir;
     [[nodiscard]] std::vector<std::string> splitBySpace(const std::string& str) const;
     uint32_t getIdentifierId(const std::string& name);
-    void declareIdentifier(const std::string& name);
+    void declareIdentifier(const std::string& name, bool isParam);
 
     template<typename T>
     void emitBasedOnType(const std::string& type, T value) {

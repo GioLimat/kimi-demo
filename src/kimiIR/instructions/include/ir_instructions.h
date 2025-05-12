@@ -41,6 +41,8 @@ enum class IRInstruction {
   NEG,
   INC,
   DEC,
+  POST_INC,
+  POST_DEC,
 
   // BLOCKS
   INIT_BLOCK,

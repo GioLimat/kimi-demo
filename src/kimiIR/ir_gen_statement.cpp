@@ -20,19 +20,22 @@ void IRGen::visitBlockStatement(BlockStatementNode *node) {
 void IRGen::visitIfStatement(IfStatementNode *node) {
     scopes.emplace();
     node->condition->accept(*this);
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::IF_FALSE) + " L" + std::to_string(currentLabel));
-
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::IF_FALSE) + " L" + std::to_string(currentLabel) + " : i32");
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
     for (auto &n : node->thenBranch->statements) {
         n->accept(*this);
     }
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK));
     scopes.pop();
     if (node->elseBranch) {
         currentLabel++;
-        bytecode.push_back(IRMapper::getInstruction(IRInstruction::JMP) + " L" + std::to_string(currentLabel));
+        bytecode.push_back(IRMapper::getInstruction(IRInstruction::JMP) + " L" + std::to_string(currentLabel)  + " : i32");
         bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(currentLabel - 1));
+        bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
         node->elseBranch->accept(*this);
+        bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK));
     }
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(currentLabel));
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(currentLabel++));
 }
 
 

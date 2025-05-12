@@ -19,6 +19,7 @@ protected:
     std::unique_ptr<ExpressionNode> parseUnary();
     std::unique_ptr<ExpressionNode> parseCallIdentifier();
     std::unique_ptr<ExpressionNode> parseAssignment();
+    std::unique_ptr<ExpressionNode> parsePostFix();
 };
 
 #endif //PARSER_EXPRESSION_H

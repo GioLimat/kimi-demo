@@ -133,7 +133,6 @@ int Parser::findEndOfIfElse(size_t start) const {
     while (next < static_cast<int>(tokens.size()) && tokens[next].type == LexerTokenType::ELSE) {
         next++;
         if (next < static_cast<int>(tokens.size()) && tokens[next].type == LexerTokenType::L_BRACE) {
-
             next = findMatchingBrace(next);
         }
         break;
@@ -258,7 +257,7 @@ std::unique_ptr<AST> Parser::parse() {
                     end = findEndParenDisconsideredFirst(current) + 1;
                 }
                 else if (peek().type == LexerTokenType::PRINTLN || peek().type == LexerTokenType::RETURN) end = findEndOfExpression(current);
-                else if (peek().type == LexerTokenType::IF) end = findEndOfIfElse(current) + 1;
+                else if (peek().type == LexerTokenType::IF) end = findEndOfIfElse(current);
                 else end = findEndBraceDisconsideredFirst(current) + 1;
             }
             catch (std::exception &e) {

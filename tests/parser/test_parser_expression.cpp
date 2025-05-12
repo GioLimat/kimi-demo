@@ -194,3 +194,19 @@ TEST(ParserExpression, AssignmentExpression) {
 }
 
 
+
+TEST(ParserExpression, PostFixExpression) {
+    const std::string code = "x++;";
+    Lexer lexer(code);
+
+    const auto tokens = lexer.tokenize();
+
+    auto parser = MockExpression(tokens);
+
+    auto expr = parser.parseExpression();
+
+    auto postfix = dynamic_cast<PostFixExprNode*>(expr.get());
+    ASSERT_EQ(postfix->op, "++");
+    auto id = dynamic_cast<IdentifierExprNode*>(postfix->operand.get());
+    ASSERT_EQ(id->name, "x");
+}

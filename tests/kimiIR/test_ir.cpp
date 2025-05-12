@@ -22,7 +22,7 @@ std::vector<std::string> gen(const std::string& code) {
 }
 
 TEST(IRGen, SimpleExpression) {
-    const std::string code = "if (4 > 0) { println(4); }";
+    const std::string code = "var x = 5; x++;";
     auto ir = gen(code);
     for (const auto& i : ir) {
         std::cout << i << std::endl;

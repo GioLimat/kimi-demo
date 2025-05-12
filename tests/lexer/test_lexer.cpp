@@ -85,3 +85,18 @@ TEST(LexerTest, BooleanExpression) {
 
     assertTokenVector(tokens, expected);
 }
+
+
+TEST(LexerTest, PostFix) {
+    auto lexer = Lexer("x++;");
+    const auto tokens = lexer.tokenize();
+
+    const auto expected = {
+        LexerTokenType::IDENTIFIER,
+        LexerTokenType::PLUS_PLUS,
+        LexerTokenType::SEMICOLON,
+        LexerTokenType::EOS
+    };
+
+    assertTokenVector(tokens, expected);
+}

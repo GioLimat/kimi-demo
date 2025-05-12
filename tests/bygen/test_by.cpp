@@ -32,7 +32,7 @@ std::vector<uint8_t>  genBy(const std::string& code) {
 
 
 TEST(Bygen, SimpleBytecode) {
-    auto byte = genBy("-4");
+    auto byte = genBy("if (4 > 0){println(4)}");
     for (const auto& b : byte) {
         std::cout
             << "0x"

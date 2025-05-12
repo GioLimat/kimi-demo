@@ -27,12 +27,6 @@ std::vector<std::string> ByGen::splitBySpace(const std::string& str) const {
 
 uint32_t ByGen::getIdentifierId(const std::string &name) {
 
-    if (symbolTable.size() == 1) {
-        if (globalVariables.contains(name)) {
-            return globalVariables[name];
-        }    std::cout << symbolTable.size() << std::endl;
-        throw std::runtime_error("Unknown identifier name " +name );
-    }
     std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
     while (!temp.empty()) {
         if (temp.top().contains(name)) {
@@ -40,21 +34,25 @@ uint32_t ByGen::getIdentifierId(const std::string &name) {
         }
         temp.pop();
     }
-    if (globalVariables.contains(name)) {
-        return globalVariables[name];
-    }
     throw std::runtime_error("Unknown identifier name " +name );
 }
 
-void ByGen::declareIdentifier(const std::string &name) {
-    if (symbolTable.size()  == 1) {
-        globalVariables[name] = globalNextId++;
-        return;
-    }
+void ByGen::declareIdentifier(const std::string &name, bool isParam = false) {
     uint32_t varId;
     std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
 
+    auto& currentScope = symbolTable.top();
 
+    if (currentScope.contains(name)) return;
+
+    if (isParam) {
+        varId = currentScope.size();
+    } else {
+        varId = nextId++;
+    }
+
+    currentScope[name] = varId;
+    /*
     bool found = false;
     while (!temp.empty()) {
         auto& scope = temp.top();
@@ -70,7 +68,7 @@ void ByGen::declareIdentifier(const std::string &name) {
         auto& currentScope = symbolTable.top();
         varId = nextId++;
         currentScope[name] = varId;
-    }
+    }*/
 }
 
 
@@ -89,6 +87,8 @@ std::vector<uint8_t> ByGen::generate() {
         i++;
         const auto parts  = splitBySpace(instruction);
         const auto& instructionType = parts[0];
+
+        if (instructionType == "LABEL") continue;
 
         bytecode.push_back(ByMapper::getInstruction(instructionType));
         bytecode.push_back(0x00);
@@ -135,7 +135,9 @@ std::vector<uint8_t> ByGen::generate() {
         }
 
         if (instructionType == "INC" ||
-            instructionType == "DEC") {
+            instructionType == "DEC" ||
+            instructionType == "POST_INC" ||
+            instructionType == "POST_DEC") {
             const std::string& varName = parts[1];
 
             const uint32_t varId = getIdentifierId(varName);
@@ -145,7 +147,7 @@ std::vector<uint8_t> ByGen::generate() {
             continue;
         }
 
-        if (instructionType == "LOAD" || instructionType == "GLOAD") {
+        if (instructionType == "LOAD") {
             const std::string& varName = parts[1];
 
             const uint32_t varId = getIdentifierId(varName);
@@ -166,10 +168,11 @@ std::vector<uint8_t> ByGen::generate() {
         if (instructionType == "FN_PARAM") {
             const std::string& paramName = parts[1];
 
-            uint32_t varId = nextId++;
-            symbolTable.top()[paramName] = varId;
+            declareIdentifier(paramName, true);
 
-            emitLiteralLE<int32_t>(static_cast<int32_t>(varId));
+            const uint32_t val = getIdentifierId(paramName);
+
+            emitLiteralLE<int32_t>(static_cast<int32_t>(val));
             continue;
         }
         if (instructionType == "CALL") {
@@ -203,6 +206,7 @@ std::vector<uint8_t> ByGen::generate() {
             }
 
             emitLiteralLE<int32_t>(offset);
+            continue;
         }
 
         emitBasedOnType(type);

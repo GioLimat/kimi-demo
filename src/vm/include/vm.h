@@ -15,7 +15,7 @@
 
 class VM {
     struct CallFrame {
-        std::vector<ValueT> locals;
+        std::vector<std::vector<ValueT>> locals;
         size_t returnIp;
         size_t ip;
     };
@@ -30,7 +30,6 @@ public:
     void run();
     void preprocessFunctions();
 private:
-    std::vector<ValueT> globals;
     std::vector<uint8_t> bytecode;
     size_t ip;
     size_t currentCallId;
@@ -40,8 +39,8 @@ private:
 
     uint8_t read();
     ValueT readPayload(uint8_t type);
-
     size_t instruLen(size_t pos);
+    ValueT& lookupLocal(int32_t idx) const;
 
     template<typename Func>
     void binaryOp(Func op) {

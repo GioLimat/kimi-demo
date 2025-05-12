@@ -79,6 +79,17 @@ public:
     void accept(ASTVisitor &visitor) override;
 };
 
+
+
+class PostFixExprNode : public ExpressionNode {
+public:
+    std::string type;
+    std::string op;
+    std::unique_ptr<ExpressionNode> operand;
+    explicit PostFixExprNode(std::string op, std::unique_ptr<ExpressionNode> operand);
+    void accept(ASTVisitor &visitor) override;
+};
+
 class AssignmentExprNode : public ExpressionNode {
 public:
     std::string name;

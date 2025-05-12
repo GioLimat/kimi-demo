@@ -2,6 +2,8 @@
 // Created by home on 19/04/25.
 //
 
+#include <iostream>
+
 #include "ir_gen.h"
 #include "ir_instructions.h"
 #include "type_analyzer.h"
@@ -23,8 +25,7 @@ void IRGen::visitNumber(NumberNode *number) {
 
 void IRGen::visitIdentifier(IdentifierExprNode *identifier) {
     auto it = lookup<SemanticAnalyzer::VariableInfo>(identifier->name, "Variable not found: " + identifier->name);
-    if (it.isGlobal) bytecode.push_back(IRMapper::getInstruction(IRInstruction::GLOAD) + " " + identifier->name + " : " + "i32");
-    else bytecode.push_back(IRMapper::getInstruction(IRInstruction::LOAD) + " " + identifier->name + " : " + "i32");
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LOAD) + " " + identifier->name + " : " + "i32");
 }
 
 
@@ -43,6 +44,10 @@ void IRGen::visitUnaryExpr(UnaryExprNode *node) {
     else if (node->op == "--" || node->op == "++") {
         auto ident = dynamic_cast<IdentifierExprNode*>(node->operand.get());
         if (ident == nullptr) throw std::runtime_error("Undefined identifier");
+        auto variable = lookup<SemanticAnalyzer::VariableInfo>(ident->name, "Variable not found: " + ident->name);
+        if (variable.isConst) {
+            throw std::runtime_error("Cannot modify a constant variable: " + ident->name);
+        }
         if (node->op == "--") bytecode.push_back(IRMapper::getInstruction(IRInstruction::DEC) + " " + ident->name + " : " + node->type);
         else bytecode.push_back(IRMapper::getInstruction(IRInstruction::INC) + " " + ident->name + " : " + node->type);
     }
@@ -62,3 +67,13 @@ void IRGen::visitGenericExpressionNode(GenericExpressionNode *node) {
 }
 
 
+void IRGen::visitPostFixExpr(PostFixExprNode *node) {
+    node->operand->accept(*this);
+    auto ident = dynamic_cast<IdentifierExprNode*>(node->operand.get());
+    auto variable = lookup<SemanticAnalyzer::VariableInfo>(ident->name, "Variable not found: " + ident->name);
+    if (variable.isConst) {
+        throw std::runtime_error("Cannot modify a constant variable: " + ident->name);
+    }
+    if (node->op == "--") bytecode.push_back(IRMapper::getInstruction(IRInstruction::POST_DEC) + " " + ident->name + " : " + node->type);
+    else if (node->op == "++") bytecode.push_back(IRMapper::getInstruction(IRInstruction::POST_INC) + " " + ident->name + " : " + node->type);
+}

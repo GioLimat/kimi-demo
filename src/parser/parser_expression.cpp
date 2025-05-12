@@ -44,8 +44,22 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
         if (asg != nullptr)
             return asg;
     }
+    if (peek().type == LexerTokenType::IDENTIFIER &&
+        (tokens.at(current + 1).type == LexerTokenType::PLUS_PLUS ||
+         tokens.at(current + 1).type == LexerTokenType::MINUS_MINUS   )) {
+        return parsePostFix();
+    }
     return parseBinaryOperation(1);
 }
+
+std::unique_ptr<ExpressionNode> ParserExpression::parsePostFix() {
+
+    auto identifier = parseCallIdentifier();
+
+    if (auto id = dynamic_cast<IdentifierExprNode*>(identifier.get()); id == nullptr) throw std::runtime_error("Expected identifier");
+    return std::make_unique<PostFixExprNode>(advance().value, std::move(identifier));
+}
+
 
 
 std::unique_ptr<ExpressionNode> ParserExpression::parseAssignment() {

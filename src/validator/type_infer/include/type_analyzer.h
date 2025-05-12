@@ -29,6 +29,7 @@ public:
     void visitBoolean(BooleanNode* node) override;
     void visitBinaryExpr(BinaryExprNode* node) override;
     void visitUnaryExpr(UnaryExprNode* node) override;
+    void visitPostFixExpr(PostFixExprNode *node) override;
 };
 
 

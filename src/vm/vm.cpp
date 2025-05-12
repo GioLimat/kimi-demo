@@ -16,6 +16,7 @@ VM::VM(const std::vector<uint8_t> &bytecode) : bytecode(bytecode) {
 
 uint8_t VM::read() {
     if (ip >= bytecode.size()) {
+        std::cerr << "Out of bounds at ip = " << ip << ", bytecode.size = " << bytecode.size() << "\n";
         throw std::runtime_error("Out of bounds");
     }
     return bytecode[ip++];
@@ -40,7 +41,7 @@ ValueT VM::readPayload(const uint8_t type) {
             return ValueT{val};
         }
         default: {
-            ip += 1;
+            ip++;
             return ValueT{};
         }
     }
@@ -58,6 +59,20 @@ size_t VM::instruLen(const size_t pos) {
     return 3 + payload;
 }
 
+ValueT& VM::lookupLocal(const int32_t idx) const {
+    std::stack<CallFrame> temp = callStack;
+    while (!temp.empty()) {
+        auto& blocks = temp.top().locals;
+        for (int i = static_cast<int>(blocks.size()) - 1; i >= 0; --i) {
+            if (static_cast<size_t>(idx) < blocks[i].size()) {
+                return blocks[i][idx];
+            }
+        }
+        temp.pop();
+    }
+    throw std::runtime_error("Variable not found " + std::to_string(idx));
+}
+
 
 void VM::preprocessFunctions() {
     size_t scanIp = 0;
@@ -67,7 +82,7 @@ void VM::preprocessFunctions() {
 
         if (op == 0x05) {
             if (scanIp + 3 >= bytecode.size()) {
-                throw std::runtime_error("Bytecode truncado na declaração de função");
+                throw std::runtime_error("Bytecode malformed");
             }
 
             uint8_t funcId = bytecode[scanIp + 3];
@@ -97,7 +112,7 @@ void VM::preprocessFunctions() {
             }
 
             if (depth != 0) {
-                throw std::runtime_error("Bloco de função não fechado corretamente");
+                throw std::runtime_error("Bytecode malformed: function body not closed");
             }
 
             size_t bodyEnd = lastQ + 3;
@@ -115,7 +130,7 @@ void VM::preprocessFunctions() {
 
 void VM::run() {
     callStack.emplace();
-    callStack.top().locals.reserve(10);
+    callStack.top().locals.emplace_back();
     while (ip < bytecode.size()) {
         const uint8_t opcode = read();
         uint8_t meta = read();
@@ -130,24 +145,32 @@ void VM::run() {
             case 0x02: {
                 //LOAD
                 int32_t idx = std::get<int32_t>(payload);
-                loadStack.emplace(callStack.top().locals.at(idx));
+                loadStack.emplace(lookupLocal(idx));
                 break;
             }
             case 0x03:  { // STORE
                 int32_t idx = std::get<int32_t>(payload);
-
                 ValueT val = loadStack.top();
                 loadStack.pop();
 
-                std::vector<ValueT> &dest =
-                    (callStack.size() == 1
-                        ? globals
-                        : callStack.top().locals);
-
-                if (static_cast<size_t>(idx) >= dest.size()) {
-                    dest.resize(static_cast<size_t>(idx) + 1);
+                auto &blocks = callStack.top().locals;
+                for (int i = static_cast<int>(blocks.size()) - 1; i >= 0; --i) {
+                    if (idx >= 0 && static_cast<size_t>(idx) < blocks[i].size()) {
+                        blocks[i][idx] = val;
+                        return;
+                    }
                 }
-                dest[static_cast<size_t>(idx)] = val;
+
+                if (!blocks.empty()) {
+                    if (idx >= 0) {
+                        if (static_cast<size_t>(idx) >= blocks.back().size()) {
+                            blocks.back().resize(static_cast<size_t>(idx) + 1);
+                        }
+                        blocks.back()[idx] = val;
+                    }
+                } else {
+                    throw std::runtime_error("No local block found");
+                }
                 break;
             }
             case 0x04: //PRINT
@@ -169,15 +192,15 @@ void VM::run() {
                 ip = functionTable[std::get<int32_t>(payload)].endIp;
                 break;
             }
-            case 0x07: {
-                if (callStack.size() > 1) {
-                    CallFrame finished = callStack.top();
-                    callStack.pop();
-                    ip = finished.returnIp;
-                }
+            case 0x07: { // END_BLOCK
+                callStack.top().locals.pop_back();
                 break;
             }
-
+            case 0x08: { //INIT_BLOCK
+                callStack.top().locals.emplace_back();
+                break;
+                break;
+            }
             case 0x0E: //ADD
                 binaryOp([](auto a, auto b) { return a + b; });
                 break;
@@ -219,10 +242,11 @@ void VM::run() {
                 CallFrame frame;
                 frame.ip = funcInfo.startIp;
                 frame.returnIp = ip - 1;
-                frame.locals.resize(funcInfo.params);
+                frame.locals.emplace_back();
+                frame.locals.back().resize(funcInfo.params);
 
                 for (size_t i = 0; i < funcInfo.params; i++) {
-                    frame.locals[i] = loadStack.top();
+                    frame.locals.back()[i] = loadStack.top();
                     loadStack.pop();
                 }
 
@@ -247,8 +271,17 @@ void VM::run() {
                 loadStack.emplace(retVal);
                 break;
             }
-            case 0x19: { //GLOAD
-                loadStack.emplace(globals[std::get<int32_t>(payload)]);
+            case 0x1A : { // IF_FALSE
+                ValueT val = loadStack.top();
+                loadStack.pop();
+
+                if (auto boolean = std::get<int32_t>(val); boolean == 0) {
+                    ip += std::get<int32_t>(payload);
+                }
+                break;
+            }
+            case 0x1B: { // JMP
+                ip += std::get<int32_t>(payload);
                 break;
             }
             case 0x1C :  { // NEG
@@ -264,8 +297,7 @@ void VM::run() {
                 }
             }
             case 0x1D: { // INC
-                std::vector<ValueT> &dest =
-                    (callStack.size() == 1 ? globals : callStack.top().locals);
+                auto & dest = callStack.top().locals.back();
 
                 const int32_t idx = std::get<int32_t>(payload);
                 ValueT &val = dest.at(idx);
@@ -287,8 +319,7 @@ void VM::run() {
                 break;
             }
             case 0x1E: { // INC
-                std::vector<ValueT> &dest =
-                    (callStack.size() == 1 ? globals : callStack.top().locals);
+                auto & dest = callStack.top().locals.back();
 
                 int32_t idx = std::get<int32_t>(payload);
                 ValueT &val = dest.at(idx);
@@ -309,6 +340,47 @@ void VM::run() {
                 }
                 break;
             }
+            case 0x1F: { // POST_INC
+                auto & dest = callStack.top().locals.back();
+                int32_t idx = std::get<int32_t>(payload);
+                ValueT& val = dest.at(idx);
+                switch (type) {
+                    case 0x01: {
+                        auto& v = std::get<int32_t>(val);
+                        loadStack.emplace(v);
+                        ++v;
+                        break;
+                    }
+                    case 0x04: {
+                        auto& v = std::get<double>(val);
+                        loadStack.emplace(v);
+                        ++v;
+                        break;
+                    }
+                }
+                break;
+            }
+            case 0x20: { // POST_DEC
+                auto & dest = callStack.top().locals.back();
+                int32_t idx = std::get<int32_t>(payload);
+                ValueT& val = dest.at(idx);
+                switch (type) {
+                    case 0x01: {
+                        auto& v = std::get<int32_t>(val);
+                        loadStack.emplace(v);
+                        --v;
+                        break;
+                    }
+                    case 0x04: {
+                        auto& v = std::get<double>(val);
+                        loadStack.emplace(v);
+                        --v;
+                        break;
+                    }
+                }
+                break;
+            }
+
         }
 
     }

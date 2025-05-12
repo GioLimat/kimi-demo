@@ -101,6 +101,7 @@ private:
     void visitReturnStatement(ReturnStatementNode *node) override;
     void visitBlockStatement(BlockStatementNode *node) override;
     void visitGenericExpressionNode(GenericExpressionNode *node) override;
+    void visitPostFixExpr(PostFixExprNode *node) override;
 
 };
 

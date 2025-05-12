@@ -27,6 +27,7 @@ public:
     virtual void visitDoWhileStatement(DoWhileStatementNode* node) = 0;
     virtual void visitPrintln(PrintlnStatementNode* node) = 0;
     virtual void visitGenericExpressionNode(GenericExpressionNode* node) = 0;
+    virtual void visitPostFixExpr(PostFixExprNode* node) = 0;
 
     virtual ~ASTVisitor() = default;
 };
@@ -52,5 +53,6 @@ public:
     void visitDoWhileStatement(DoWhileStatementNode*) override       {}
     void visitPrintln(PrintlnStatementNode*) override               {}
     void visitGenericExpressionNode(GenericExpressionNode* node) override {}
+    void visitPostFixExpr(PostFixExprNode* node) override {}
 };
 #endif //VISITOR_H

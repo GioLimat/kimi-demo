@@ -126,6 +126,7 @@ void SemanticAnalyzer::visitDoWhileStatement(DoWhileStatementNode *node) {
 
 void SemanticAnalyzer::visitPrintln(PrintlnStatementNode *node) {
     const std::set<std::string> comparisonOps = {"==", "!=", "<", ">", "<=", ">="};
+    node->expression->accept(*this);
     auto preType = TypeInfer::analyzeExpression(node->expression.get(), &scopes);
     if (auto bin = dynamic_cast<BinaryExprNode*>(node->expression.get())) {
         if (comparisonOps.contains(bin->op)) {
@@ -197,6 +198,11 @@ void SemanticAnalyzer::visitUnaryExpr(UnaryExprNode *node) {
     node->type = TypeInfer::analyzeExpression(node, &scopes);
 }
 
+void SemanticAnalyzer::visitPostFixExpr(PostFixExprNode *node) {
+    node->operand->accept(*this);
+    const auto type = TypeInfer::analyzeExpression(node->operand.get(), &scopes);
+    node->type = type;
+}
 
 
 
