@@ -81,8 +81,9 @@ std::unique_ptr<StatementNode> ParserStatement::parseIfStatement() {
         else if (peek().type == LexerTokenType::L_BRACE) {
             int blockEndElse = -1;
             auto slicedElse = tokensByCurrentBlock(blockEndElse);
+            std::cout << "PASSOU " << std::endl;
             int finalEndElse = findMatchingBrace(current) + 1;
-
+            std::cout << "PASSOUFINAL " << std::endl;
             std::vector<std::unique_ptr<ASTNode>> bodyElse;
             if (!slicedElse.empty()) {
                 auto parserElse = Parser(slicedElse);

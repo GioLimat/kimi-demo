@@ -73,7 +73,7 @@ void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
 
 
 void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
-    currentFn = node->name;
+    currentFns.push_back(node->name);
     declareFunction(node->name, node->parameters, node->returnType);
     enterScope();
     for (const auto& param : node->parameters) {
@@ -82,13 +82,12 @@ void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
     for (const auto& child : node->body->statements) {
         child->accept(*this);
     }
-
     auto fn = lookup<FunctionInfo>(node->name, "Function not declared");
     if (fn.returnType.empty()) {
         fn.returnType = "void";
     }
     exitScope();
-    currentFn = "";
+    currentFns.pop_back();
 }
 
 
@@ -142,19 +141,19 @@ void SemanticAnalyzer::visitReturnStatement(ReturnStatementNode *node) {
         node->returnValue->accept(*this);
         auto returnType = TypeInfer::analyzeExpression(node->returnValue.get(), &scopes);
         node->returnType = returnType;
-        auto fn = lookup<FunctionInfo>(currentFn, "Function " + currentFn + " not declared in this scope");
+        auto fn = lookup<FunctionInfo>(currentFns.back(), "Function " + currentFns.back() + " not declared in this scope");
         if (returnType != fn.returnType && fn.returnType != "infer") {
-            throw std::runtime_error("Return type mismatch in function " + currentFn +
-                                     ": expected " + lookup<FunctionInfo>(currentFn, "Function " + currentFn + " not declared in this scope").returnType +
+            throw std::runtime_error("Return type mismatch in function " + currentFns.back() +
+                                     ": expected " + lookup<FunctionInfo>(currentFns.back(), "Function " + currentFns.back() + " not declared in this scope").returnType +
                                      ", got " + returnType);
         }
         if (fn.returnType == "infer") {
-            updateScope(currentFn, FunctionInfo(currentFn, fn.parameters, returnType, returnType));
+            updateScope(currentFns.back(), FunctionInfo(currentFns.back(), fn.parameters, returnType, returnType));
         }
     }
     else {
         node->returnType = "void";
-        lookup<FunctionInfo>(currentFn, "Function " + currentFn + " not declared in this scope").returnType = "void";
+        lookup<FunctionInfo>(currentFns.back(), "Function " + currentFns.back() + " not declared in this scope").returnType = "void";
     }
 }
 
@@ -208,7 +207,9 @@ void SemanticAnalyzer::visitPostFixExpr(PostFixExprNode *node) {
 
 void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters, const std::string &returnType) {
     if (scopes.top().contains(name)) {
-        throw std::runtime_error("Function " + name + " already declared in this scope");
+        if (std::holds_alternative<FunctionInfo>(scopes.top().at(name))) {
+            throw std::runtime_error("Function " + name + " already declared in this scope");
+        }
     }
     scopes.top()[name] = FunctionInfo{name, parameters, returnType};
 }

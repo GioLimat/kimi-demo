@@ -41,13 +41,12 @@ ValueT VM::readPayload(const uint8_t type) {
             return ValueT{val};
         }
         default: {
-            ip++;
             return ValueT{};
         }
     }
 }
 
-size_t VM::instruLen(const size_t pos) {
+size_t VM::instruLen(const size_t pos) const {
     if (pos + 3 > bytecode.size()) return 0;
     const uint8_t type = bytecode[pos+2];
     size_t payload = 0;
@@ -64,7 +63,7 @@ ValueT& VM::lookupLocal(const int32_t idx) const {
     while (!temp.empty()) {
         auto& blocks = temp.top().locals;
         for (int i = static_cast<int>(blocks.size()) - 1; i >= 0; --i) {
-            if (static_cast<size_t>(idx) < blocks[i].size()) {
+            if (blocks[i].contains(idx)) {
                 return blocks[i][idx];
             }
         }
@@ -74,6 +73,53 @@ ValueT& VM::lookupLocal(const int32_t idx) const {
 }
 
 
+void VM::registerFunction(size_t &scanIp) {
+    if (scanIp + 3 >= bytecode.size()) {
+        throw std::runtime_error("Bytecode malformed");
+    }
+
+    uint8_t funcId = bytecode[scanIp + 3];
+    size_t p = scanIp + instruLen(scanIp);
+
+    if (p < bytecode.size() && bytecode[p] == 0x08) {
+        p += instruLen(p);
+    }
+
+    size_t countParams = 0;
+    while (p < bytecode.size() && bytecode[p] == 0x06) {
+        ++countParams;
+        p += instruLen(p);
+    }
+
+    size_t bodyStart = p;
+    size_t q = bodyStart;
+    int depth = 1;
+    size_t lastQ = q;
+
+    while (q < bytecode.size() && depth > 0) {
+        lastQ = q;
+        uint8_t cur = bytecode[q];
+        if (cur == 0x05) {
+            depth++;
+            size_t nestedIp = q;
+            registerFunction(nestedIp);
+        }
+        else if (cur == 0x07) --depth;
+        q += instruLen(q);
+    }
+
+    if (depth != 0) {
+        throw std::runtime_error("Bytecode malformed: function body not closed");
+    }
+
+    size_t bodyEnd = lastQ + 3;
+    functionTable[funcId] = FunctionInfo{ bodyStart, bodyEnd, countParams };
+
+    scanIp = q;
+}
+
+
+
 void VM::preprocessFunctions() {
     size_t scanIp = 0;
 
@@ -81,45 +127,7 @@ void VM::preprocessFunctions() {
         uint8_t op = bytecode[scanIp];
 
         if (op == 0x05) {
-            if (scanIp + 3 >= bytecode.size()) {
-                throw std::runtime_error("Bytecode malformed");
-            }
-
-            uint8_t funcId = bytecode[scanIp + 3];
-            size_t p = scanIp + instruLen(scanIp);
-
-            if (p < bytecode.size() && bytecode[p] == 0x08) {
-                p += instruLen(p);
-            }
-
-            size_t countParams = 0;
-            while (p < bytecode.size() && bytecode[p] == 0x06) {
-                ++countParams;
-                p += instruLen(p);
-            }
-
-            size_t bodyStart = p;
-            size_t q = bodyStart;
-            int depth = 1;
-            size_t lastQ = q;
-
-            while (q < bytecode.size() && depth > 0) {
-                lastQ = q;
-                uint8_t cur = bytecode[q];
-                if (cur == 0x05) ++depth;
-                else if (cur == 0x07) --depth;
-                q += instruLen(q);
-            }
-
-            if (depth != 0) {
-                throw std::runtime_error("Bytecode malformed: function body not closed");
-            }
-
-            size_t bodyEnd = lastQ + 3;
-            functionTable[funcId] = FunctionInfo{ bodyStart, bodyEnd, countParams };
-
-
-            scanIp = q;
+            registerFunction(scanIp);
         } else {
             scanIp += instruLen(scanIp);
         }
@@ -138,6 +146,7 @@ void VM::run() {
         ValueT payload = readPayload(type);
 
 
+
         switch (opcode) {
             case 0x01: //CONST
                 loadStack.emplace(payload);
@@ -153,24 +162,7 @@ void VM::run() {
                 ValueT val = loadStack.top();
                 loadStack.pop();
 
-                auto &blocks = callStack.top().locals;
-                for (int i = static_cast<int>(blocks.size()) - 1; i >= 0; --i) {
-                    if (idx >= 0 && static_cast<size_t>(idx) < blocks[i].size()) {
-                        blocks[i][idx] = val;
-                        return;
-                    }
-                }
-
-                if (!blocks.empty()) {
-                    if (idx >= 0) {
-                        if (static_cast<size_t>(idx) >= blocks.back().size()) {
-                            blocks.back().resize(static_cast<size_t>(idx) + 1);
-                        }
-                        blocks.back()[idx] = val;
-                    }
-                } else {
-                    throw std::runtime_error("No local block found");
-                }
+                callStack.top().locals.back()[idx] = val;
                 break;
             }
             case 0x04: //PRINT
@@ -198,7 +190,6 @@ void VM::run() {
             }
             case 0x08: { //INIT_BLOCK
                 callStack.top().locals.emplace_back();
-                break;
                 break;
             }
             case 0x0E: //ADD
@@ -241,18 +232,15 @@ void VM::run() {
                 auto& funcInfo = functionTable[currentCallId];
                 CallFrame frame;
                 frame.ip = funcInfo.startIp;
-                frame.returnIp = ip - 1;
+                frame.returnIp = ip;
                 frame.locals.emplace_back();
-                frame.locals.back().resize(funcInfo.params);
 
                 for (size_t i = 0; i < funcInfo.params; i++) {
                     frame.locals.back()[i] = loadStack.top();
                     loadStack.pop();
                 }
 
-
                 callStack.emplace(frame);
-
                 ip = funcInfo.startIp;
                 break;
             }
@@ -274,7 +262,6 @@ void VM::run() {
             case 0x1A : { // IF_FALSE
                 ValueT val = loadStack.top();
                 loadStack.pop();
-
                 if (auto boolean = std::get<int32_t>(val); boolean == 0) {
                     ip += std::get<int32_t>(payload);
                 }

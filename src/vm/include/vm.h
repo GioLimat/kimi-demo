@@ -15,7 +15,7 @@
 
 class VM {
     struct CallFrame {
-        std::vector<std::vector<ValueT>> locals;
+        std::vector<std::unordered_map<size_t, ValueT>> locals;
         size_t returnIp;
         size_t ip;
     };
@@ -39,7 +39,8 @@ private:
 
     uint8_t read();
     ValueT readPayload(uint8_t type);
-    size_t instruLen(size_t pos);
+    size_t instruLen(size_t pos) const;
+    void registerFunction(size_t& scanIp);
     ValueT& lookupLocal(int32_t idx) const;
 
     template<typename Func>

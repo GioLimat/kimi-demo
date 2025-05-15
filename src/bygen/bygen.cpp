@@ -52,23 +52,6 @@ void ByGen::declareIdentifier(const std::string &name, bool isParam = false) {
     }
 
     currentScope[name] = varId;
-    /*
-    bool found = false;
-    while (!temp.empty()) {
-        auto& scope = temp.top();
-        auto it = scope.find(name);
-        if (it != scope.end()) {
-            varId = it->second;
-            found = true;
-            break;
-        }
-        temp.pop();
-    }
-    if (!found) {
-        auto& currentScope = symbolTable.top();
-        varId = nextId++;
-        currentScope[name] = varId;
-    }*/
 }
 
 

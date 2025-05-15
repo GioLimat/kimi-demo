@@ -48,5 +48,5 @@ void  runVm(const std::string& code) {
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("if (6 > 0) { println(4);}");
+    runVm("fn b() { fn a() {println(4);} a(); }  b();");
 }

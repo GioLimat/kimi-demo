@@ -27,7 +27,7 @@ public:
     };
     using Scope = std::stack<std::unordered_map<std::string, std::variant<VariableInfo, FunctionInfo>>>;
 private:
-    std::string currentFn;
+    std::vector<std::string> currentFns;
     Scope scopes;
 
     void printAllScopes();
