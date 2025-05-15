@@ -145,8 +145,6 @@ void VM::run() {
         const uint8_t type = read();
         ValueT payload = readPayload(type);
 
-
-
         switch (opcode) {
             case 0x01: //CONST
                 loadStack.emplace(payload);
@@ -154,6 +152,7 @@ void VM::run() {
             case 0x02: {
                 //LOAD
                 int32_t idx = std::get<int32_t>(payload);
+                std::cout << "PEGANDO A VARIAVELL : " << std::get<int32_t>(lookupLocal(idx)) << std::endl;
                 loadStack.emplace(lookupLocal(idx));
                 break;
             }
@@ -223,7 +222,28 @@ void VM::run() {
                 }
                 break;
             }
-
+            case 0x14 : { // LESS
+                ValueT a = loadStack.top();
+                loadStack.pop();
+                ValueT b = loadStack.top();
+                loadStack.pop();
+                switch (type) {
+                    case 0x01:
+                        loadStack.emplace(std::get<int32_t>(a) > std::get<int32_t>(b) ? 1 : 0);
+                        break;
+                    case 0x04:
+                        loadStack.emplace(std::get<double>(a) > std::get<double>(b) ? 1 : 0);
+                        break;
+                }
+                break;
+            }
+            case 0x015: { // EQUAL_EQUAL
+                ValueT a = loadStack.top();
+                loadStack.pop();
+                ValueT b = loadStack.top();
+                loadStack.pop();
+                loadStack.push(b == a);
+            }
             case 0x16: {//CALL
                 currentCallId = std::get<int32_t>(payload);
                 break;
@@ -284,10 +304,8 @@ void VM::run() {
                 }
             }
             case 0x1D: { // INC
-                auto & dest = callStack.top().locals.back();
-
-                const int32_t idx = std::get<int32_t>(payload);
-                ValueT &val = dest.at(idx);
+                int32_t idx = std::get<int32_t>(payload);
+                ValueT& val =  lookupLocal(idx);
 
                 switch (type) {
                     case 0x01: {
@@ -303,13 +321,13 @@ void VM::run() {
                         break;
                     }
                 }
+
+                std::cout << "MUDANDO A VARIAVEL PARA : " << std::get<int32_t>(lookupLocal(idx)) << std::endl;
                 break;
             }
-            case 0x1E: { // INC
-                auto & dest = callStack.top().locals.back();
-
+            case 0x1E: { // DEC
                 int32_t idx = std::get<int32_t>(payload);
-                ValueT &val = dest.at(idx);
+                ValueT& val =  lookupLocal(idx);
 
                 switch (type) {
                     case 0x01: {
@@ -328,9 +346,9 @@ void VM::run() {
                 break;
             }
             case 0x1F: { // POST_INC
-                auto & dest = callStack.top().locals.back();
                 int32_t idx = std::get<int32_t>(payload);
-                ValueT& val = dest.at(idx);
+                ValueT& val =  lookupLocal(idx);
+
                 switch (type) {
                     case 0x01: {
                         auto& v = std::get<int32_t>(val);
@@ -348,9 +366,8 @@ void VM::run() {
                 break;
             }
             case 0x20: { // POST_DEC
-                auto & dest = callStack.top().locals.back();
                 int32_t idx = std::get<int32_t>(payload);
-                ValueT& val = dest.at(idx);
+                ValueT& val =  lookupLocal(idx);
                 switch (type) {
                     case 0x01: {
                         auto& v = std::get<int32_t>(val);
@@ -367,7 +384,6 @@ void VM::run() {
                 }
                 break;
             }
-
         }
 
     }

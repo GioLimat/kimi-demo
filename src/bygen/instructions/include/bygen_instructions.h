@@ -50,6 +50,10 @@ inline std::unordered_map<std::string, uint8_t> instructionMap  = {
 
     {"POST_INC", 0x1F},
     {"POST_DEC", 0x20},
+
+    {"GREATER_EQUAL", 0x21},
+    {"LESS_EQUAL", 0x22},
+    {"NOT_EQUAL", 0x23},
 };
 
 

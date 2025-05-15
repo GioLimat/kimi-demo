@@ -47,6 +47,7 @@ enum class LexerTokenType {
     GREATER,          // >
     LESS_EQUAL,       // <=
     GREATER_EQUAL,    // >=
+    PLUS_EQUAL,      // +=
 
 
     // Logical operators

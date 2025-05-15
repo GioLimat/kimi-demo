@@ -13,6 +13,12 @@ std::string IRMapper::getOperator(const std::string &op) {
     if (op == ">") return "GREATER";
     if (op == "<") return "LESS";
     if (op == "==") return "EQUAL";
+    if (op == "!=") return "NOT_EQUAL";
+    if (op == "&&") return "AND";
+    if (op == "||") return "OR";
+    if (op == "!") return "NOT";
+    if (op == ">=") return    "GREATER_EQUAL";
+    if (op == "<=") return "LESS_EQUAL";
     return "";
 }
 

@@ -49,6 +49,7 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
     {LexerTokenType::GREATER, ">"},
     {LexerTokenType::LESS_EQUAL, "<="},
     {LexerTokenType::GREATER_EQUAL, ">="},
+    {LexerTokenType::PLUS_EQUAL, "+="},
 
 
     {LexerTokenType::AND_AND, "&&"},

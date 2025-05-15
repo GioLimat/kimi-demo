@@ -166,20 +166,34 @@ std::vector<uint8_t> ByGen::generate() {
             emitLiteralLE<int32_t>(static_cast<int32_t>(val));
             continue;
         }
-
         if (instructionType == "IF_FALSE" || instructionType == "JMP") {
             const auto& label = parts[1];
             const auto labelId = label.substr(1, label.size());
-            size_t tempI = i + 1;
-            size_t offset = 0;
 
-            while (splitBySpace(ir[tempI])[1] != label && tempI < ir.size()) {
+            int64_t offset = 0;
+
+
+            // SEARCHING AT FRONT OF THE IF OR JMP
+            size_t tempI = i + 1;
+            bool foundUpFront = false;
+
+
+            while (tempI < ir.size()) {
+                auto tempLabel = splitBySpace(ir[tempI]);
+                if (tempLabel[0] == "LABEL") {
+                    if (tempLabel[1] == label) {
+                        foundUpFront = true;
+                        break;
+                    }
+                }
                 const auto tempParts = splitBySpace(ir[tempI]);
                 std::string tempType;
 
                 for (size_t j = 0; j < tempParts.size(); ++j) {
                     if (tempParts[j] == ":") {
-                        tempType = tempParts[j + 1];
+                        if (!tempParts[j + 1].empty()) {
+                            tempType = tempParts[j + 1];
+                        }
                     }
                 }
                 offset += 3;
@@ -187,6 +201,40 @@ std::vector<uint8_t> ByGen::generate() {
                 else if (tempType == "f64") offset += 8;
                 tempI++;
             }
+
+
+            // SEARCHING AT BACK OF THE IF OR JMP
+            if (!foundUpFront && static_cast<int64_t>(i) - 1  >= 0) {
+                offset = 0;
+                tempI = i - 1;
+                while (true) {
+                    auto tempLabel = splitBySpace(ir[tempI]);
+                    if (tempLabel[0] == "LABEL") {
+                        if (tempLabel[1] == label) {
+                            break;
+                        }
+                    }
+                    const auto tempParts = splitBySpace(ir[tempI]);
+                    std::string tempType;
+
+
+                    for (size_t j = 0; j < tempParts.size(); ++j) {
+                        if (tempParts[j] == ":") {
+                            if (!tempParts[j + 1].empty()) {
+                                tempType = tempParts[j + 1];
+                            }
+                        }
+                    }
+                    offset -= 3;
+                    if (tempType == "i32") offset -= 4;
+                    else if (tempType == "f64") offset -= 8;
+                    tempI--;
+                 }
+                offset -= 4;
+                }
+
+
+            std::cout << offset << std::endl;
 
             emitLiteralLE<int32_t>(offset);
             continue;

@@ -40,14 +40,19 @@ void IRGen::visitIfStatement(IfStatementNode *node) {
 
 
 void IRGen::visitWhileStatement(WhileStatementNode *node) {
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::WHILE));
+    scopes.emplace();
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(currentLabel));
+    auto conditionLabel = currentLabel++;
     node->condition->accept(*this);
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_CONDITION));
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::IF_FALSE) + " L" + std::to_string(currentLabel) + " : i32");
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
     for (const auto& n : node->body->statements) {
         n->accept(*this);
     }
-
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::JMP) + " L" + std::to_string(conditionLabel)  + " : i32");
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK));
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(currentLabel++));
+    scopes.pop();
 }
 
 void IRGen::visitDoWhileStatement(DoWhileStatementNode *node) {
