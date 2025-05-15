@@ -50,7 +50,6 @@ std::unique_ptr<StatementNode> ParserStatement::parseReturnStatement() {
 std::unique_ptr<StatementNode> ParserStatement::parseIfStatement() {
     advance();
 
-
     const int end = findEndOfParenBlock(current);
     auto condition = delegateToExpression(end);
     current = end;
@@ -75,15 +74,12 @@ std::unique_ptr<StatementNode> ParserStatement::parseIfStatement() {
     if (peek().type == LexerTokenType::ELSE) {
         advance();
         if (peek().type == LexerTokenType::IF) {
-            current++;
             elseBranch = parseIfStatement();
         }
         else if (peek().type == LexerTokenType::L_BRACE) {
             int blockEndElse = -1;
             auto slicedElse = tokensByCurrentBlock(blockEndElse);
-            std::cout << "PASSOU " << std::endl;
             int finalEndElse = findMatchingBrace(current) + 1;
-            std::cout << "PASSOUFINAL " << std::endl;
             std::vector<std::unique_ptr<ASTNode>> bodyElse;
             if (!slicedElse.empty()) {
                 auto parserElse = Parser(slicedElse);

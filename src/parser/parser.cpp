@@ -135,7 +135,12 @@ int Parser::findEndOfIfElse(size_t start) const {
         if (next < static_cast<int>(tokens.size()) && tokens[next].type == LexerTokenType::L_BRACE) {
             next = findMatchingBrace(next);
         }
-        break;
+        else if (next < static_cast<int>(tokens.size()) && tokens[next].type == LexerTokenType::IF) {
+            next++;
+            next = findEndOfParenBlock(next);
+            next = findMatchingBrace(next) + 1;
+        }
+        else break;
     }
     return next;
 }
