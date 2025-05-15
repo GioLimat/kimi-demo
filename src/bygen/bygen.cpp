@@ -185,6 +185,8 @@ std::vector<uint8_t> ByGen::generate() {
                         foundUpFront = true;
                         break;
                     }
+                    tempI++;
+                    continue;
                 }
                 const auto tempParts = splitBySpace(ir[tempI]);
                 std::string tempType;
@@ -213,6 +215,8 @@ std::vector<uint8_t> ByGen::generate() {
                         if (tempLabel[1] == label) {
                             break;
                         }
+                        tempI--;
+                        continue;
                     }
                     const auto tempParts = splitBySpace(ir[tempI]);
                     std::string tempType;
@@ -230,11 +234,8 @@ std::vector<uint8_t> ByGen::generate() {
                     else if (tempType == "f64") offset -= 8;
                     tempI--;
                  }
-                offset -= 4;
+                offset -= 7; // This is the amount of bytes in the jmp, that is not desconsidered at the count above
                 }
-
-
-            std::cout << offset << std::endl;
 
             emitLiteralLE<int32_t>(offset);
             continue;

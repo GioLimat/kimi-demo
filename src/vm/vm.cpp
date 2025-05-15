@@ -58,16 +58,14 @@ size_t VM::instruLen(const size_t pos) const {
     return 3 + payload;
 }
 
-ValueT& VM::lookupLocal(const int32_t idx) const {
-    std::stack<CallFrame> temp = callStack;
-    while (!temp.empty()) {
-        auto& blocks = temp.top().locals;
-        for (int i = static_cast<int>(blocks.size()) - 1; i >= 0; --i) {
-            if (blocks[i].contains(idx)) {
-                return blocks[i][idx];
+ValueT& VM::lookupLocal(const int32_t idx)  {
+    for (int64_t i = callStack.size() - 1; i >= 0 ; --i ) {
+        auto& blocks = callStack[i].locals;
+        for (int j = static_cast<int>(blocks.size()) - 1; j >= 0; --j) {
+            if (blocks[j].contains(idx)) {
+                return blocks[j][idx];
             }
         }
-        temp.pop();
     }
     throw std::runtime_error("Variable not found " + std::to_string(idx));
 }
@@ -137,13 +135,14 @@ void VM::preprocessFunctions() {
 
 
 void VM::run() {
-    callStack.emplace();
-    callStack.top().locals.emplace_back();
+    callStack.emplace_back();
+    callStack.back().locals.emplace_back();
     while (ip < bytecode.size()) {
         const uint8_t opcode = read();
         uint8_t meta = read();
         const uint8_t type = read();
         ValueT payload = readPayload(type);
+
 
         switch (opcode) {
             case 0x01: //CONST
@@ -152,7 +151,6 @@ void VM::run() {
             case 0x02: {
                 //LOAD
                 int32_t idx = std::get<int32_t>(payload);
-                std::cout << "PEGANDO A VARIAVELL : " << std::get<int32_t>(lookupLocal(idx)) << std::endl;
                 loadStack.emplace(lookupLocal(idx));
                 break;
             }
@@ -161,7 +159,7 @@ void VM::run() {
                 ValueT val = loadStack.top();
                 loadStack.pop();
 
-                callStack.top().locals.back()[idx] = val;
+                callStack.back().locals.back()[idx] = val;
                 break;
             }
             case 0x04: //PRINT
@@ -184,11 +182,11 @@ void VM::run() {
                 break;
             }
             case 0x07: { // END_BLOCK
-                callStack.top().locals.pop_back();
+                callStack.back().locals.pop_back();
                 break;
             }
             case 0x08: { //INIT_BLOCK
-                callStack.top().locals.emplace_back();
+                callStack.back().locals.emplace_back();
                 break;
             }
             case 0x0E: //ADD
@@ -260,7 +258,7 @@ void VM::run() {
                     loadStack.pop();
                 }
 
-                callStack.emplace(frame);
+                callStack.push_back(frame);
                 ip = funcInfo.startIp;
                 break;
             }
@@ -271,8 +269,8 @@ void VM::run() {
                     loadStack.pop();
                 }
 
-                CallFrame finished = callStack.top();
-                callStack.pop();
+                CallFrame finished = callStack.back();
+                callStack.pop_back();
 
                 ip = finished.returnIp;
 
@@ -322,7 +320,6 @@ void VM::run() {
                     }
                 }
 
-                std::cout << "MUDANDO A VARIAVEL PARA : " << std::get<int32_t>(lookupLocal(idx)) << std::endl;
                 break;
             }
             case 0x1E: { // DEC

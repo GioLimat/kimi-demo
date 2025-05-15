@@ -33,7 +33,7 @@ private:
     std::vector<uint8_t> bytecode;
     size_t ip;
     size_t currentCallId;
-    std::stack<CallFrame> callStack;
+    std::vector<CallFrame> callStack;
     std::stack<ValueT> loadStack;
     std::unordered_map<size_t, FunctionInfo> functionTable;
 
@@ -41,7 +41,7 @@ private:
     ValueT readPayload(uint8_t type);
     size_t instruLen(size_t pos) const;
     void registerFunction(size_t& scanIp);
-    ValueT& lookupLocal(int32_t idx) const;
+    ValueT& lookupLocal(int32_t idx);
 
     template<typename Func>
     void binaryOp(Func op) {
