@@ -15,6 +15,7 @@ int ParserExpression::precedence(const LexerTokenType type) {
 
         case LexerTokenType::PLUS:
         case LexerTokenType::MINUS:
+        case LexerTokenType::PLUS_EQUAL:
             return 3;
 
         case LexerTokenType::EQUAL_EQUAL:
@@ -39,18 +40,31 @@ int ParserExpression::precedence(const LexerTokenType type) {
 
 std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
     if (isAtEnd()) return nullptr;
-    if (peek().type == LexerTokenType::IDENTIFIER && tokens.at(current + 1).type == LexerTokenType::EQUALS) {
-        auto asg = parseAssignment();
-        if (asg != nullptr)
-            return asg;
-    }
+    auto nextToken = tokens.at(current + 1);
+
     if (peek().type == LexerTokenType::IDENTIFIER &&
-        (tokens.at(current + 1).type == LexerTokenType::PLUS_PLUS ||
-         tokens.at(current + 1).type == LexerTokenType::MINUS_MINUS   )) {
+        (nextToken.type == LexerTokenType::EQUALS
+        || nextToken.type == LexerTokenType::PLUS_EQUAL)) {
+
+        if (nextToken.type == LexerTokenType::PLUS_EQUAL) {
+            if (auto asg = parseComposeAssignment(); asg != nullptr)
+                return asg;
+        }
+        else {
+            if (auto asg = parseAssignment(); asg != nullptr)
+                return asg;
+        }
+    }
+
+    if (peek().type == LexerTokenType::IDENTIFIER &&
+        (nextToken.type == LexerTokenType::PLUS_PLUS ||
+         nextToken.type == LexerTokenType::MINUS_MINUS   )) {
         return parsePostFix();
     }
     return parseBinaryOperation(1);
 }
+
+
 
 std::unique_ptr<ExpressionNode> ParserExpression::parsePostFix() {
 
@@ -70,6 +84,13 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseAssignment() {
 
     return std::make_unique<AssignmentExprNode>(std::move(identifier), std::move(expr));
 }
+
+
+
+std::unique_ptr<ExpressionNode> ParserExpression::parseComposeAssignment() {
+
+}
+
 
 
 std::unique_ptr<ExpressionNode> ParserExpression::parseBinaryOperation(const int minPrecedence) {

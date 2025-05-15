@@ -210,3 +210,16 @@ TEST(ParserExpression, PostFixExpression) {
     auto id = dynamic_cast<IdentifierExprNode*>(postfix->operand.get());
     ASSERT_EQ(id->name, "x");
 }
+
+
+TEST(ParserExpression, ComposeAssignment) {
+    const std::string code = "x += 4;";
+    Lexer lexer(code);
+
+    const auto tokens = lexer.tokenize();
+
+    auto parser = MockExpression(tokens);
+
+    auto expr = parser.parseExpression();
+
+}

@@ -20,6 +20,7 @@ protected:
     std::unique_ptr<ExpressionNode> parseCallIdentifier();
     std::unique_ptr<ExpressionNode> parseAssignment();
     std::unique_ptr<ExpressionNode> parsePostFix();
+    std::unique_ptr<ExpressionNode> parseComposeAssignment();
 };
 
 #endif //PARSER_EXPRESSION_H

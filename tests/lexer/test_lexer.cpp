@@ -100,3 +100,18 @@ TEST(LexerTest, PostFix) {
 
     assertTokenVector(tokens, expected);
 }
+
+TEST(LexerTest, ComposeAssignment) {
+    auto lexer = Lexer("x += 4;");
+    const auto tokens = lexer.tokenize();
+
+    const auto expected = {
+        LexerTokenType::IDENTIFIER,
+        LexerTokenType::PLUS_EQUAL,
+        LexerTokenType::INT,
+        LexerTokenType::SEMICOLON,
+        LexerTokenType::EOS
+    };
+
+    assertTokenVector(tokens, expected);
+}
