@@ -37,16 +37,21 @@ int ParserExpression::precedence(const LexerTokenType type) {
     }
 }
 
-
 std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
     if (isAtEnd()) return nullptr;
     auto nextToken = tokens.at(current + 1);
 
+    auto isCompose = nextToken.type == LexerTokenType::PLUS_EQUAL
+        || nextToken.type == LexerTokenType::MINUS_EQUAL
+        || nextToken.type == LexerTokenType::MULTIPLY_EQUAL
+        || nextToken.type == LexerTokenType::DIVIDE_EQUAL
+        || nextToken.type == LexerTokenType::MODULUS_EQUAL;
+
     if (peek().type == LexerTokenType::IDENTIFIER &&
         (nextToken.type == LexerTokenType::EQUALS
-        || nextToken.type == LexerTokenType::PLUS_EQUAL)) {
+        || isCompose)) {
 
-        if (nextToken.type == LexerTokenType::PLUS_EQUAL) {
+        if (isCompose) {
             if (auto asg = parseComposeAssignment(); asg != nullptr)
                 return asg;
         }

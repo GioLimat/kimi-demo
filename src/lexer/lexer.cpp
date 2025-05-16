@@ -84,7 +84,11 @@ LexerToken Lexer::identifySpecialSymbol() {
                                         || temp == LexerTokensMap::getStringByToken(LexerTokenType::GREATER_EQUAL)
                                         || temp == LexerTokensMap::getStringByToken(LexerTokenType::LESS_EQUAL)
                                         || temp == LexerTokensMap::getStringByToken(LexerTokenType::OPTIONAL_CHAIN)
-                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::PLUS_EQUAL);
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::PLUS_EQUAL)
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::MINUS_EQUAL)
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::MULTIPLY_EQUAL)
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::DIVIDE_EQUAL)
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::MODULUS_EQUAL);
 
     if (sourceCode[currentIndex] == value[0] || isDiferentSymbols ) {
         value += sourceCode[currentIndex];

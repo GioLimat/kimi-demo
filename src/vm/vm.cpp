@@ -182,7 +182,7 @@ void VM::run() {
                         std::cout << std::get<double>(loadStack.top()) << std::endl;
                         break;
                     case 0x05: // bool
-                        std::cout << (std::get<int8_t>(loadStack.top()) ? "true" : "false") << std::endl;
+                        std::cout << (std::get<int32_t>(loadStack.top()) ? "true" : "false") << std::endl;
                         break;
                 }
                 loadStack.pop();
@@ -215,7 +215,6 @@ void VM::run() {
                     return a / b;
                 });
                 break;
-
             case 0x13: { // GREATER
                 ValueT a = loadStack.top();
                 loadStack.pop();
@@ -236,6 +235,7 @@ void VM::run() {
                 loadStack.pop();
                 ValueT b = loadStack.top();
                 loadStack.pop();
+                loadStack.emplace(a > b ? 1 : 0);
                 switch (type) {
                     case 0x01:
                         loadStack.emplace(std::get<int32_t>(a) > std::get<int32_t>(b) ? 1 : 0);
@@ -246,12 +246,23 @@ void VM::run() {
                 }
                 break;
             }
-            case 0x015: { // EQUAL_EQUAL
+            case 0x15: { // EQUAL_EQUAL
                 ValueT a = loadStack.top();
                 loadStack.pop();
                 ValueT b = loadStack.top();
                 loadStack.pop();
-                loadStack.emplace(b == a);
+                switch (type) {
+                    case 0x01:
+                        loadStack.emplace(std::get<int32_t>(a) == std::get<int32_t>(b) ? 1 : 0);
+                        break;
+                    case 0x04:
+                        loadStack.emplace(std::get<double>(a) == std::get<double>(b) ? 1 : 0);
+                        break;
+                    case 0x05:
+                        loadStack.emplace(std::get<int8_t>(a) == std::get<int8_t>(b) ? 1 : 0);
+                        break;
+                }
+                break;
             }
             case 0x16: {//CALL
                 currentCallId = std::get<int32_t>(payload);
