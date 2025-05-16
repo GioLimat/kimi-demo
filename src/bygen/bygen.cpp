@@ -109,7 +109,12 @@ std::vector<uint8_t> ByGen::generate() {
         if (instructionType == "STORE") {
             const std::string& name = parts[1];
 
-            declareIdentifier(name);
+            try {
+                getIdentifierId(name);
+            }
+            catch (...) {
+                declareIdentifier(name);
+            }
 
             const uint32_t val = getIdentifierId(name);
 
@@ -234,9 +239,8 @@ std::vector<uint8_t> ByGen::generate() {
                     else if (tempType == "f64") offset -= 8;
                     tempI--;
                  }
-                offset -= 7; // This is the amount of bytes in the jmp, that is not desconsidered at the count above
+                offset -= 7; // This is the amount of bytes in the jmp, that is not considered at the count above
                 }
-
             emitLiteralLE<int32_t>(offset);
             continue;
         }

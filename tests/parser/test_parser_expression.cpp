@@ -222,4 +222,14 @@ TEST(ParserExpression, ComposeAssignment) {
 
     auto expr = parser.parseExpression();
 
+    auto assignment = dynamic_cast<AssignmentExprNode*>(expr.get());
+
+    auto bin = dynamic_cast<BinaryExprNode*>(assignment->value.get());
+
+    auto left = dynamic_cast<IdentifierExprNode*>(bin->left.get());
+    auto right = dynamic_cast<NumberNode*>(bin->right.get());
+
+    ASSERT_EQ(left->name, "x");
+    ASSERT_EQ(bin->op, "+");
+    ASSERT_EQ(right->value, "4");
 }

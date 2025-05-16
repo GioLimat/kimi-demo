@@ -88,8 +88,23 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseAssignment() {
 
 
 std::unique_ptr<ExpressionNode> ParserExpression::parseComposeAssignment() {
+    std::string varName = advance().value;
+    std::string compOp = advance().value;
 
+    auto rhs = parseBinaryOperation(1);
+
+    char binOp = compOp[0];
+
+    auto leftIdent = std::make_unique<IdentifierExprNode>(varName);
+    auto addExpr = std::make_unique<BinaryExprNode>(
+        std::string(1, binOp),
+        std::move(leftIdent),
+        std::move(rhs)
+    );
+
+    return std::make_unique<AssignmentExprNode>(varName, std::move(addExpr));
 }
+
 
 
 

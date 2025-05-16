@@ -41,7 +41,7 @@ private:
     ValueT readPayload(uint8_t type);
     size_t instruLen(size_t pos) const;
     void registerFunction(size_t& scanIp);
-    ValueT& lookupLocal(int32_t idx);
+    ValueT* lookupLocal(int32_t idx);
 
     template<typename Func>
     void binaryOp(Func op) {

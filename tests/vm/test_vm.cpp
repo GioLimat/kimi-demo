@@ -48,5 +48,5 @@ void  runVm(const std::string& code) {
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("var i = 1; while (i < 12) { if (i > 4) { println(i); };  i++;  }");
+    runVm("fn a () { var x = 4; fn b() { println(x); }  b();} a();");
 }

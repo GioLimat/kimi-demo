@@ -58,17 +58,19 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
 }
 
 void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
-    TypeInfer::analyzeExpression(expr, &scopes);
+    std::string storeType = TypeInfer::analyzeExpression(expr->value.get(), &scopes);
 
     const auto [type, isConst, isGlobal] = lookup<VariableInfo>(expr->name, "Variable " + expr->name + " not declared in this scope");
     if (isConst) {
         throw std::runtime_error("Cannot assign to const variable " + expr->name);
     }
 
-    if (const std::string valueType = TypeInfer::analyzeExpression(expr->value.get(), &scopes); valueType != type) {
+    if (storeType != type) {
         throw std::runtime_error("Type mismatch in assignment to '" + expr->name +
-                                 "': expected " + type + ", got " + valueType);
+                                 "': expected " + type + ", got " + storeType);
     }
+
+    expr->type = storeType;
 }
 
 
