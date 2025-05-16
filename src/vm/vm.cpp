@@ -174,17 +174,14 @@ void VM::run() {
                 break;
             }
             case 0x04: //PRINT
-                switch (type) {
-                    case 0x01: //i32
-                        std::cout << std::get<int32_t>(loadStack.top()) << std::endl;
-                        break;
-                    case 0x04:  //F64
-                        std::cout << std::get<double>(loadStack.top()) << std::endl;
-                        break;
-                    case 0x05: // bool
-                        std::cout << (std::get<int32_t>(loadStack.top()) ? "true" : "false") << std::endl;
-                        break;
-                }
+                std::visit([]<typename T0>(T0&& val) {
+                     using T = std::decay_t<T0>;
+                     if constexpr (std::is_same_v<T, int8_t>) {
+                         std::cout << (val ? "true" : "false") << std::endl;
+                     } else {
+                         std::cout << val << std::endl;
+                     }
+                 }, loadStack.top());
                 loadStack.pop();
                 break;
             case 0x05: {
@@ -220,14 +217,17 @@ void VM::run() {
                 loadStack.pop();
                 ValueT b = loadStack.top();
                 loadStack.pop();
-                switch (type) {
-                    case 0x01:
-                        loadStack.emplace(std::get<int32_t>(a) < std::get<int32_t>(b) ? 1 : 0);
-                        break;
-                    case 0x04:
-                        loadStack.emplace(std::get<double>(a) < std::get<double>(b) ? 1 : 0);
-                        break;
-                }
+                loadStack.emplace(static_cast<int8_t>(
+                std::visit([](auto a, auto b) -> bool {
+                    using T = std::decay_t<decltype(a)>;
+                    if constexpr (std::is_same_v<T, decltype(b)> &&
+                                  (std::is_same_v<T, int32_t> || std::is_same_v<T, double>)) {
+                        return a < b;
+                    } else {
+                        throw std::runtime_error("Invalid types for comparison");
+                    }
+                }, a, b)
+                ));
                 break;
             }
             case 0x14 : { // LESS
@@ -235,15 +235,17 @@ void VM::run() {
                 loadStack.pop();
                 ValueT b = loadStack.top();
                 loadStack.pop();
-                loadStack.emplace(a > b ? 1 : 0);
-                switch (type) {
-                    case 0x01:
-                        loadStack.emplace(std::get<int32_t>(a) > std::get<int32_t>(b) ? 1 : 0);
-                        break;
-                    case 0x04:
-                        loadStack.emplace(std::get<double>(a) > std::get<double>(b) ? 1 : 0);
-                        break;
-                }
+                loadStack.emplace(static_cast<int8_t>(
+                std::visit([](auto a, auto b) -> bool {
+                    using T = std::decay_t<decltype(a)>;
+                    if constexpr (std::is_same_v<T, decltype(b)> &&
+                                  (std::is_same_v<T, int32_t> || std::is_same_v<T, double>)) {
+                        return a > b;
+                    } else {
+                        throw std::runtime_error("Invalid types for comparison");
+                    }
+                }, a, b)
+                ));
                 break;
             }
             case 0x15: { // EQUAL_EQUAL
@@ -251,17 +253,17 @@ void VM::run() {
                 loadStack.pop();
                 ValueT b = loadStack.top();
                 loadStack.pop();
-                switch (type) {
-                    case 0x01:
-                        loadStack.emplace(std::get<int32_t>(a) == std::get<int32_t>(b) ? 1 : 0);
-                        break;
-                    case 0x04:
-                        loadStack.emplace(std::get<double>(a) == std::get<double>(b) ? 1 : 0);
-                        break;
-                    case 0x05:
-                        loadStack.emplace(std::get<int8_t>(a) == std::get<int8_t>(b) ? 1 : 0);
-                        break;
-                }
+                loadStack.emplace(static_cast<int8_t>(
+                 std::visit([](auto a, auto b) -> bool {
+                     using T = std::decay_t<decltype(a)>;
+                     if constexpr (std::is_same_v<T, decltype(b)> &&
+                                   (std::is_same_v<T, int32_t> || std::is_same_v<T, double>)) {
+                         return a == b;
+                     } else {
+                         throw std::runtime_error("Invalid types for comparison");
+                     }
+                 }, a, b)
+                 ));
                 break;
             }
             case 0x16: {//CALL
