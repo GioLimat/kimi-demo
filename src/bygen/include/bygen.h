@@ -21,9 +21,11 @@ class ByGen {
     void emitBasedOnType(const std::string& type, T value) {
         if (type == "i32") emit<int32_t>(value);
         if (type == "f64") emit<double>(value);
+        if (type == "bool") emit<uint8_t>(value);
     };
 
     void emitBasedOnType(const std::string& type);
+
 
     template<typename T>
     void emitLiteralLE(const T& value) {

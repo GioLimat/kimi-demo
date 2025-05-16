@@ -7,6 +7,6 @@
 #include <cstdint>
 #include <variant>
 
-using ValueT = std::variant<int32_t, double>;
+using ValueT = std::variant<int32_t, double, int8_t>;
 
 #endif //VALUE_H

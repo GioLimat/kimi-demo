@@ -59,6 +59,7 @@ void ByGen::declareIdentifier(const std::string &name, bool isParam = false) {
 void ByGen::emitBasedOnType(const std::string &type) {
     if (type == "i32") emitLiteralLE<int32_t>(0);
     else if (type == "f64") emitLiteralLE<double>(0.0);
+    else if (type == "bool") emitLiteralLE<bool>(false);
 }
 
 
@@ -102,6 +103,10 @@ std::vector<uint8_t> ByGen::generate() {
             } else if (type == "f64") {
                 double v = std::stod(parts[1]);
                 emitLiteralLE<double>(v);
+            }
+            else if (type == "bool") {
+                int32_t v = std::stoi(parts[1]);
+                emitLiteralLE<uint8_t>(v);
             }
             continue;
         }
@@ -206,6 +211,7 @@ std::vector<uint8_t> ByGen::generate() {
                 offset += 3;
                 if (tempType == "i32") offset += 4;
                 else if (tempType == "f64") offset += 8;
+                else if (tempType == "bool") offset += 1;
                 tempI++;
             }
 
@@ -237,6 +243,7 @@ std::vector<uint8_t> ByGen::generate() {
                     offset -= 3;
                     if (tempType == "i32") offset -= 4;
                     else if (tempType == "f64") offset -= 8;
+                    else if (tempType == "bool") offset -= 1;
                     tempI--;
                  }
                 offset -= 7; // This is the amount of bytes in the jmp, that is not considered at the count above

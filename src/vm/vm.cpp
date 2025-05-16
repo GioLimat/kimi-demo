@@ -40,6 +40,10 @@ ValueT VM::readPayload(const uint8_t type) {
             std::memcpy(&val, &raw, sizeof(double));
             return ValueT{val};
         }
+        case 0x05: { // bool 1 byte
+            uint8_t value = read();
+            return ValueT{static_cast<int8_t>(value)};
+            }
         default: {
             return ValueT{};
         }
@@ -53,6 +57,7 @@ size_t VM::instruLen(const size_t pos) const {
     switch(type) {
         case 0x01: payload = 4; break;
         case 0x04: payload = 8; break;
+        case 0x05: payload = 1; break;
         default:   payload = 0; break;
     }
     return 3 + payload;
@@ -143,7 +148,6 @@ void VM::run() {
         const uint8_t type = read();
         ValueT payload = readPayload(type);
 
-
         switch (opcode) {
             case 0x01: //CONST
                 loadStack.emplace(payload);
@@ -151,7 +155,8 @@ void VM::run() {
             case 0x02: {
                 //LOAD
                 int32_t idx = std::get<int32_t>(payload);
-                loadStack.emplace(*lookupLocal(idx));
+                ValueT* var = lookupLocal(idx);
+                loadStack.push(*var);
                 break;
             }
             case 0x03:  { // STORE
@@ -176,8 +181,8 @@ void VM::run() {
                     case 0x04:  //F64
                         std::cout << std::get<double>(loadStack.top()) << std::endl;
                         break;
-                    case 0x05:
-                        std::cout << (std::get<int32_t>(loadStack.top()) ? "true" : "false") << std::endl;
+                    case 0x05: // bool
+                        std::cout << (std::get<int8_t>(loadStack.top()) ? "true" : "false") << std::endl;
                         break;
                 }
                 loadStack.pop();

@@ -58,7 +58,7 @@ void IRGen::visitUnaryExpr(UnaryExprNode *node) {
 void IRGen::visitAssignmentExpr(AssignmentExprNode *node) {
     node->value->accept(*this);
     auto it = lookup<SemanticAnalyzer::VariableInfo>(node->name, "Variable not found: " + node->name);
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::STORE) + " " + node->name + " : " + node->type);
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::STORE) + " " + node->name + " : " + "i32");
 }
 
 
@@ -76,4 +76,10 @@ void IRGen::visitPostFixExpr(PostFixExprNode *node) {
     }
     if (node->op == "--") bytecode.push_back(IRMapper::getInstruction(IRInstruction::POST_DEC) + " " + ident->name + " : " + node->type);
     else if (node->op == "++") bytecode.push_back(IRMapper::getInstruction(IRInstruction::POST_INC) + " " + ident->name + " : " + node->type);
+}
+
+
+void IRGen::visitBoolean(BooleanNode *node) {
+    std::string value = node->value ? "1" : "0";
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::CONST) + " " + value + " : " + "bool");
 }

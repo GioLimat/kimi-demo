@@ -48,5 +48,5 @@ void  runVm(const std::string& code) {
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("fn a () { var x = 4; fn b() { println(x); }  b();} a();");
+    runVm("var b = false; println(b);");
 }

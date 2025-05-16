@@ -56,6 +56,9 @@ enum class IRInstruction {
   DIV,
   MOD,
 
+  TRUE,
+  FALSE,
+
   EQUAL_EQUAL,
   GRATER_THAN,
   LESS_THAN,
