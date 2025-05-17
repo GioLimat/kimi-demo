@@ -61,7 +61,7 @@ enum class LexerTokenType {
     OR_OR,            // ||
 
     // Misc
-    EOS,              // End of stream
+    EOS,              // End of source
     UNDEFINED         // Invalid or unknown token
 };
 

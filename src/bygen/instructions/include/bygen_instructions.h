@@ -54,6 +54,10 @@ inline std::unordered_map<std::string, uint8_t> instructionMap  = {
     {"GREATER_EQUAL", 0x21},
     {"LESS_EQUAL", 0x22},
     {"NOT_EQUAL", 0x23},
+
+    {"AND", 0x24},
+    {"OR", 0x25},
+    {"NOT", 0x26},
 };
 
 

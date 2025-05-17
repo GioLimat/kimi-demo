@@ -213,57 +213,27 @@ void VM::run() {
                 });
                 break;
             case 0x13: { // GREATER
-                ValueT a = loadStack.top();
-                loadStack.pop();
-                ValueT b = loadStack.top();
-                loadStack.pop();
-                loadStack.emplace(static_cast<int8_t>(
-                std::visit([](auto a, auto b) -> bool {
-                    using T = std::decay_t<decltype(a)>;
-                    if constexpr (std::is_same_v<T, decltype(b)> &&
-                                  (std::is_same_v<T, int32_t> || std::is_same_v<T, double>)) {
-                        return a < b;
-                    } else {
-                        throw std::runtime_error("Invalid types for comparison");
-                    }
-                }, a, b)
-                ));
+                binaryBoolOp([](const ValueT& a, const ValueT& b) {
+                          return std::visit([](auto va, auto vb) {
+                              return va > vb;
+                          }, a, b);
+                      });
                 break;
             }
             case 0x14 : { // LESS
-                ValueT a = loadStack.top();
-                loadStack.pop();
-                ValueT b = loadStack.top();
-                loadStack.pop();
-                loadStack.emplace(static_cast<int8_t>(
-                std::visit([](auto a, auto b) -> bool {
-                    using T = std::decay_t<decltype(a)>;
-                    if constexpr (std::is_same_v<T, decltype(b)> &&
-                                  (std::is_same_v<T, int32_t> || std::is_same_v<T, double>)) {
-                        return a > b;
-                    } else {
-                        throw std::runtime_error("Invalid types for comparison");
-                    }
-                }, a, b)
-                ));
+                binaryBoolOp([](const ValueT& a, const ValueT& b) {
+                         return std::visit([](auto va, auto vb) {
+                             return va < vb;
+                         }, a, b);
+                     });
                 break;
             }
             case 0x15: { // EQUAL_EQUAL
-                ValueT a = loadStack.top();
-                loadStack.pop();
-                ValueT b = loadStack.top();
-                loadStack.pop();
-                loadStack.emplace(static_cast<int8_t>(
-                 std::visit([](auto a, auto b) -> bool {
-                     using T = std::decay_t<decltype(a)>;
-                     if constexpr (std::is_same_v<T, decltype(b)> &&
-                                   (std::is_same_v<T, int32_t> || std::is_same_v<T, double>)) {
-                         return a == b;
-                     } else {
-                         throw std::runtime_error("Invalid types for comparison");
-                     }
-                 }, a, b)
-                 ));
+                binaryBoolOp([](const ValueT& a, const ValueT& b) {
+                           return std::visit([](auto va, auto vb) {
+                               return va == vb;
+                           }, a, b);
+                       });
                 break;
             }
             case 0x16: {//CALL
@@ -314,98 +284,92 @@ void VM::run() {
                 break;
             }
             case 0x1C :  { // NEG
-                ValueT val = loadStack.top();
+                auto val = loadStack.top();
                 loadStack.pop();
-                switch (type) {
-                    case 0x01:
-                        loadStack.emplace(-std::get<int32_t>(val));
-                        break;
-                    case 0x04:
-                        loadStack.emplace(-std::get<double>(val));
-                        break;
-                }
+                loadStack.emplace(std::visit([] (auto a) -> ValueT {
+                    return -a;
+                }, val));
+                break;
             }
             case 0x1D: { // INC
                 int32_t idx = std::get<int32_t>(payload);
                 ValueT* val =  lookupLocal(idx);
-
-                switch (type) {
-                    case 0x01: {
-                        auto &v = std::get<int32_t>(*val);
-                        ++v;
-                        loadStack.emplace(v);
-                        break;
-                    }
-                    case 0x04: {
-                        auto &v = std::get<double>(*val);
-                        ++v;
-                        loadStack.emplace(v);
-                        break;
-                    }
-                }
-
+                auto &v = std::get<int32_t>(*val);
+                ++v;
+                loadStack.emplace(v);
                 break;
             }
             case 0x1E: { // DEC
                 int32_t idx = std::get<int32_t>(payload);
                 ValueT* val =  lookupLocal(idx);
-
-                switch (type) {
-                    case 0x01: {
-                        auto &v = std::get<int32_t>(*val);
-                        --v;
-                        loadStack.emplace(v);
-                        break;
-                    }
-                    case 0x04: {
-                        auto &v = std::get<double>(*val);
-                        --v;
-                        loadStack.emplace(v);
-                        break;
-                    }
-                }
+                auto &v = std::get<int32_t>(*val);
+                --v;
                 break;
             }
             case 0x1F: { // POST_INC
                 int32_t idx = std::get<int32_t>(payload);
                 ValueT* val =  lookupLocal(idx);
-
-                switch (type) {
-                    case 0x01: {
-                        auto& v = std::get<int32_t>(*val);
-                        loadStack.emplace(v);
-                        ++v;
-                        break;
-                    }
-                    case 0x04: {
-                        auto& v = std::get<double>(*val);
-                        loadStack.emplace(v);
-                        ++v;
-                        break;
-                    }
-                }
+                auto& v = std::get<int32_t>(*val);
+                loadStack.emplace(v);
+                ++v;
                 break;
             }
             case 0x20: { // POST_DEC
                 int32_t idx = std::get<int32_t>(payload);
                 ValueT* val =  lookupLocal(idx);
-                switch (type) {
-                    case 0x01: {
-                        auto& v = std::get<int32_t>(*val);
-                        loadStack.emplace(v);
-                        --v;
-                        break;
-                    }
-                    case 0x04: {
-                        auto& v = std::get<double>(*val);
-                        loadStack.emplace(v);
-                        --v;
-                        break;
-                    }
-                }
+                auto& v = std::get<int32_t>(*val);
+                loadStack.emplace(v);
+                --v;
+                break;
+            }
+            case 0x21 : { // GREATER_EQUAL
+                binaryBoolOp([](const ValueT& a, const ValueT& b) {
+                          return std::visit([](auto va, auto vb) {
+                              return va >= vb;
+                          }, a, b);
+                      });
+                break;
+            }
+            case 0x22  : { // LESS_EQUAL
+                binaryBoolOp([](const ValueT& a, const ValueT& b) {
+                        return std::visit([](auto va, auto vb) {
+                            return va <= vb;
+                        }, a, b);
+                    });
+                break;
+            }
+            case 0x23 : {  // NOT_EQUAL
+                binaryBoolOp([](const ValueT& a, const ValueT& b) {
+                       return std::visit([](auto va, auto vb) {
+                           return va != vb;
+                       }, a, b);
+                   });
+                break;
+            }
+            case 0x24: {  // AND
+                binaryBoolOp([](const ValueT& a, const ValueT& b) {
+                    return std::visit([](auto va, auto vb) {
+                        return va && vb;
+                    }, a, b);
+                });
+                break;
+            }
+            case 0x25: { // OR
+                binaryBoolOp([](const ValueT& a, const ValueT& b) {
+                    return std::visit([](auto va, auto vb) {
+                        return va || vb;
+                    }, a, b);
+                });
+                break;
+            }
+            case 0x26: { //NOT
+                auto val = loadStack.top();
+                loadStack.pop();
+                loadStack.emplace(static_cast<int8_t>(std::visit([](auto a) {
+                    return !a;
+                }, val)));
                 break;
             }
         }
-
     }
 }

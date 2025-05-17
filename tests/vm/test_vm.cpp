@@ -48,5 +48,5 @@ void  runVm(const std::string& code) {
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("println(4 == 3);");
+    runVm("println(4 > 2 && 2 != 2);");
 }

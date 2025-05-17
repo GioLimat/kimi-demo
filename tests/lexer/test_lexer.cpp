@@ -115,3 +115,18 @@ TEST(LexerTest, ComposeAssignment) {
 
     assertTokenVector(tokens, expected);
 }
+
+TEST(LexerTest, LogicalOperator) {
+    auto lexer = Lexer("true || false;");
+    const auto tokens = lexer.tokenize();
+
+    const auto expected = {
+        LexerTokenType::TRUE,
+        LexerTokenType::OR_OR,
+        LexerTokenType::FALSE,
+        LexerTokenType::SEMICOLON,
+        LexerTokenType::EOS
+    };
+
+    assertTokenVector(tokens, expected);
+}

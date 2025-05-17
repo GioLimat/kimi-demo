@@ -66,7 +66,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
          nextToken.type == LexerTokenType::MINUS_MINUS   )) {
         return parsePostFix();
     }
-    return parseBinaryOperation(1);
+    return parseBinaryOperation(0);
 }
 
 
@@ -85,7 +85,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseAssignment() {
     auto identifier = advance().value;
     advance();
 
-    auto expr = parseBinaryOperation(1);
+    auto expr = parseBinaryOperation(0);
 
     return std::make_unique<AssignmentExprNode>(std::move(identifier), std::move(expr));
 }
@@ -96,7 +96,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseComposeAssignment() {
     std::string varName = advance().value;
     std::string compOp = advance().value;
 
-    auto rhs = parseBinaryOperation(1);
+    auto rhs = parseBinaryOperation(0);
 
     char binOp = compOp[0];
 

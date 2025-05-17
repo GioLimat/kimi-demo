@@ -49,18 +49,18 @@ private:
             ValueT lhs = loadStack.top(); loadStack.pop();
 
             const ValueT result = std::visit([&]<typename T0, typename T1>(T0 a, T1 b) -> ValueT {
-                using A = T0;
-                using B = T1;
-
-                if constexpr (std::is_same_v<A, B>) {
-                    return op(a, b);
-                } else {
-                    throw std::runtime_error("Type mismatch in binary operation");
-                }
+                return op(a, b);
             }, lhs, rhs);
 
             loadStack.push(result);
     }
+
+    template<typename Func>
+    inline void binaryBoolOp(Func&& op) {
+            ValueT rhs = loadStack.top(); loadStack.pop();
+            ValueT lhs = loadStack.top(); loadStack.pop();
+            loadStack.emplace(static_cast<int8_t>(std::forward<Func>(op)(lhs, rhs)));
+        }
 };
 
 #endif //VM_H
