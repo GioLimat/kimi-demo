@@ -6,6 +6,7 @@
 #include <complex>
 #include <iostream>
 
+#include "sizes.h"
 #include "type_analyzer.h"
 
 
@@ -34,7 +35,6 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     if (var->initializer) {
         var->initializer->accept(*this);
         inferredType = TypeInfer::analyzeExpression(var->initializer.get(), &scopes);
-
         if (!var->declaredType.empty() && var->declaredType != inferredType) {
             throw std::runtime_error("Type mismatch in variable declaration: expected " + var->declaredType + ", got " + inferredType);
         }

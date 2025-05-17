@@ -130,3 +130,22 @@ TEST(LexerTest, LogicalOperator) {
 
     assertTokenVector(tokens, expected);
 }
+
+
+TEST(LexerTest, Integers) {
+    auto lexer = Lexer("1 0x004 0o21 0b101010 4.4 ");
+    const auto tokens = lexer.tokenize();
+
+
+    const auto expected = {
+        LexerTokenType::INT,
+        LexerTokenType::INT,
+        LexerTokenType::INT,
+        LexerTokenType::INT,
+        LexerTokenType::FLOAT,
+        LexerTokenType::EOS
+    };
+
+    assertTokenVector(tokens, expected);
+}
+

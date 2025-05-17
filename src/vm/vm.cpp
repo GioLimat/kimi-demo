@@ -42,7 +42,7 @@ ValueT VM::readPayload(const uint8_t type) {
         }
         case 0x05: { // bool 1 byte
             uint8_t value = read();
-            return ValueT{static_cast<int8_t>(value)};
+            return ValueT{static_cast<bool>(value)};
             }
         default: {
             return ValueT{};
@@ -176,7 +176,7 @@ void VM::run() {
             case 0x04: //PRINT
                 std::visit([]<typename T0>(T0&& val) {
                      using T = std::decay_t<T0>;
-                     if constexpr (std::is_same_v<T, int8_t>) {
+                     if constexpr (std::is_same_v<T, bool>) {
                          std::cout << (val ? "true" : "false") << std::endl;
                      } else {
                          std::cout << val << std::endl;
@@ -365,7 +365,7 @@ void VM::run() {
             case 0x26: { //NOT
                 auto val = loadStack.top();
                 loadStack.pop();
-                loadStack.emplace(static_cast<int8_t>(std::visit([](auto a) {
+                loadStack.emplace(static_cast<bool>(std::visit([](auto a) {
                     return !a;
                 }, val)));
                 break;

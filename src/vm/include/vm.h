@@ -59,7 +59,7 @@ private:
     inline void binaryBoolOp(Func&& op) {
             ValueT rhs = loadStack.top(); loadStack.pop();
             ValueT lhs = loadStack.top(); loadStack.pop();
-            loadStack.emplace(static_cast<int8_t>(std::forward<Func>(op)(lhs, rhs)));
+            loadStack.emplace(static_cast<bool>(std::forward<Func>(op)(lhs, rhs)));
         }
 };
 

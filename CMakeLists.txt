@@ -30,6 +30,7 @@ add_library(kimi STATIC
         src/vm/include/vm.h
         src/vm/vm.cpp
         src/general/include/value.h
+        src/general/include/sizes.h
 )
 
 add_subdirectory(tests)

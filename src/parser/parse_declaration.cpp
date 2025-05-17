@@ -24,13 +24,31 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseDeclaration() {
 
 std::unique_ptr<StatementNode> ParserDeclaration::parseVarDeclaration() {
     bool isConst = advance().type == LexerTokenType::VAL;
-
+    std::string type;
     const auto name = advance();
 
     if (name.type != LexerTokenType::IDENTIFIER) {
         throw std::runtime_error("Expected identifier after var/val");
     }
 
+    if (peek().type == LexerTokenType::COLON) {
+        advance();
+        if (peek().type == LexerTokenType::INT) {
+            advance();
+            type = "i32";
+            if (peek().type == LexerTokenType::L_BRACKET) {
+                advance();
+                if (peek().type != LexerTokenType::NUMBER_INT) throw std::runtime_error("Expected number int");
+                type = "i" + peek().value;
+                advance();
+                if (advance().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']'");
+            }
+        }
+        else if (peek().type == LexerTokenType::FLOAT) type = "f64";
+        else {
+           type = LexerTokensMap::getStringByToken(peek().type);
+        }
+    }
     const auto nextToken = peek();
     std::unique_ptr<ExpressionNode> initializer = nullptr;
 
@@ -43,8 +61,9 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseVarDeclaration() {
 
         initializer = delegateToExpression(exprEnd);
     }
-
-    return std::make_unique<VarDeclarationNode>(name.value, std::move(initializer), isConst);
+    VarDeclarationNode var(name.value, std::move(initializer), isConst);
+    var.declaredType = type;
+    return std::make_unique<VarDeclarationNode>(std::move(var));
 }
 
 std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {

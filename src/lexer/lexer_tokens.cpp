@@ -16,17 +16,24 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
     {LexerTokenType::WHILE, "while"},
     {LexerTokenType::FOR, "for"},
     {LexerTokenType::DO, "do"},
+
+    {LexerTokenType::NUMBER_INT, "NUMBER_FLOAT"},
+    {LexerTokenType::NUMBER_FLOAT, "NUMBER_INT"},
     {LexerTokenType::INT, "Int"},
     {LexerTokenType::FLOAT, "Float"},
     {LexerTokenType::BOOLEAN, "Boolean"},
     {LexerTokenType::TRUE, "true"},
     {LexerTokenType::FALSE, "false"},
+
     {LexerTokenType::RETURN, "return"},
 
     {LexerTokenType::R_PAREN, ")"},
     {LexerTokenType::L_PAREN, "("},
     {LexerTokenType::R_BRACE, "}"},
     {LexerTokenType::L_BRACE, "{"},
+    {LexerTokenType::R_BRACKET, "]"},
+    {LexerTokenType::L_BRACKET, "["},
+
 
     {LexerTokenType::COMMA, ","},
     {LexerTokenType::SEMICOLON, ";"},

@@ -27,8 +27,8 @@ class Lexer {
         [[nodiscard]] bool isAtEnd() const;
         LexerToken identifySymbol();
         LexerToken identifySpecialSymbol();
-        void advance();
-
+        char& advance();
+        char& peek();
 
 };
 

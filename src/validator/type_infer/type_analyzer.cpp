@@ -7,7 +7,20 @@
 #include <iostream>
 #include <set>
 
+#include "sizes.h"
+
 SemanticAnalyzer::Scope* TypeInfer::scopes = nullptr;
+
+std::string promoteNumericTypes(const std::string& left, const std::string& right) {
+    auto l = typePrecedence.find(left);
+    auto r = typePrecedence.find(right);
+
+    if (l == typePrecedence.end() || r == typePrecedence.end()) {
+        throw std::runtime_error("Unknown numeric types for promotion: " + left + ", " + right);
+    }
+
+    return (l->second > r->second) ? left : right;
+}
 
 std::string TypeInfer::analyzeExpression(ExpressionNode* expr,
     SemanticAnalyzer::Scope* declared) {
@@ -47,17 +60,18 @@ void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
     const std::set<std::string> comparisonOps = {"==", "!=", "<", ">", "<=", ">="};
 
     node->left->accept(*this);
-    std::string left = currentType;
+    const std::string left = currentType;
 
     node->right->accept(*this);
-    std::string right = currentType;
+    const std::string right = currentType;
 
     const std::string& op = node->op;
 
     if (arithmeticOps.contains(op)) {
-        if ((left == "i32" || left == "f64") && (right == "i32" || right == "f64")) {
-            node->type = (left == "f64" || right == "f64") ? "f64" : "i32";
-            currentType = node->type;
+        if (typePrecedence.contains(left) && typePrecedence.contains(right)) {
+            const std::string resultType = promoteNumericTypes(left, right);
+            node->type = resultType;
+            currentType = resultType;
             return;
         }
         throw std::runtime_error("Arithmetic operators require numeric types, got: " + left + " and " + right);

@@ -5,6 +5,8 @@
 #include "lexer_tokens.h"
 #include "parser_expression.h"
 
+#include <limits>
+
 
 int ParserExpression::precedence(const LexerTokenType type) {
     switch (type) {
@@ -184,16 +186,43 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseUnary() {
         return parsePrimary();
 }
 
+std::string inferIntegerType(const std::string& valueStr) {
+    long long value = std::stoll(valueStr);
+
+    if (value >= std::numeric_limits<int8_t>::min() && value <= std::numeric_limits<int8_t>::max())
+        return "i8";
+    if (value >= std::numeric_limits<int16_t>::min() && value <= std::numeric_limits<int16_t>::max())
+        return "i16";
+    if (value >= std::numeric_limits<int32_t>::min() && value <= std::numeric_limits<int32_t>::max())
+        return "i32";
+
+    return "i64";
+}
+
+std::string inferFloatType(const std::string& valueStr) {
+    double value = std::stod(valueStr);
+    float fvalue = static_cast<float>(value);
+
+
+    if (static_cast<double>(fvalue) == value) {
+        return "f32";
+    }
+
+    return "f64";
+
+}
+
 
 std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
     auto token = peek();
 
-    if (token.type == LexerTokenType::INT || token.type == LexerTokenType::FLOAT) {
+    if (token.type == LexerTokenType::NUMBER_INT
+        || token.type == LexerTokenType::NUMBER_FLOAT) {
         std::string value = advance().value;
         std::string type;
-        if (token.type == LexerTokenType::INT) {
+        if (token.type == LexerTokenType::NUMBER_INT) {
             type = "i32";
-        } else if (token.type == LexerTokenType::FLOAT) {
+        } else if (token.type == LexerTokenType::NUMBER_FLOAT) {
             type = "f64";
         }
         return std::make_unique<NumberNode>(value, type);

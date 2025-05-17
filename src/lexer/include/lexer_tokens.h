@@ -21,11 +21,14 @@ enum class LexerTokenType {
     VAR, VAL, FN, IF, ELSE, WHILE, FOR, DO, RETURN,
 
     // Identifiers and literals
-    IDENTIFIER, INT, FLOAT, BOOLEAN, TRUE, FALSE,
+    IDENTIFIER,
+    NUMBER_FLOAT, NUMBER_INT,
+    INT, FLOAT, BOOLEAN, TRUE, FALSE,
 
     // Symbols and punctuation
     L_PAREN, R_PAREN,
     L_BRACE, R_BRACE,
+    L_BRACKET, R_BRACKET,
     COMMA, SEMICOLON, COLON,
 
     // Unary and binary operators

@@ -25,9 +25,9 @@ bool Lexer::isAtEnd() const {
 Lexer::Lexer(std::string sourceCode): sourceCode(move(sourceCode)) {
 };
 
-void Lexer::advance() {
+char& Lexer::advance() {
     if (sourceCode.length() < currentIndex || sourceCode.empty()) {
-        return;
+        return sourceCode[currentIndex];
     }
 
 
@@ -35,28 +35,84 @@ void Lexer::advance() {
         line++;
         column = 0;
     } else column++;
-    currentIndex++;
+    return sourceCode[currentIndex++];
+}
+
+char& Lexer::peek() {
+    if (sourceCode.length() < currentIndex || sourceCode.empty()) {
+        return sourceCode[currentIndex];
+    }
+    return sourceCode[currentIndex];
 }
 
 
 LexerToken Lexer::identifyNumber() {
     std::string value;
-    while (isdigit(sourceCode[currentIndex]) || sourceCode[currentIndex] == '.' && !isAtEnd()) {
+    bool isFloat = false;
+
+    if (!isAtEnd() && sourceCode[currentIndex] == '0'
+        && (sourceCode[currentIndex+1] == 'x' ||
+            sourceCode[currentIndex+1] == 'X' ||
+            sourceCode[currentIndex+1] == 'b' ||
+            sourceCode[currentIndex+1] == 'B' ||
+            sourceCode[currentIndex+1] == 'o' ||
+            sourceCode[currentIndex+1] == 'O'))
+    {
+        char prefix = sourceCode[currentIndex+1];
         value += sourceCode[currentIndex];
         advance();
+        value += sourceCode[currentIndex];
+        advance();
+
+        auto validDigit = [&](char c) {
+            switch (prefix) {
+                case 'x': case 'X':
+                    return std::isxdigit(c) || c == '_';
+                case 'b': case 'B':
+                    return (c == '0' || c == '1') || c == '_';
+                case 'o': case 'O':
+                    return (c >= '0' && c <= '7') || c == '_';
+                default:
+                    return false;
+            }
+        };
+
+        while (!isAtEnd() && validDigit(sourceCode[currentIndex])) {
+            value += sourceCode[currentIndex];
+            advance();
+        }
+    }
+    else {
+        while (!isAtEnd()
+               && (std::isdigit(sourceCode[currentIndex]) || sourceCode[currentIndex] == '_' || sourceCode[currentIndex] == '.'))
+        {
+            if (sourceCode[currentIndex] == '.') {
+                if (isFloat) break;
+                isFloat = true;
+            }
+            value += sourceCode[currentIndex];
+            advance();
+        }
     }
 
+    std::string clean;
+    clean.reserve(value.size());
+    for (char c : value) {
+        if (c != '_') clean += c;
+    }
 
-    const std::regex pattern("[^0-9.]");
-    value = regex_replace(value, pattern, "");
+    LexerTokenType type;
+    if (isFloat) {
+        type = LexerTokenType::NUMBER_FLOAT;
+        value = truncateAfterSecondDot(value);
+    }
+    else {
+        type = LexerTokenType::NUMBER_INT;
+    }
 
-
-    if (value.find('.') != std::string::npos)
-        return LexerToken(LexerTokenType::FLOAT, truncateAfterSecondDot(value), line,
-                          column);
-
-    return LexerToken(LexerTokenType::INT, value, line, column);
+    return LexerToken(type, clean, 0, 0);
 }
+
 
 
 LexerToken Lexer::identifySymbol() {
@@ -107,13 +163,14 @@ LexerToken Lexer::identifySpecialSymbol() {
 LexerToken Lexer::identifyIdentifierKeyword() {
     std::string value;
 
-    while (!isspace(sourceCode[currentIndex]) && isalpha(sourceCode[currentIndex]) && !isAtEnd()) {
+    while ((!isspace(sourceCode[currentIndex]) && isalpha(sourceCode[currentIndex]) && !isAtEnd()) || peek() == ':') {
         value += sourceCode[currentIndex];
         advance();
     }
 
     try {
         const auto keyword = LexerTokensMap::getTokenByString(value);
+
         return LexerToken(keyword, value, line, column);
     } catch (...) {
         return LexerToken(LexerTokenType::IDENTIFIER, value, line, column);

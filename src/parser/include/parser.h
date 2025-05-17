@@ -21,6 +21,8 @@ public:
     std::unique_ptr<AST> parse();
     size_t current = 0;
 protected:
+    std::vector<std::string> permittedSizesInteger = {"8", "16", "32", "64"};
+    std::vector<std::string> permittedSizesFloat = {"32", "64"};
     std::vector<LexerToken> tokens;
 
 
@@ -40,6 +42,7 @@ protected:
     [[nodiscard]] int findEndOfParenBlock(size_t start) const;
     [[ nodiscard ]] int findEndOfIfElse(size_t start) const;
     std::vector<LexerToken> tokensByCurrentBlock(int& blockEnd_);
+
 
 private:
     bool isStatement(const LexerToken& token);
