@@ -67,7 +67,10 @@ inline std::unordered_map<std::string, uint8_t> typeMap = {
     {"f32", 0x03},
     {"f64", 0x04},
     {"bool", 0x05},
-    {"string", 0x06}
+    {"string", 0x06},
+
+    {"i8", 0x07},
+    {"i16", 0x08},
 };
 
 

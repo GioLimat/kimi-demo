@@ -35,8 +35,33 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     if (var->initializer) {
         var->initializer->accept(*this);
         inferredType = TypeInfer::analyzeExpression(var->initializer.get(), &scopes);
-        if (!var->declaredType.empty() && var->declaredType != inferredType) {
-            throw std::runtime_error("Type mismatch in variable declaration: expected " + var->declaredType + ", got " + inferredType);
+
+        if (var->declaredType.empty()) {
+            if (inferredType.rfind('i', 0) == 0) {
+                if (inferredType == "i64") inferredType = "i64";
+                else inferredType = "i32";
+            }
+            else if (inferredType.rfind('f', 0) == 0) {
+                inferredType = "f64";
+            }
+        }
+        else {
+            auto itInf = typePrecedence.find(inferredType);
+            auto itDec = typePrecedence.find(var->declaredType);
+
+            if (itInf == typePrecedence.end() || itDec == typePrecedence.end()) {
+                throw std::runtime_error(
+                    "Unknown types in declaration: inferred=" + inferredType +
+                    ", declared=" + var->declaredType
+                );
+            }
+            if (itInf->second > itDec->second) {
+                throw std::runtime_error(
+                    "Type mismatch in variable declaration: expected a type at least as wide as "
+                    + var->declaredType + ", got " + inferredType
+                );
+            }
+            inferredType = var->declaredType;
         }
     }
     else if (var->isConst) {
@@ -60,18 +85,29 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
 void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
     std::string storeType = TypeInfer::analyzeExpression(expr->value.get(), &scopes);
 
-    const auto [type, isConst, isGlobal] = lookup<VariableInfo>(expr->name, "Variable " + expr->name + " not declared in this scope");
+    auto [varType, isConst, isGlobal] =
+        lookup<VariableInfo>(expr->name, "Variable " + expr->name + " not declared in this scope");
     if (isConst) {
         throw std::runtime_error("Cannot assign to const variable " + expr->name);
     }
 
-    if (storeType != type) {
-        throw std::runtime_error("Type mismatch in assignment to '" + expr->name +
-                                 "': expected " + type + ", got " + storeType);
+    auto itStore = typePrecedence.find(storeType);
+    auto itVar   = typePrecedence.find(varType);
+    if (itStore == typePrecedence.end() || itVar == typePrecedence.end()) {
+        throw std::runtime_error(
+            "Unknown types in assignment: value=" + storeType + ", variable=" + varType
+        );
+    }
+    if (itStore->second > itVar->second) {
+        throw std::runtime_error(
+            "Type mismatch in assignment to '" + expr->name +
+            "': variable is " + varType + ", but the value is " + storeType
+        );
     }
 
-    expr->type = storeType;
+    expr->type = varType;
 }
+
 
 
 void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
@@ -196,12 +232,20 @@ void SemanticAnalyzer::visitGenericExpressionNode(GenericExpressionNode *node) {
 
 void SemanticAnalyzer::visitUnaryExpr(UnaryExprNode *node) {
     node->operand->accept(*this);
+    if (node->op == "++" || node->op == "--") {
+        std::string type = TypeInfer::analyzeExpression(node->operand.get(), &scopes);
+        if (type[0] != 'i') throw std::runtime_error("Unexpected type in unary operator " + node->op);
+    }
     node->type = TypeInfer::analyzeExpression(node, &scopes);
 }
 
 void SemanticAnalyzer::visitPostFixExpr(PostFixExprNode *node) {
     node->operand->accept(*this);
     const auto type = TypeInfer::analyzeExpression(node->operand.get(), &scopes);
+    if (node->op == "++" || node->op == "--") {
+        std::string type = TypeInfer::analyzeExpression(node->operand.get(), &scopes);
+        if (type[0] != 'i') throw std::runtime_error("Unexpected type in unary operator " + node->op);
+    }
     node->type = type;
 }
 

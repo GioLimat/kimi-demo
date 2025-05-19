@@ -16,6 +16,10 @@ public:
     std::unique_ptr<StatementNode> parseDeclaration();
     std::unique_ptr<StatementNode> parseVarDeclaration();
     std::unique_ptr<StatementNode> parseFunctionDeclaration();
+
+
+private:
+    std::string getType();
 };
 
 #endif //PARSE_DECLARATION_H

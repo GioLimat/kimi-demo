@@ -57,7 +57,9 @@ void ByGen::declareIdentifier(const std::string &name, bool isParam = false) {
 
 
 void ByGen::emitBasedOnType(const std::string &type) {
-    if (type == "i32") emitLiteralLE<int32_t>(0);
+    if (type == "i8") emitLiteralLE<int8_t>(0);
+    else if (type == "i16") emitLiteralLE<int16_t>(0);
+    else if (type == "i32") emitLiteralLE<int32_t>(0);
     else if (type == "f64") emitLiteralLE<double>(0.0);
     else if (type == "bool") emitLiteralLE<bool>(false);
 }
@@ -97,7 +99,14 @@ std::vector<uint8_t> ByGen::generate() {
         }
 
         if (instructionType == "CONST") {
-            if (type == "i32") {
+            if (type == "i8") {
+                int8_t v = std::stoi(parts[1]);
+                emitLiteralLE<int8_t>(v);
+            } else if (type == "i16") {
+                int16_t v = std::stoi(parts[1]);
+                emitLiteralLE<int16_t>(v);
+            }
+            else if (type == "i32") {
                 int32_t v = std::stoi(parts[1]);
                 emitLiteralLE<int32_t>(v);
             } else if (type == "f64") {
@@ -145,7 +154,7 @@ std::vector<uint8_t> ByGen::generate() {
 
             const uint32_t varId = getIdentifierId(varName);
 
-            if (type == "i32") emitLiteralLE<int32_t>(static_cast<int32_t>(varId));
+            emitLiteralLE<int32_t>(static_cast<int32_t>(varId));
             continue;
         }
         if (instructionType == "FN") {
@@ -209,7 +218,9 @@ std::vector<uint8_t> ByGen::generate() {
                     }
                 }
                 offset += 3;
-                if (tempType == "i32") offset += 4;
+                if (tempType == "i8") offset += 1;
+                else if (tempType == "i16") offset += 2;
+                else if (tempType == "i32") offset += 4;
                 else if (tempType == "f64") offset += 8;
                 else if (tempType == "bool") offset += 1;
                 tempI++;
@@ -241,6 +252,8 @@ std::vector<uint8_t> ByGen::generate() {
                         }
                     }
                     offset -= 3;
+                    if (tempType == "i8") offset -= 1;
+                    else if (tempType == "i16") offset -= 2;
                     if (tempType == "i32") offset -= 4;
                     else if (tempType == "f64") offset -= 8;
                     else if (tempType == "bool") offset -= 1;

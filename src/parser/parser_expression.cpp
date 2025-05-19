@@ -221,9 +221,9 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
         std::string value = advance().value;
         std::string type;
         if (token.type == LexerTokenType::NUMBER_INT) {
-            type = "i32";
+            type = inferIntegerType(token.value);
         } else if (token.type == LexerTokenType::NUMBER_FLOAT) {
-            type = "f64";
+            type = inferFloatType(token.value);
         }
         return std::make_unique<NumberNode>(value, type);
     }

@@ -9,6 +9,8 @@
 
 #include "sizes.h"
 
+
+
 SemanticAnalyzer::Scope* TypeInfer::scopes = nullptr;
 
 std::string promoteNumericTypes(const std::string& left, const std::string& right) {

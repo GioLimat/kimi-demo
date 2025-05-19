@@ -19,6 +19,7 @@ class ByGen {
 
     template<typename T>
     void emitBasedOnType(const std::string& type, T value) {
+        if (type == "i8") emit<int8_t>(value);
         if (type == "i32") emit<int32_t>(value);
         if (type == "f64") emit<double>(value);
         if (type == "bool") emit<uint8_t>(value);

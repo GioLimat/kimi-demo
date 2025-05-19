@@ -44,6 +44,18 @@ ValueT VM::readPayload(const uint8_t type) {
             uint8_t value = read();
             return ValueT{static_cast<bool>(value)};
             }
+        case 0x07: { // i8 (1 byte)
+            uint8_t value = read();
+            return ValueT{static_cast<int8_t>(value)};
+        }
+        case 0x08: { // i16 (2 bytes)
+            uint16_t raw = 0;
+            for (int i = 0; i < 2; ++i) {
+                raw |= static_cast<uint16_t>(read()) << (8 * i);
+            }
+            return ValueT{static_cast<int16_t>(raw)};
+
+        }
         default: {
             return ValueT{};
         }
@@ -58,6 +70,8 @@ size_t VM::instruLen(const size_t pos) const {
         case 0x01: payload = 4; break;
         case 0x04: payload = 8; break;
         case 0x05: payload = 1; break;
+        case 0x07: payload = 1; break;
+        case 0x08: payload = 2; break;
         default:   payload = 0; break;
     }
     return 3 + payload;
@@ -148,6 +162,8 @@ void VM::run() {
         const uint8_t type = read();
         ValueT payload = readPayload(type);
 
+
+
         switch (opcode) {
             case 0x01: //CONST
                 loadStack.emplace(payload);
@@ -175,13 +191,21 @@ void VM::run() {
             }
             case 0x04: //PRINT
                 std::visit([]<typename T0>(T0&& val) {
-                     using T = std::decay_t<T0>;
-                     if constexpr (std::is_same_v<T, bool>) {
-                         std::cout << (val ? "true" : "false") << std::endl;
-                     } else {
-                         std::cout << val << std::endl;
-                     }
-                 }, loadStack.top());
+                   using T = std::decay_t<T0>;
+
+                   if constexpr (std::is_same_v<T, bool>) {
+                       std::cout << (val ? "true" : "false") << std::endl;
+                   }
+                   else if constexpr (std::is_same_v<T, int8_t>
+                                  || std::is_same_v<T, uint8_t>
+                                  || std::is_same_v<T, int16_t>
+                                  || std::is_same_v<T, uint16_t>) {
+                       std::cout << static_cast<int>(val) << std::endl;
+                   }
+                   else {
+                       std::cout << val << std::endl;
+                   }
+               }, loadStack.top());
                 loadStack.pop();
                 break;
             case 0x05: {
@@ -293,33 +317,43 @@ void VM::run() {
             }
             case 0x1D: { // INC
                 int32_t idx = std::get<int32_t>(payload);
-                ValueT* val =  lookupLocal(idx);
-                auto &v = std::get<int32_t>(*val);
-                ++v;
-                loadStack.emplace(v);
+                ValueT* slot = lookupLocal(idx);
+                std::visit([](auto& x){ if constexpr(std::is_integral_v<std::decay_t<decltype(x)>> && !std::is_same_v<std::decay_t<decltype(x)>, bool>) ++x; }, *slot);
+                loadStack.emplace(*slot);
                 break;
             }
             case 0x1E: { // DEC
                 int32_t idx = std::get<int32_t>(payload);
-                ValueT* val =  lookupLocal(idx);
-                auto &v = std::get<int32_t>(*val);
-                --v;
+                ValueT* slot = lookupLocal(idx);
+                std::visit([](auto& x){ if constexpr(std::is_integral_v<std::decay_t<decltype(x)>> && !std::is_same_v<std::decay_t<decltype(x)>, bool>) --x; }, *slot);
+                loadStack.emplace(*slot);
+                break;
                 break;
             }
             case 0x1F: { // POST_INC
                 int32_t idx = std::get<int32_t>(payload);
-                ValueT* val =  lookupLocal(idx);
-                auto& v = std::get<int32_t>(*val);
-                loadStack.emplace(v);
-                ++v;
+                ValueT* slot = lookupLocal(idx);
+                ValueT old = *slot;
+                std::visit([](auto& x) {
+                    using T = std::decay_t<decltype(x)>;
+                    if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>) {
+                        ++x;
+                    }
+                }, *slot);
+                loadStack.emplace(old);
                 break;
             }
             case 0x20: { // POST_DEC
                 int32_t idx = std::get<int32_t>(payload);
-                ValueT* val =  lookupLocal(idx);
-                auto& v = std::get<int32_t>(*val);
-                loadStack.emplace(v);
-                --v;
+                ValueT* slot = lookupLocal(idx);
+                ValueT old = *slot;
+                std::visit([](auto& x) {
+                    using T = std::decay_t<decltype(x)>;
+                    if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>) {
+                        --x;
+                    }
+                }, *slot);
+                loadStack.emplace(old);
                 break;
             }
             case 0x21 : { // GREATER_EQUAL

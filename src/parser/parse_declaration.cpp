@@ -8,6 +8,45 @@
 #include <ranges>
 #include <bits/locale_facets_nonio.h>
 
+#include "sizes.h"
+
+
+std::string ParserDeclaration::getType() {
+    std::string type;
+    if (peek().type == LexerTokenType::INT) {
+        advance();
+        type = "i32";
+        if (peek().type == LexerTokenType::L_BRACKET) {
+            advance();
+            if (peek().type != LexerTokenType::NUMBER_INT) throw std::runtime_error("Expected number int");
+            if (intSizes.end() == std::find(intSizes.begin(), intSizes.end(), peek().value)) {
+                throw std::runtime_error("Expected int size");
+            }
+            type = "i" + peek().value;
+            advance();
+            if (advance().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']'");
+        }
+    }
+    else if (peek().type == LexerTokenType::FLOAT) {
+        advance();
+        type = "f64";
+        if (peek().type == LexerTokenType::L_BRACKET) {
+            advance();
+            if (peek().type != LexerTokenType::NUMBER_INT) throw std::runtime_error("Expected number int");
+            if (floatSizes.end() == std::find(floatSizes.begin(), floatSizes.end(), peek().value)) {
+                throw std::runtime_error("Expected float size");
+            }
+            type = "i" + peek().value;
+            advance();
+            if (advance().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']'");
+        }
+    }
+    else {
+        type = LexerTokensMap::getStringByToken(peek().type);
+    }
+    return type;
+}
+
 
 std::unique_ptr<StatementNode> ParserDeclaration::parseDeclaration() {
     const auto& token = peek();
@@ -33,20 +72,9 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseVarDeclaration() {
 
     if (peek().type == LexerTokenType::COLON) {
         advance();
-        if (peek().type == LexerTokenType::INT) {
-            advance();
-            type = "i32";
-            if (peek().type == LexerTokenType::L_BRACKET) {
-                advance();
-                if (peek().type != LexerTokenType::NUMBER_INT) throw std::runtime_error("Expected number int");
-                type = "i" + peek().value;
-                advance();
-                if (advance().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']'");
-            }
-        }
-        else if (peek().type == LexerTokenType::FLOAT) type = "f64";
-        else {
-           type = LexerTokensMap::getStringByToken(peek().type);
+        std::string tempType = getType();
+        if (!tempType.empty()) {
+            type = tempType;
         }
     }
     const auto nextToken = peek();

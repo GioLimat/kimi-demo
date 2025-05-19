@@ -22,7 +22,7 @@ std::vector<std::string> gen(const std::string& code) {
 }
 
 TEST(IRGen, SimpleExpression) {
-    const std::string code = "3 && 3;";
+    const std::string code = "val x = 4 + 22222;";
     auto ir = gen(code);
     for (const auto& i : ir) {
         std::cout << i << std::endl;

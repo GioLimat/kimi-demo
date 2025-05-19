@@ -17,4 +17,10 @@ const std::unordered_map<std::string, int> typePrecedence = {
     {"f64", 5},
 };
 
+
+
+const std::vector<std::string> intSizes = {"64", "32", "16", "8"};
+const std::vector<std::string> floatSizes = {"64", "32"};
+
+
 #endif //SIZES_H
