@@ -21,7 +21,7 @@ TEST(LexerTest, SimpleVariableAsignment) {
         LexerTokenType::VAL,
         LexerTokenType::IDENTIFIER,
         LexerTokenType::EQUALS,
-        LexerTokenType::INT,
+        LexerTokenType::NUMBER_INT,
         LexerTokenType::EOS
     };
 
@@ -108,7 +108,7 @@ TEST(LexerTest, ComposeAssignment) {
     const auto expected = {
         LexerTokenType::IDENTIFIER,
         LexerTokenType::PLUS_EQUAL,
-        LexerTokenType::INT,
+        LexerTokenType::NUMBER_INT,
         LexerTokenType::SEMICOLON,
         LexerTokenType::EOS
     };
@@ -138,11 +138,11 @@ TEST(LexerTest, Integers) {
 
 
     const auto expected = {
-        LexerTokenType::INT,
-        LexerTokenType::INT,
-        LexerTokenType::INT,
-        LexerTokenType::INT,
-        LexerTokenType::FLOAT,
+        LexerTokenType::NUMBER_INT,
+        LexerTokenType::NUMBER_INT,
+        LexerTokenType::NUMBER_INT,
+        LexerTokenType::NUMBER_INT,
+        LexerTokenType::NUMBER_FLOAT,
         LexerTokenType::EOS
     };
 

@@ -6,10 +6,12 @@
 #define VM_H
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 #include <stack>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
+#include <bits/ostream.tcc>
 
 #include "value.h"
 
@@ -59,8 +61,30 @@ private:
     inline void binaryBoolOp(Func&& op) {
             ValueT rhs = loadStack.top(); loadStack.pop();
             ValueT lhs = loadStack.top(); loadStack.pop();
+
             loadStack.emplace(static_cast<bool>(std::forward<Func>(op)(lhs, rhs)));
         }
+
+
+    template<typename Func>
+void bitwiseOp(Func op) {
+        ValueT rhs = loadStack.top(); loadStack.pop();
+        ValueT lhs = loadStack.top(); loadStack.pop();
+
+        ValueT result = std::visit([&](auto a, auto b) -> ValueT {
+            using A = std::decay_t<decltype(a)>;
+            using B = std::decay_t<decltype(b)>;
+            if constexpr (std::is_integral_v<A> && std::is_integral_v<B>) {
+                using T = std::common_type_t<A, B>;
+                return static_cast<T>(op(static_cast<T>(a), static_cast<T>(b)));
+            } else {
+                throw std::runtime_error("Bitwise op requires integer types");
+            }
+        }, lhs, rhs);
+
+        loadStack.push(result);
+    }
+
 };
 
 #endif //VM_H

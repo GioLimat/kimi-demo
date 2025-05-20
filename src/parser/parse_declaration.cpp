@@ -36,7 +36,7 @@ std::string ParserDeclaration::getType() {
             if (floatSizes.end() == std::find(floatSizes.begin(), floatSizes.end(), peek().value)) {
                 throw std::runtime_error("Expected float size");
             }
-            type = "i" + peek().value;
+            type = "f" + peek().value;
             advance();
             if (advance().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']'");
         }
@@ -118,6 +118,7 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
             parameters.push_back({});
             parameters[i].name = advance().value;
 
+
             if (advance().type != LexerTokenType::COLON) {
                throw std::runtime_error("Expected ':' after parameter");
             }
@@ -129,8 +130,7 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
                 throw std::runtime_error("Expected parameter type");
             }
 
-            parameters[i].type = peek().type == LexerTokenType::INT ? "i32" : "f64";
-            advance();
+            parameters[i].type = getType();
 
             if (peek().type == LexerTokenType::COMMA) {
                 advance();
@@ -147,14 +147,7 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
     std::string type = "infer";
     if (peek().type == LexerTokenType::COLON) {
         advance();
-        if (peek().type == LexerTokenType::INT) {
-            type = "i32";
-        }
-        else if (peek().type == LexerTokenType::FLOAT) {
-            type = "f64";
-        }
-        else type = "void";
-        advance();
+        type = getType();
     }
 
     if (peek().type != LexerTokenType::L_BRACE) {
@@ -171,6 +164,7 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
         body =  std::move(parser.parse()->children);
     }
     current = blockEnd + 1;
+
 
     if (!body.empty()) {
         auto lastPtr = std::move(body.back());

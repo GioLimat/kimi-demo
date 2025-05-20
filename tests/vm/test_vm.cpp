@@ -48,5 +48,10 @@ void  runVm(const std::string& code) {
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("var x : Float[32] = -444; x++; println(x);");
+    runVm("fn test(a : Int) : Int  { if (a == 1 ) { return 1; }  a * test(a - 1) }  println(test(7));");
+}
+
+
+TEST(Bygen, SimpleCode2) {
+    runVm("var x = 4; x &= 2; x = ~x; println(x);");
 }

@@ -28,3 +28,43 @@ TEST(IRGen, SimpleExpression) {
         std::cout << i << std::endl;
     }
 }
+
+TEST(IRGen, Bitwise) {
+    const std::string code = "4 & 4;";
+    auto ir = gen(code);
+    for (const auto& i : ir) {
+        std::cout << i << std::endl;
+    }
+}
+
+TEST(IRGen, Bitwis2) {
+    const std::string code = "4 | 4;";
+    auto ir = gen(code);
+    for (const auto& i : ir) {
+        std::cout << i << std::endl;
+    }
+}
+
+TEST(IRGen, Bitwis3) {
+    const std::string code = "4 ^ 4;";
+    auto ir = gen(code);
+    for (const auto& i : ir) {
+        std::cout << i << std::endl;
+    }
+}
+
+TEST(IRGen, Bitwis4) {
+    const std::string code = "4 << 4;";
+    auto ir = gen(code);
+    for (const auto& i : ir) {
+        std::cout << i << std::endl;
+    }
+}
+
+TEST(IRGen, Bitwis5) {
+    const std::string code = "4 >> 4;";
+    auto ir = gen(code);
+    for (const auto& i : ir) {
+        std::cout << i << std::endl;
+    }
+}

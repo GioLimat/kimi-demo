@@ -59,6 +59,7 @@ void TypeInfer::visitIdentifier(IdentifierExprNode* node) {
 void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
     const std::set<std::string> arithmeticOps = {"+", "-", "*", "/", "%"};
     const std::set<std::string> logicalOps = {"&&", "||"};
+    const std::set<std::string> bitwiseOps = {"&", "|", "^", "<<", ">>"};
     const std::set<std::string> comparisonOps = {"==", "!=", "<", ">", "<=", ">="};
 
     node->left->accept(*this);
@@ -69,7 +70,7 @@ void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
 
     const std::string& op = node->op;
 
-    if (arithmeticOps.contains(op)) {
+    if (arithmeticOps.contains(op) || bitwiseOps.contains(op)) {
         if (typePrecedence.contains(left) && typePrecedence.contains(right)) {
             const std::string resultType = promoteNumericTypes(left, right);
             node->type = resultType;
@@ -84,7 +85,6 @@ void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
         node->type = "bool";
         return;
     }
-
 
     throw std::runtime_error("Unknown binary operator: " + op);
 }

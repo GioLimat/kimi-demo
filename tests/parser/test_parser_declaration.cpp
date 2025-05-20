@@ -59,7 +59,7 @@ TEST(ParserDeclaration, FnDeclarationWithReturnImplicit) {
 
 
 TEST(ParserDeclaration, FnDeclarationMulti) {
-    const std::unique_ptr<StatementNode> statement = getStatementByDeclaration("fn sum(a: Float, b: Float){return a+b; b+a } ");
+    const std::unique_ptr<StatementNode> statement = getStatementByDeclaration("fn sum(a: Int, b: Int) {return a+b; b+a } ");
 
 
     auto fnDeclaration = dynamic_cast<FunctionDeclarationNode*>(statement.get());

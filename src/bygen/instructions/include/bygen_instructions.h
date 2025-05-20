@@ -58,6 +58,15 @@ inline std::unordered_map<std::string, uint8_t> instructionMap  = {
     {"AND", 0x24},
     {"OR", 0x25},
     {"NOT", 0x26},
+
+
+    {"BIT_AND", 0x27},
+    {"BIT_OR", 0x28},
+    {"BIT_XOR", 0x29},
+    {"SHIFT_LEFT", 0x2A},
+    {"SHIFT_RIGHT", 0x2B},
+    {"BIT_NOT", 0x2C},
+
 };
 
 

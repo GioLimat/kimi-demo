@@ -21,8 +21,26 @@ void SemanticAnalyzer::analyze(const AST& ast) {
 void SemanticAnalyzer::visitBinaryExpr(BinaryExprNode *node) {
     node->left->accept(*this);
     node->right->accept(*this);
-    TypeInfer::analyzeExpression(node, &scopes);
+
+    std::string leftType  = TypeInfer::analyzeExpression(node->left.get(),  &scopes);
+    std::string rightType = TypeInfer::analyzeExpression(node->right.get(), &scopes);
+    const std::string &op = node->op;
+
+    const static std::set<std::string> bitwiseOps = {"&", "|", "^", "<<", ">>"};
+    if (bitwiseOps.contains(op)) {
+        auto itL = typePrecedence.find(leftType);
+        auto itR = typePrecedence.find(rightType);
+        if (itL == typePrecedence.end() || itR == typePrecedence.end()
+            || leftType.front() != 'i' || rightType.front() != 'i')
+        {
+            throw std::runtime_error("Bitwise operators require integer types, got: "
+                                     + leftType + " and " + rightType);
+        }
+    }
+
+    node->type = TypeInfer::analyzeExpression(node, &scopes);
 }
+
 
 void SemanticAnalyzer::visitIdentifier(IdentifierExprNode *node) {
     TypeInfer::analyzeExpression(node, &scopes);
@@ -177,23 +195,30 @@ void SemanticAnalyzer::visitPrintln(PrintlnStatementNode *node) {
 void SemanticAnalyzer::visitReturnStatement(ReturnStatementNode *node) {
     if (node->returnValue) {
         node->returnValue->accept(*this);
-        auto returnType = TypeInfer::analyzeExpression(node->returnValue.get(), &scopes);
-        node->returnType = returnType;
-        auto fn = lookup<FunctionInfo>(currentFns.back(), "Function " + currentFns.back() + " not declared in this scope");
-        if (returnType != fn.returnType && fn.returnType != "infer") {
-            throw std::runtime_error("Return type mismatch in function " + currentFns.back() +
-                                     ": expected " + lookup<FunctionInfo>(currentFns.back(), "Function " + currentFns.back() + " not declared in this scope").returnType +
-                                     ", got " + returnType);
+        std::string inferred = TypeInfer::analyzeExpression(node->returnValue.get(), &scopes);
+        auto fnInfo = lookup<FunctionInfo>(currentFns.back(), "Function " + currentFns.back() + " not declared in this scope");
+        if (fnInfo.returnType != "infer") {
+            auto itInf = typePrecedence.find(inferred);
+            auto itDec = typePrecedence.find(fnInfo.returnType);
+            if (itInf == typePrecedence.end() || itDec == typePrecedence.end() || itInf->second > itDec->second) {
+                throw std::runtime_error(
+                    "Return type mismatch in function " + currentFns.back() +
+                    ": expected " + fnInfo.returnType + ", got " + inferred
+                );
+            }
+            node->returnType = fnInfo.returnType;
+        } else {
+            updateScope(currentFns.back(),
+                        FunctionInfo(fnInfo.name, fnInfo.parameters, inferred, inferred));
+            node->returnType = inferred;
         }
-        if (fn.returnType == "infer") {
-            updateScope(currentFns.back(), FunctionInfo(currentFns.back(), fn.parameters, returnType, returnType));
-        }
-    }
-    else {
+    } else {
+        auto fnInfo = lookup<FunctionInfo>(currentFns.back(), "Function " + currentFns.back() + " not declared in this scope");
+        fnInfo.returnType = "void";
         node->returnType = "void";
-        lookup<FunctionInfo>(currentFns.back(), "Function " + currentFns.back() + " not declared in this scope").returnType = "void";
     }
 }
+
 
 
 void SemanticAnalyzer::visitCallFunction(CallFunctionNode *node) {;
@@ -232,7 +257,7 @@ void SemanticAnalyzer::visitGenericExpressionNode(GenericExpressionNode *node) {
 
 void SemanticAnalyzer::visitUnaryExpr(UnaryExprNode *node) {
     node->operand->accept(*this);
-    if (node->op == "++" || node->op == "--") {
+    if (node->op == "++" || node->op == "--" || node->op == "~") {
         std::string type = TypeInfer::analyzeExpression(node->operand.get(), &scopes);
         if (type[0] != 'i') throw std::runtime_error("Unexpected type in unary operator " + node->op);
     }
@@ -243,7 +268,6 @@ void SemanticAnalyzer::visitPostFixExpr(PostFixExprNode *node) {
     node->operand->accept(*this);
     const auto type = TypeInfer::analyzeExpression(node->operand.get(), &scopes);
     if (node->op == "++" || node->op == "--") {
-        std::string type = TypeInfer::analyzeExpression(node->operand.get(), &scopes);
         if (type[0] != 'i') throw std::runtime_error("Unexpected type in unary operator " + node->op);
     }
     node->type = type;

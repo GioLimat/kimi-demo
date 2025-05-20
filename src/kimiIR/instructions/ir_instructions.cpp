@@ -19,6 +19,12 @@ std::string IRMapper::getOperator(const std::string &op) {
     if (op == "!") return "NOT";
     if (op == ">=") return    "GREATER_EQUAL";
     if (op == "<=") return "LESS_EQUAL";
+    if (op == "&") return "BIT_AND";
+    if (op == "|") return "BIT_OR";
+    if (op == "^") return "BIT_XOR";
+    if (op == "<<") return "SHIFT_LEFT";
+    if (op == ">>") return "SHIFT_RIGHT";
+    if (op == "~") return "BIT_NOT";
     return "";
 }
 

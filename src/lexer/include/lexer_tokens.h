@@ -42,6 +42,12 @@ enum class LexerTokenType {
     OPTIONAL_CHAIN,         // ?.
     PLUS_PLUS,   // ++
     MINUS_MINUS,  // --
+    BIT_AND, // &
+    BIT_OR,  // |
+    XOR, // ^
+    BIT_NOT, // ~
+    SHIFT_LEFT,  // <<
+    SHIFT_RIGHT, // >>
 
     // Comparison operators
     EQUAL_EQUAL,      // ==
@@ -57,6 +63,12 @@ enum class LexerTokenType {
     MULTIPLY_EQUAL,  // *=
     DIVIDE_EQUAL,    // /=
     MODULUS_EQUAL,   // %=
+    BIT_AND_EQUAL,   // &=
+    BIT_OR_EQUAL,    // |=
+    XOR_EQUAL,       // ^=
+    SHIFT_LEFT_EQUAL,  // <<=
+    SHIFT_RIGHT_EQUAL, // >>=
+
 
 
     // Logical operators

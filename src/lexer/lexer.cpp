@@ -51,19 +51,18 @@ LexerToken Lexer::identifyNumber() {
     bool isFloat = false;
 
     if (!isAtEnd() && sourceCode[currentIndex] == '0'
-        && (sourceCode[currentIndex+1] == 'x' ||
-            sourceCode[currentIndex+1] == 'X' ||
-            sourceCode[currentIndex+1] == 'b' ||
-            sourceCode[currentIndex+1] == 'B' ||
-            sourceCode[currentIndex+1] == 'o' ||
-            sourceCode[currentIndex+1] == 'O'))
+    && (sourceCode[currentIndex+1] == 'x' ||
+        sourceCode[currentIndex+1] == 'X' ||
+        sourceCode[currentIndex+1] == 'b' ||
+        sourceCode[currentIndex+1] == 'B' ||
+        sourceCode[currentIndex+1] == 'o' ||
+        sourceCode[currentIndex+1] == 'O'))
     {
         char prefix = sourceCode[currentIndex+1];
-        value += sourceCode[currentIndex];
         advance();
-        value += sourceCode[currentIndex];
         advance();
 
+        std::string rawDigits;
         auto validDigit = [&](char c) {
             switch (prefix) {
                 case 'x': case 'X':
@@ -78,9 +77,16 @@ LexerToken Lexer::identifyNumber() {
         };
 
         while (!isAtEnd() && validDigit(sourceCode[currentIndex])) {
-            value += sourceCode[currentIndex];
+            if (sourceCode[currentIndex] != '_')
+                rawDigits += sourceCode[currentIndex];
             advance();
         }
+        int base = (prefix == 'x' || prefix == 'X') ? 16 :
+                   (prefix == 'b' || prefix == 'B') ? 2 :
+                   (prefix == 'o' || prefix == 'O') ? 8 : 10;
+
+        int64_t number = std::stoll(rawDigits, nullptr, base);
+        value = std::to_string(number);
     }
     else {
         while (!isAtEnd()
@@ -144,10 +150,15 @@ LexerToken Lexer::identifySpecialSymbol() {
                                         || temp == LexerTokensMap::getStringByToken(LexerTokenType::MINUS_EQUAL)
                                         || temp == LexerTokensMap::getStringByToken(LexerTokenType::MULTIPLY_EQUAL)
                                         || temp == LexerTokensMap::getStringByToken(LexerTokenType::DIVIDE_EQUAL)
-                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::MODULUS_EQUAL);
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::MODULUS_EQUAL)
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::BIT_AND_EQUAL)
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::BIT_OR_EQUAL)
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::XOR_EQUAL)
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::SHIFT_LEFT_EQUAL)
+                                        || temp == LexerTokensMap::getStringByToken(LexerTokenType::SHIFT_RIGHT_EQUAL);
 
-    if (sourceCode[currentIndex] == value[0] || isDiferentSymbols ) {
-        value += sourceCode[currentIndex];
+    if (peek() == value[0] || isDiferentSymbols ) {
+        value += peek();
         advance();
     }
 
@@ -163,7 +174,7 @@ LexerToken Lexer::identifySpecialSymbol() {
 LexerToken Lexer::identifyIdentifierKeyword() {
     std::string value;
 
-    while ((!isspace(sourceCode[currentIndex]) && isalpha(sourceCode[currentIndex]) && !isAtEnd()) || peek() == ':') {
+    while ((!isspace(sourceCode[currentIndex]) && isalpha(sourceCode[currentIndex]) && !isAtEnd()) || peek() == '_') {
         value += sourceCode[currentIndex];
         advance();
     }

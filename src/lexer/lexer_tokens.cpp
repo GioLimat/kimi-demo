@@ -49,6 +49,15 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
     {LexerTokenType::OPTIONAL_CHAIN, "?."},
     {LexerTokenType::PLUS_PLUS, "++"},
     {LexerTokenType::MINUS_MINUS, "--"},
+    {LexerTokenType::BIT_AND, "&"},
+    {LexerTokenType::BIT_OR, "|"},
+    {LexerTokenType::XOR, "^"},
+    {LexerTokenType::BIT_NOT, "~"},
+    {LexerTokenType::SHIFT_LEFT, "<<"},
+    {LexerTokenType::SHIFT_RIGHT, ">>"},
+
+
+
 
     {LexerTokenType::BANG_EQUAL, "!="},
     {LexerTokenType::EQUAL_EQUAL, "=="},
@@ -56,6 +65,11 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
     {LexerTokenType::GREATER, ">"},
     {LexerTokenType::LESS_EQUAL, "<="},
     {LexerTokenType::GREATER_EQUAL, ">="},
+    {LexerTokenType::BIT_AND_EQUAL, "&="},
+    {LexerTokenType::BIT_OR_EQUAL, "|="},
+    {LexerTokenType::XOR_EQUAL, "^="},
+    {LexerTokenType::SHIFT_LEFT_EQUAL, "<<="},
+    {LexerTokenType::SHIFT_RIGHT_EQUAL, ">>="},
 
     {LexerTokenType::PLUS_EQUAL, "+="},
     {LexerTokenType::MINUS_EQUAL, "-="},

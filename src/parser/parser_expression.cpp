@@ -13,11 +13,24 @@ int ParserExpression::precedence(const LexerTokenType type) {
         case LexerTokenType::MULTIPLY:
         case LexerTokenType::DIVIDE:
         case LexerTokenType::MODULUS:
-            return 4;
+            return 8;
 
         case LexerTokenType::PLUS:
         case LexerTokenType::MINUS:
         case LexerTokenType::PLUS_EQUAL:
+            return 7;
+
+        case LexerTokenType::SHIFT_LEFT:
+        case LexerTokenType::SHIFT_RIGHT:
+            return 6;
+
+        case LexerTokenType::BIT_AND:
+            return 5;
+
+        case LexerTokenType::XOR:
+            return 4;
+
+        case LexerTokenType::BIT_OR:
             return 3;
 
         case LexerTokenType::EQUAL_EQUAL:
@@ -39,6 +52,8 @@ int ParserExpression::precedence(const LexerTokenType type) {
     }
 }
 
+
+
 std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
     if (isAtEnd()) return nullptr;
     auto nextToken = tokens.at(current + 1);
@@ -47,7 +62,13 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
         || nextToken.type == LexerTokenType::MINUS_EQUAL
         || nextToken.type == LexerTokenType::MULTIPLY_EQUAL
         || nextToken.type == LexerTokenType::DIVIDE_EQUAL
-        || nextToken.type == LexerTokenType::MODULUS_EQUAL;
+        || nextToken.type == LexerTokenType::MODULUS_EQUAL
+        || nextToken.type == LexerTokenType::SHIFT_LEFT_EQUAL
+        || nextToken.type == LexerTokenType::SHIFT_RIGHT_EQUAL
+        || nextToken.type == LexerTokenType::BIT_AND_EQUAL
+        || nextToken.type == LexerTokenType::BIT_OR_EQUAL
+        || nextToken.type == LexerTokenType::XOR_EQUAL
+    ;
 
     if (peek().type == LexerTokenType::IDENTIFIER &&
         (nextToken.type == LexerTokenType::EQUALS
@@ -177,7 +198,9 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseUnary() {
         ||
         token.type == LexerTokenType::MINUS_MINUS
         ||
-        token.type == LexerTokenType::PLUS_PLUS) {
+        token.type == LexerTokenType::PLUS_PLUS
+        ||
+        token.type == LexerTokenType::BIT_NOT) {
             std::string op = advance().value;
             auto operand = parseUnary();
             return std::make_unique<UnaryExprNode>(op, std::move(operand));
@@ -203,13 +226,13 @@ std::string inferFloatType(const std::string& valueStr) {
     double value = std::stod(valueStr);
     float fvalue = static_cast<float>(value);
 
+    double diff = std::abs(static_cast<double>(fvalue) - value);
+    const double epsilon = 1e-6;
 
-    if (static_cast<double>(fvalue) == value) {
+    if (diff < epsilon) {
         return "f32";
     }
-
     return "f64";
-
 }
 
 

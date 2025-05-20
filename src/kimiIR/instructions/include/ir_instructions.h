@@ -44,6 +44,15 @@ enum class IRInstruction {
   POST_INC,
   POST_DEC,
 
+
+  // Bitwise
+  BIT_NOT,
+  BIT_AND,
+  BIT_OR,
+  SHIFT_LEFT,
+  SHIFT_RIGHT,
+  BIT_XOR,
+
   // BLOCKS
   INIT_BLOCK,
   END_BLOCK,

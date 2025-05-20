@@ -31,6 +31,22 @@ ValueT VM::readPayload(const uint8_t type) {
             }
             return ValueT{static_cast<int32_t>(raw)};
         }
+        case 0x02 : { // i64 (8 bytes)
+            uint64_t idx = 0;
+            for (int i = 0; i < 8; ++i) {
+                idx |= static_cast<int32_t>(read()) << (8 * i);
+            }
+            return ValueT{static_cast<int64_t>(idx)};
+        }
+        case 0x03 : {// f32 (4bytes)
+            uint32_t raw = 0;
+            for (int i = 0; i < 4; ++i) {
+                raw |= static_cast<uint32_t>(read()) << (8 * i);
+            }
+            float val;
+            std::memcpy(&val, &raw, sizeof(float));
+            return ValueT{val};
+        }
         case 0x04: { // f64 (8 bytes)
             uint64_t raw = 0;
             for (int i = 0; i < 8; ++i) {
@@ -68,6 +84,8 @@ size_t VM::instruLen(const size_t pos) const {
     size_t payload = 0;
     switch(type) {
         case 0x01: payload = 4; break;
+        case 0x02: payload = 8; break;
+        case 0x03: payload = 4; break;
         case 0x04: payload = 8; break;
         case 0x05: payload = 1; break;
         case 0x07: payload = 1; break;
@@ -121,6 +139,7 @@ void VM::registerFunction(size_t &scanIp) {
             size_t nestedIp = q;
             registerFunction(nestedIp);
         }
+        else if (cur == 0x08) ++depth;
         else if (cur == 0x07) --depth;
         q += instruLen(q);
     }
@@ -161,7 +180,6 @@ void VM::run() {
         uint8_t meta = read();
         const uint8_t type = read();
         ValueT payload = readPayload(type);
-
 
 
         switch (opcode) {
@@ -280,9 +298,9 @@ void VM::run() {
                 ip = funcInfo.startIp;
                 break;
             }
-            case 0x18: { //RET
+            case 0x18: { // RET
                 ValueT retVal{};
-                if (!loadStack.empty()) {
+                if (!loadStack.empty() && type != 0x00) {
                     retVal = loadStack.top();
                     loadStack.pop();
                 }
@@ -292,13 +310,23 @@ void VM::run() {
 
                 ip = finished.returnIp;
 
-                loadStack.emplace(retVal);
+                if (type != 0x00) loadStack.emplace(retVal);
+
+                if (ip < bytecode.size() && bytecode[ip] == 0x07) {
+                    ip += instruLen(ip);
+                }
                 break;
             }
+
             case 0x1A : { // IF_FALSE
                 ValueT val = loadStack.top();
                 loadStack.pop();
-                if (auto boolean = std::get<int32_t>(val); boolean == 0) {
+                bool cond = std::visit([](auto&& x) -> bool {
+                    using T = std::decay_t<decltype(x)>;
+                    if constexpr (std::is_same_v<T, bool>) return x;
+                    else return static_cast<bool>(x);
+                }, val);
+                if (!cond) {
                     ip += std::get<int32_t>(payload);
                 }
                 break;
@@ -404,6 +432,37 @@ void VM::run() {
                 }, val)));
                 break;
             }
+            case 0x27: // BIT_AND
+                bitwiseOp([](auto x, auto y) { return x & y; });
+                break;
+            case 0x28: // BIT_OR
+                bitwiseOp([](auto x, auto y) { return x | y; });
+                break;
+            case 0x29: // BIT_XOR
+                bitwiseOp([](auto x, auto y) { return x ^ y; });
+                break;
+            case 0x2A: // SHL
+                bitwiseOp([](auto x, auto y) { return x << y; });
+                break;
+            case 0x2B: // SHR
+                bitwiseOp([](auto x, auto y) { return x >> y; });
+                break;
+            case 0x2C: { // BIT_NOT
+                ValueT val = loadStack.top();
+                loadStack.pop();
+                ValueT result = std::visit([](auto x) -> ValueT {
+                    using T = std::decay_t<decltype(x)>;
+                    if constexpr (std::is_integral_v<T>) {
+                        return ~x;
+                    } else {
+                        throw std::runtime_error("BIT_NOT: operand must be integral");
+                    }
+                }, val);
+
+                loadStack.push(result);
+                break;
+            }
+
         }
     }
 }
