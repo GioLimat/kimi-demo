@@ -276,7 +276,7 @@ std::unique_ptr<AST> Parser::parse() {
             current = end;
         }
         else if (!isNotExpression(peek())) {
-            ast.push_back(delegateToExpression(findEndOfExpression(current)));
+            ast.push_back(delegateToExpression(findEndOfExpression(current) + 1));
             current += 1;
         }
         else advance();

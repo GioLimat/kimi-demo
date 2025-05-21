@@ -102,6 +102,7 @@ private:
     void visitBlockStatement(BlockStatementNode *node) override;
     void visitGenericExpressionNode(GenericExpressionNode *node) override;
     void visitPostFixExpr(PostFixExprNode *node) override;
+    void visitCharLiteralExpr(CharLiteralExpr *node) override;
 };
 
 #endif //SEMANTIC_ANALYZER_H

@@ -22,7 +22,7 @@ enum class LexerTokenType {
 
     // Identifiers and literals
     IDENTIFIER,
-    NUMBER_FLOAT, NUMBER_INT,
+    NUMBER_FLOAT, NUMBER_INT, CHAR,
     INT, FLOAT, BOOLEAN, TRUE, FALSE,
 
     // Symbols and punctuation
@@ -69,7 +69,11 @@ enum class LexerTokenType {
     SHIFT_LEFT_EQUAL,  // <<=
     SHIFT_RIGHT_EQUAL, // >>=
 
-
+    // String
+    CHAR_LITERAL,
+    STRING,
+    SINGLE_QUOTE,
+    DOUBLE_QUOTE,
 
     // Logical operators
     AND_AND,          // &&

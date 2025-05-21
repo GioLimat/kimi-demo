@@ -37,6 +37,10 @@ void TypeInfer::visitNumber(NumberNode* node) {
     currentType = node->type;
 }
 
+void TypeInfer::visitCharLiteralExpr(CharLiteralExpr *node) {
+    currentType = "char";
+}
+
 void TypeInfer::visitBoolean(BooleanNode* node) {
     currentType = "bool";
 }

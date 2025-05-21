@@ -149,3 +149,42 @@ TEST(LexerTest, Integers) {
     assertTokenVector(tokens, expected);
 }
 
+
+TEST(LexerTest, Char) {
+    auto lexer = Lexer("'ç' 'b' 'c'");
+
+    const auto tokens = lexer.tokenize();
+
+    const auto expected = {
+        LexerTokenType::CHAR_LITERAL,
+        LexerTokenType::CHAR_LITERAL,
+        LexerTokenType::CHAR_LITERAL,
+        LexerTokenType::EOS
+    };
+
+    assertTokenVector(tokens, expected);
+}
+
+
+TEST (LexerTest, CharVar) {
+    auto lexer = Lexer("val x : Char = 'ç';");
+
+    const auto tokens = lexer.tokenize();
+
+    for (const auto& token : tokens) {
+        std::cout << LexerTokensMap::getStringByToken(token.type) << std::endl;
+    }
+
+    const auto expected = {
+        LexerTokenType::VAL,
+        LexerTokenType::IDENTIFIER,
+        LexerTokenType::COLON,
+        LexerTokenType::CHAR,
+        LexerTokenType::EQUALS,
+        LexerTokenType::CHAR_LITERAL,
+        LexerTokenType::SEMICOLON,
+        LexerTokenType::EOS
+    };
+
+    assertTokenVector(tokens, expected);
+}

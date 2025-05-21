@@ -84,6 +84,8 @@ enum class IRType {
   FLOAT32,
   FLOAT64,
 
+  CHAR,
+
   // Boolean
   BOOL,
 };

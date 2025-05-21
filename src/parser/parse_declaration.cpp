@@ -41,6 +41,10 @@ std::string ParserDeclaration::getType() {
             if (advance().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']'");
         }
     }
+    else if (peek().type == LexerTokenType::CHAR) {
+        advance();
+        type = "char";
+    }
     else {
         type = LexerTokensMap::getStringByToken(peek().type);
     }

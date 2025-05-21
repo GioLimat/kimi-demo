@@ -68,3 +68,13 @@ TEST(IRGen, Bitwis5) {
         std::cout << i << std::endl;
     }
 }
+
+TEST (IRGen, Char) {
+    const std::string code = "'á';";
+
+    auto ir = gen(code);
+
+    for (const auto& i : ir) {
+        std::cout << i << std::endl;
+    }
+}

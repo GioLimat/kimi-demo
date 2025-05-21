@@ -30,6 +30,7 @@ public:
     void visitBinaryExpr(BinaryExprNode* node) override;
     void visitUnaryExpr(UnaryExprNode* node) override;
     void visitPostFixExpr(PostFixExprNode *node) override;
+    void visitCharLiteralExpr(CharLiteralExpr *node) override;
 };
 
 

@@ -221,5 +221,12 @@ public:
 
 
 
+class CharLiteralExpr : public ExpressionNode {
+public:
+    uint32_t code;
+    explicit CharLiteralExpr(uint32_t code);
+    void accept(ASTVisitor &visitor) override;
+};
+
 
 #endif // AST_H

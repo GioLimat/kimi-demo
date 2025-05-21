@@ -80,6 +80,7 @@ inline std::unordered_map<std::string, uint8_t> typeMap = {
 
     {"i8", 0x07},
     {"i16", 0x08},
+    {"char", 0x09}
 };
 
 

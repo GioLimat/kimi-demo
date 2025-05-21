@@ -274,6 +274,11 @@ void SemanticAnalyzer::visitPostFixExpr(PostFixExprNode *node) {
 }
 
 
+void SemanticAnalyzer::visitCharLiteralExpr(CharLiteralExpr *node) {
+    TypeInfer::analyzeExpression(node, &scopes);
+}
+
+
 
 void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters, const std::string &returnType) {
     if (scopes.top().contains(name)) {

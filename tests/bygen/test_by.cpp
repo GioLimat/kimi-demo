@@ -34,14 +34,22 @@ std::vector<uint8_t>  genBy(const std::string& code) {
 TEST(Bygen, SimpleBytecode) {
     auto byte = genBy("if (4 > 0){println(4)}");
     for (const auto& b : byte) {
-        std::cout
-            << "0x"
-            << std::uppercase
+        std::cout  << "0x"
             << std::hex
-            << std::setw(2)
-            << std::setfill('0')
+            << static_cast<int>(b)
+           << " ";
+    }
+    std::cout << std::endl;
+}
+
+
+TEST(Bygen, Char) {
+    auto byte = genBy("'á';");
+
+    for (const auto& b : byte) {
+        std::cout << "0x"
+            << std::hex
             << (int)b
-            << std::dec
            << " ";
     }
     std::cout << std::endl;

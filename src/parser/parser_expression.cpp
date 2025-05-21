@@ -5,7 +5,9 @@
 #include "lexer_tokens.h"
 #include "parser_expression.h"
 
+#include <codecvt>
 #include <limits>
+#include <locale>
 
 
 int ParserExpression::precedence(const LexerTokenType type) {
@@ -238,7 +240,6 @@ std::string inferFloatType(const std::string& valueStr) {
 
 std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
     auto token = peek();
-
     if (token.type == LexerTokenType::NUMBER_INT
         || token.type == LexerTokenType::NUMBER_FLOAT) {
         std::string value = advance().value;
@@ -251,6 +252,14 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
         return std::make_unique<NumberNode>(value, type);
     }
 
+    if (token.type == LexerTokenType::CHAR_LITERAL) {
+        std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+        const std::u32string u32 = conv.from_bytes(advance().value);
+        if (u32.empty()) throw std::runtime_error("Invalid UTF-8 in char literal");
+        return std::make_unique<CharLiteralExpr>(static_cast<uint32_t>(u32[0]));
+    }
+
+
     if (token.type == LexerTokenType::TRUE || token.type == LexerTokenType::FALSE) {
         bool value = advance().type == LexerTokenType::TRUE;
         return std::make_unique<BooleanNode>(value);
@@ -259,6 +268,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
     if (token.type == LexerTokenType::IDENTIFIER) {
         return parseCallIdentifier();
     }
+
 
     if (token.type == LexerTokenType::L_PAREN) {
         advance();

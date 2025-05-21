@@ -48,10 +48,10 @@ void  runVm(const std::string& code) {
 
 
 TEST(Bygen, SimpleCode) {
-    runVm("fn test(a : Int) : Int  { if (a == 1 ) { return 1; }  a * test(a - 1) }  println(test(7));");
+    runVm("fn test(a : Int) : Int { if ( a == 1 ) { return 1; }  return a * test(a - 1); }  println(test(7));");
 }
 
 
 TEST(Bygen, SimpleCode2) {
-    runVm("var x = 4; x &= 2; x = ~x; println(x);");
+    runVm("var x : Int[64]  = 444444444444; println(x);");
 }

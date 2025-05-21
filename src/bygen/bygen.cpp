@@ -64,6 +64,7 @@ void ByGen::emitBasedOnType(const std::string &type) {
     else if (type == "f32") emitLiteralLE<float>(0);
     else if (type == "f64") emitLiteralLE<double>(0.0);
     else if (type == "bool") emitLiteralLE<bool>(false);
+    else if (type == "char") emitLiteralLE<uint32_t>(0);
 }
 
 
@@ -79,7 +80,17 @@ std::vector<uint8_t> ByGen::generate() {
         if (instructionType == "LABEL") continue;
 
         bytecode.push_back(ByMapper::getInstruction(instructionType));
-        bytecode.push_back(0x00);
+
+        if (instruction.find("STORE") != std::string::npos) {
+            std::string meta;
+            size_t storeTypeI = instruction.find(", ") + 2;
+            while (instruction[storeTypeI] != ']') {
+                meta += instruction[storeTypeI];
+                storeTypeI++;
+            }
+            bytecode.push_back(ByMapper::getType(meta));
+        }
+        else bytecode.push_back(0x00);
 
         std::string type;
 
@@ -127,6 +138,10 @@ std::vector<uint8_t> ByGen::generate() {
             else if (type == "bool") {
                 int32_t v = std::stoi(parts[1]);
                 emitLiteralLE<uint8_t>(v);
+            }
+            else if (type == "char") {
+                uint32_t v = std::stoi(parts[1]);
+                emitLiteralLE<uint32_t>(v);
             }
             continue;
         }
@@ -229,13 +244,10 @@ std::vector<uint8_t> ByGen::generate() {
                     }
                 }
                 offset += 3;
-                if (tempType == "i8") offset += 1;
+                if (tempType == "i8" || tempType == "bool") offset += 1;
                 else if (tempType == "i16") offset += 2;
-                else if (tempType == "i32") offset += 4;
-                else if (tempType == "i64") offset += 8;
-                else if (tempType == "f32") offset += 4;
-                else if (tempType == "f64") offset += 8;
-                else if (tempType == "bool") offset += 1;
+                else if (tempType == "i32" || tempType == "f32" || tempType == "char") offset += 4;
+                else if (tempType == "i64" || tempType == "f64") offset += 8;
                 tempI++;
             }
 
@@ -265,13 +277,10 @@ std::vector<uint8_t> ByGen::generate() {
                         }
                     }
                     offset -= 3;
-                    if (tempType == "i8") offset -= 1;
+                    if (tempType == "i8" || tempType == "bool") offset -= 1;
                     else if (tempType == "i16") offset -= 2;
-                    else if (tempType == "i32") offset -= 4;
-                    else if (tempType == "i64") offset -= 8;
-                    else if (tempType == "f32") offset -= 4;
-                    else if (tempType == "f64") offset -= 8;
-                    else if (tempType == "bool") offset -= 1;
+                    else if (tempType == "i32" || tempType == "f32" || tempType == "char") offset -= 4;
+                    else if (tempType == "i64" || tempType == "f64") offset -= 8;
                     tempI--;
                  }
                 offset -= 7; // This is the amount of bytes in the jmp, that is not considered at the count above

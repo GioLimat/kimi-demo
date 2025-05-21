@@ -21,7 +21,7 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
     {LexerTokenType::NUMBER_FLOAT, "NUMBER_INT"},
     {LexerTokenType::INT, "Int"},
     {LexerTokenType::FLOAT, "Float"},
-    {LexerTokenType::BOOLEAN, "Boolean"},
+    {LexerTokenType::BOOLEAN, "Bool"},
     {LexerTokenType::TRUE, "true"},
     {LexerTokenType::FALSE, "false"},
 
@@ -80,6 +80,9 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
 
     {LexerTokenType::AND_AND, "&&"},
     {LexerTokenType::OR_OR, "||"},
+
+    {LexerTokenType::CHAR_LITERAL, "CHAR_LITERAL"},
+    {LexerTokenType::CHAR, "Char"},
 
     {LexerTokenType::EOS, "EOS"},
     {LexerTokenType::UNDEFINED, "UNDEFINED"}

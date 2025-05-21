@@ -9,6 +9,7 @@
 #include <vector>
 
 const std::unordered_map<std::string, int> typePrecedence = {
+    {"char", 2},
     {"i8", 0},
     {"i16", 1},
     {"i32", 2},

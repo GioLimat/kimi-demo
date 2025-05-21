@@ -28,7 +28,7 @@ public:
     virtual void visitPrintln(PrintlnStatementNode* node) = 0;
     virtual void visitGenericExpressionNode(GenericExpressionNode* node) = 0;
     virtual void visitPostFixExpr(PostFixExprNode* node) = 0;
-
+    virtual void visitCharLiteralExpr(CharLiteralExpr* node) = 0;
     virtual ~ASTVisitor() = default;
 };
 
@@ -54,5 +54,6 @@ public:
     void visitPrintln(PrintlnStatementNode*) override               {}
     void visitGenericExpressionNode(GenericExpressionNode* node) override {}
     void visitPostFixExpr(PostFixExprNode* node) override {}
+    void visitCharLiteralExpr(CharLiteralExpr* node) override {}
 };
 #endif //VISITOR_H

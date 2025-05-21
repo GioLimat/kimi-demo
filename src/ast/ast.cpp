@@ -86,6 +86,8 @@ GenericExpressionNode::GenericExpressionNode(std::unique_ptr<ExpressionNode> nod
 PostFixExprNode::PostFixExprNode(std::string op, std::unique_ptr<ExpressionNode> operand) : op(std::move(op)), operand(std::move(operand)) {}
 
 
+CharLiteralExpr::CharLiteralExpr(uint32_t code) : code(code) {}
+
 
 
 
@@ -171,4 +173,8 @@ void GenericExpressionNode::accept(ASTVisitor &visitor) {
 
 void PostFixExprNode::accept(ASTVisitor &visitor) {
         visitor.visitPostFixExpr(this);
+}
+
+void CharLiteralExpr::accept(ASTVisitor &visitor) {
+        visitor.visitCharLiteralExpr(this);
 }

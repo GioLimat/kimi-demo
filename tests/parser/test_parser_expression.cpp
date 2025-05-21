@@ -233,3 +233,20 @@ TEST(ParserExpression, ComposeAssignment) {
     ASSERT_EQ(bin->op, "+");
     ASSERT_EQ(right->value, "4");
 }
+
+
+
+TEST(ParserExpression, Char) {
+    const std::string code = "'á';";
+    Lexer lexer(code);
+
+    const auto tokens = lexer.tokenize();
+
+    auto parser = MockExpression(tokens);
+
+    auto expr = parser.parseExpression();
+
+    auto charExpr = dynamic_cast<CharLiteralExpr*>(expr.get());
+
+    std::cout << charExpr->code << std::endl;
+}

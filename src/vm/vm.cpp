@@ -14,6 +14,27 @@ VM::VM(const std::vector<uint8_t> &bytecode) : bytecode(bytecode) {
     currentCallId = 0;
 }
 
+std::string VM::toUtf8(const char32_t c) {
+    std::string out;
+    if (c <= 0x7F) {
+        out.push_back(static_cast<char>(c));
+    } else if (c <= 0x7FF) {
+        out.push_back(static_cast<char>(0xC0 | ((c >> 6) & 0x1F)));
+        out.push_back(static_cast<char>(0x80 | (c & 0x3F)));
+    } else if (c <= 0xFFFF) {
+        out.push_back(static_cast<char>(0xE0 | ((c >> 12) & 0x0F)));
+        out.push_back(static_cast<char>(0x80 | ((c >> 6) & 0x3F)));
+        out.push_back(static_cast<char>(0x80 | (c & 0x3F)));
+    } else {
+        out.push_back(static_cast<char>(0xF0 | ((c >> 18) & 0x07)));
+        out.push_back(static_cast<char>(0x80 | ((c >> 12) & 0x3F)));
+        out.push_back(static_cast<char>(0x80 | ((c >> 6) & 0x3F)));
+        out.push_back(static_cast<char>(0x80 | (c & 0x3F)));
+    }
+    return out;
+}
+
+
 uint8_t VM::read() {
     if (ip >= bytecode.size()) {
         std::cerr << "Out of bounds at ip = " << ip << ", bytecode.size = " << bytecode.size() << "\n";
@@ -34,7 +55,7 @@ ValueT VM::readPayload(const uint8_t type) {
         case 0x02 : { // i64 (8 bytes)
             uint64_t idx = 0;
             for (int i = 0; i < 8; ++i) {
-                idx |= static_cast<int32_t>(read()) << (8 * i);
+                idx |= static_cast<int64_t>(read()) << (8 * i);
             }
             return ValueT{static_cast<int64_t>(idx)};
         }
@@ -70,7 +91,13 @@ ValueT VM::readPayload(const uint8_t type) {
                 raw |= static_cast<uint16_t>(read()) << (8 * i);
             }
             return ValueT{static_cast<int16_t>(raw)};
-
+        }
+        case 0x09: { // char (4 bytes utf-32)
+            uint32_t raw = 0;
+            for (int i = 0; i < 4; ++i) {
+                raw |= static_cast<uint32_t>(read()) << (8 * i);
+            }
+            return ValueT{static_cast<char32_t>(raw)};
         }
         default: {
             return ValueT{};
@@ -90,6 +117,7 @@ size_t VM::instruLen(const size_t pos) const {
         case 0x05: payload = 1; break;
         case 0x07: payload = 1; break;
         case 0x08: payload = 2; break;
+        case 0x09: payload = 4; break;
         default:   payload = 0; break;
     }
     return 3 + payload;
@@ -193,33 +221,60 @@ void VM::run() {
                 loadStack.push(*var);
                 break;
             }
-            case 0x03:  { // STORE
+            case 0x03: { // STORE
                 int32_t idx = std::get<int32_t>(payload);
-                ValueT val = loadStack.top();
+                ValueT raw = loadStack.top();
                 loadStack.pop();
-                ValueT* var = lookupLocal(idx);
-                if (var != nullptr) {
-                    *var = val;
-                }
-                else {
-                    callStack.back().locals.back()[idx] = val;
-                }
 
-                break;
-            }
+                ValueT coerced = std::visit([&](auto&& v) -> ValueT {
+                    using V = std::decay_t<decltype(v)>;
+                    switch (meta) {
+                        case 0x01: // i32
+                            return ValueT{ static_cast<int32_t>(v) };
+                        case 0x02: // i64
+                            return ValueT{ static_cast<int64_t>(v) };
+                        case 0x03: // f32
+                            return ValueT{ static_cast<float>(v) };
+                        case 0x04: // f64
+                            return ValueT{ static_cast<double>(v) };
+                        case 0x05: // bool
+                            return ValueT{ static_cast<bool>(v) };
+                        case 0x07: // i8
+                            return ValueT{ static_cast<int8_t>(v) };
+                        case 0x08: // i16
+                            return ValueT{ static_cast<int16_t>(v) };
+                        case 0x09: // char (UTF-32)
+                            return ValueT{ static_cast<char32_t>(v) };
+                        default:
+                            return ValueT{ v };
+                    }
+                }, raw);
+
+                ValueT* var = lookupLocal(idx);
+                if (var) {
+                    *var = coerced;
+                } else {
+                    callStack.back().locals.back()[idx] = coerced;
+                }
+            } break;
             case 0x04: //PRINT
                 std::visit([]<typename T0>(T0&& val) {
                    using T = std::decay_t<T0>;
-
                    if constexpr (std::is_same_v<T, bool>) {
                        std::cout << (val ? "true" : "false") << std::endl;
                    }
                    else if constexpr (std::is_same_v<T, int8_t>
                                   || std::is_same_v<T, uint8_t>
                                   || std::is_same_v<T, int16_t>
+                                  || std::is_same_v<T, uint32_t>
+                                  || std::is_same_v<T, int32_t>
+                                  || std::is_same_v<T, uint64_t>
+                                  || std::is_same_v<T, int64_t>
                                   || std::is_same_v<T, uint16_t>) {
-                       std::cout << static_cast<int>(val) << std::endl;
-                   }
+                       std::cout << static_cast<int64_t>(val) << std::endl;
+                   }else if constexpr (std::is_same_v<T, char32_t>) {
+                       std::cout << toUtf8(val) << std::endl;
+                    }
                    else {
                        std::cout << val << std::endl;
                    }
@@ -255,27 +310,15 @@ void VM::run() {
                 });
                 break;
             case 0x13: { // GREATER
-                binaryBoolOp([](const ValueT& a, const ValueT& b) {
-                          return std::visit([](auto va, auto vb) {
-                              return va > vb;
-                          }, a, b);
-                      });
+                binaryBoolOp([](auto a, auto b) { return a > b; });
                 break;
             }
             case 0x14 : { // LESS
-                binaryBoolOp([](const ValueT& a, const ValueT& b) {
-                         return std::visit([](auto va, auto vb) {
-                             return va < vb;
-                         }, a, b);
-                     });
+                binaryBoolOp([](auto a, auto b) { return a < b; });
                 break;
             }
             case 0x15: { // EQUAL_EQUAL
-                binaryBoolOp([](const ValueT& a, const ValueT& b) {
-                           return std::visit([](auto va, auto vb) {
-                               return va == vb;
-                           }, a, b);
-                       });
+                binaryBoolOp([](auto a, auto b) { return a == b; });
                 break;
             }
             case 0x16: {//CALL
@@ -288,7 +331,6 @@ void VM::run() {
                 frame.ip = funcInfo.startIp;
                 frame.returnIp = ip;
                 frame.locals.emplace_back();
-
                 for (size_t i = 0; i < funcInfo.params; i++) {
                     frame.locals.back()[i] = loadStack.top();
                     loadStack.pop();
@@ -385,27 +427,15 @@ void VM::run() {
                 break;
             }
             case 0x21 : { // GREATER_EQUAL
-                binaryBoolOp([](const ValueT& a, const ValueT& b) {
-                          return std::visit([](auto va, auto vb) {
-                              return va >= vb;
-                          }, a, b);
-                      });
+                binaryBoolOp([](auto a, auto b) { return a >= b; });
                 break;
             }
             case 0x22  : { // LESS_EQUAL
-                binaryBoolOp([](const ValueT& a, const ValueT& b) {
-                        return std::visit([](auto va, auto vb) {
-                            return va <= vb;
-                        }, a, b);
-                    });
+                binaryBoolOp([](auto a, auto b) { return a <= b; });
                 break;
             }
             case 0x23 : {  // NOT_EQUAL
-                binaryBoolOp([](const ValueT& a, const ValueT& b) {
-                       return std::visit([](auto va, auto vb) {
-                           return va != vb;
-                       }, a, b);
-                   });
+                binaryBoolOp([](auto a, auto b) { return a != b; });
                 break;
             }
             case 0x24: {  // AND
@@ -417,7 +447,7 @@ void VM::run() {
                 break;
             }
             case 0x25: { // OR
-                binaryBoolOp([](const ValueT& a, const ValueT& b) {
+               binaryBoolOp([](const ValueT& a, const ValueT& b) {
                     return std::visit([](auto va, auto vb) {
                         return va || vb;
                     }, a, b);
@@ -452,7 +482,7 @@ void VM::run() {
                 loadStack.pop();
                 ValueT result = std::visit([](auto x) -> ValueT {
                     using T = std::decay_t<decltype(x)>;
-                    if constexpr (std::is_integral_v<T>) {
+                    if constexpr (std::is_integral_v<T> && !std::is_same_v<T, char32_t>) {
                         return ~x;
                     } else {
                         throw std::runtime_error("BIT_NOT: operand must be integral");

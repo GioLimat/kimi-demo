@@ -19,6 +19,7 @@ void IRGen::visitVarDeclaration(VarDeclarationNode *varDeclaration) {
         }else {
             meta = IRMapper::getMeta(IRMeta::MUT) + ", ";
         }
+        meta += varDeclaration->type + ", ";
 
         if (!meta.empty()) {
             meta = "[" + meta;

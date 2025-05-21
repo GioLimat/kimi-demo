@@ -45,6 +45,7 @@ std::string IRMapper::getType(const IRType type) {
         case IRType::INT64: return "i64";
         case IRType::FLOAT32: return "f32";
         case IRType::FLOAT64: return "f64";
+        case IRType::CHAR:  return "char";
         case IRType::BOOL: return "bool";
         default: return "";
     }

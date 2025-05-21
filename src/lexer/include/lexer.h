@@ -10,27 +10,32 @@
 #include <string>
 
 class Lexer {
-    size_t line = 0;
-    size_t column = 0;
+    size_t line         = 1;
+    size_t column       = 1;
     size_t currentIndex = 0;
     std::string sourceCode;
 
-    public:
-        explicit Lexer(std::string sourceCode);
-        LexerToken identify();
-        std::vector<LexerToken> tokenize();
+public:
+    explicit Lexer(std::string  source);
+    LexerToken identify();
+    std::vector<LexerToken> tokenize();
 
-    private:
-        static std::string truncateAfterSecondDot(const std::string& input);
-        LexerToken identifyNumber();
-        LexerToken identifyIdentifierKeyword();
-        [[nodiscard]] bool isAtEnd() const;
-        LexerToken identifySymbol();
-        LexerToken identifySpecialSymbol();
-        char& advance();
-        char& peek();
+private:
+    static std::string truncateAfterSecondDot(const std::string& input);
 
+    LexerToken identifyNumber();
+    LexerToken identifyIdentifierKeyword();
+    LexerToken identifyCharLiteral();
+    LexerToken identifySymbol();
+    LexerToken identifySpecialSymbol();
+
+    static uint32_t readUtf8CodePoint(const std::string &s, size_t& i);
+
+    [[nodiscard]] bool isAtEnd() const;
+    [[nodiscard]] char32_t peekCp() const;
+    char32_t advanceCp();
 };
+
 
 
 #endif //LEXER_H
