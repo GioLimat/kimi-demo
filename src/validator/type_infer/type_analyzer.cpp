@@ -74,7 +74,9 @@ void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
 
     const std::string& op = node->op;
 
-    if (arithmeticOps.contains(op) || bitwiseOps.contains(op)) {
+    if (arithmeticOps.contains(op) ||
+        bitwiseOps.contains(op) ||
+        comparisonOps.contains(op)) {
         if (typePrecedence.contains(left) && typePrecedence.contains(right)) {
             const std::string resultType = promoteNumericTypes(left, right);
             node->type = resultType;
@@ -84,7 +86,7 @@ void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
         throw std::runtime_error("Arithmetic operators require numeric types, got: " + left + " and " + right);
     }
 
-    if (logicalOps.contains(op) || comparisonOps.contains(op)) {
+    if (logicalOps.contains(op)) {
         currentType = "bool";
         node->type = "bool";
         return;

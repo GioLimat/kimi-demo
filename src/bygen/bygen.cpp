@@ -32,6 +32,7 @@ uint32_t ByGen::getIdentifierId(const std::string &name) {
         if (temp.top().contains(name)) {
             return temp.top()[name];
         }
+        jumpsToFindLocal++;
         temp.pop();
     }
     throw std::runtime_error("Unknown identifier name " +name );
@@ -81,16 +82,19 @@ std::vector<uint8_t> ByGen::generate() {
 
         bytecode.push_back(ByMapper::getInstruction(instructionType));
 
-        if (instruction.find("STORE") != std::string::npos) {
-            std::string meta;
-            size_t storeTypeI = instruction.find(", ") + 2;
-            while (instruction[storeTypeI] != ']') {
-                meta += instruction[storeTypeI];
-                storeTypeI++;
+
+        if (instructionType != "LOAD") {
+            if (instruction.find("[") != std::string::npos) {
+                std::string meta;
+                size_t storeTypeI = instruction.find("[") + 1;
+                while (instruction[storeTypeI] != ']') {
+                    meta += instruction[storeTypeI];
+                    storeTypeI++;
+                }
+                bytecode.push_back(ByMapper::getType(meta));
             }
-            bytecode.push_back(ByMapper::getType(meta));
+            else bytecode.push_back(0x00);
         }
-        else bytecode.push_back(0x00);
 
         std::string type;
 
@@ -99,8 +103,7 @@ std::vector<uint8_t> ByGen::generate() {
                 type = parts[i + 1];
             }
         }
-        bytecode.push_back(ByMapper::getType(type));
-
+        if (instructionType != "LOAD") bytecode.push_back(ByMapper::getType(type));
 
         if (instructionType == "INIT_BLOCK") {
             symbolTable.emplace();
@@ -158,6 +161,8 @@ std::vector<uint8_t> ByGen::generate() {
 
             const uint32_t val = getIdentifierId(name);
 
+            jumpsToFindLocal = 0;
+
             emitLiteralLE<int32_t>(val);
             continue;
         }
@@ -179,6 +184,14 @@ std::vector<uint8_t> ByGen::generate() {
             const std::string& varName = parts[1];
 
             const uint32_t varId = getIdentifierId(varName);
+
+
+            // Push the meta
+            emitLiteralLE<int8_t>(jumpsToFindLocal);
+
+            bytecode.push_back(ByMapper::getType(type));
+
+            jumpsToFindLocal = 0;
 
             emitLiteralLE<int32_t>(static_cast<int32_t>(varId));
             continue;
@@ -291,6 +304,6 @@ std::vector<uint8_t> ByGen::generate() {
 
         emitBasedOnType(type);
     }
-
+    bytecode.push_back(0x00); // HALT
     return bytecode;
 }

@@ -6,6 +6,7 @@
 
 #include "ir_instructions.h"
 #include "ir_gen.h"
+#include "type_analyzer.h"
 
 
 void IRGen::visitBlockStatement(BlockStatementNode *node) {
@@ -69,7 +70,7 @@ void IRGen::visitDoWhileStatement(DoWhileStatementNode *node) {
 
 void IRGen::visitPrintln(PrintlnStatementNode *node) {
     node->expression->accept(*this);
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::PRINT) + " : " + node->type);
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::PRINT) + " [" + node->type + "]");
 }
 
 
@@ -77,7 +78,7 @@ void IRGen::visitReturnStatement(ReturnStatementNode *node) {
     if (node->returnValue) {
         node->returnValue->accept(*this);
     }
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::RET) + " : " + node->returnType);
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::RET)  + " [" + node->returnType + "]");
 }
 
 

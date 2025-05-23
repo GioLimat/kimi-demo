@@ -7,6 +7,7 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 class ByGen {
     std::stack<std::unordered_map<std::string, uint32_t>> symbolTable;
@@ -17,7 +18,7 @@ class ByGen {
     uint32_t getIdentifierId(const std::string& name);
     void declareIdentifier(const std::string& name, bool isParam);
 
-
+    size_t jumpsToFindLocal = 0;
     void emitBasedOnType(const std::string& type);
 
 

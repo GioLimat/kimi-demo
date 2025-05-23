@@ -11,7 +11,7 @@ void IRGen::visitVarDeclaration(VarDeclarationNode *varDeclaration) {
     if (varDeclaration->initializer) {
        varDeclaration->initializer->accept(*this);
         std::string instruction = IRMapper::getInstruction(IRInstruction::STORE) + " " + varDeclaration->name + " : " +
-                                  "i32 ";
+                                   varDeclaration->type + " ";
         std::string meta;
 
         if (varDeclaration->isConst) {
@@ -36,7 +36,6 @@ void IRGen::visitVarDeclaration(VarDeclarationNode *varDeclaration) {
 void IRGen::visitFunctionDeclaration(FunctionDeclarationNode *function) {
     scopes.emplace();
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::FN) + " " + function->name + " : i32");
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
     for (const auto &param : function->parameters) {
         auto instruction = IRMapper::getInstruction(IRInstruction::FN_PARAM) + " " + param.name + " : " + param.type;
         bytecode.push_back(instruction);
@@ -45,6 +44,5 @@ void IRGen::visitFunctionDeclaration(FunctionDeclarationNode *function) {
     for (const auto &node : function->body->statements) {
         node->accept(*this);
     }
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK));
     scopes.pop();
 }

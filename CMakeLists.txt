@@ -31,6 +31,8 @@ add_library(kimi STATIC
         src/vm/vm.cpp
         src/general/include/value.h
         src/general/include/sizes.h
+        src/orion/include/orion_vm.h
+        src/orion/orion_vm.cpp
 )
 
 add_subdirectory(tests)
@@ -48,4 +50,5 @@ target_include_directories(kimi PUBLIC
         src/bygen/include
         src/vm/include
         src/general/include
+        src/orion/include
 )
