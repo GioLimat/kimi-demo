@@ -27,8 +27,6 @@ add_library(kimi STATIC
         src/bygen/instructions/bygen_instructions.cpp
         src/bygen/include/bygen.h
         src/bygen/bygen.cpp
-        src/vm/include/vm.h
-        src/vm/vm.cpp
         src/general/include/value.h
         src/general/include/sizes.h
         src/orion/include/orion_vm.h
@@ -48,7 +46,6 @@ target_include_directories(kimi PUBLIC
         src/validator/type_infer/include
         src/bygen/instructions/include
         src/bygen/include
-        src/vm/include
         src/general/include
         src/orion/include
 )

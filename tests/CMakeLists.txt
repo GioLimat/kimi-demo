@@ -20,7 +20,6 @@ add_executable(kimi_tests lexer/test_lexer.cpp
         kimiIR/test_ir.cpp
         type_infer/test_type_infer.cpp
         bygen/test_by.cpp
-        vm/test_vm.cpp
         vm/test_orion.cpp
 )
 
