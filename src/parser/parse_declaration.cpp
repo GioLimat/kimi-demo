@@ -29,7 +29,7 @@ std::string ParserDeclaration::getType() {
     }
     else if (peek().type == LexerTokenType::FLOAT) {
         advance();
-        type = "f64";
+        type = "f32";
         if (peek().type == LexerTokenType::L_BRACKET) {
             advance();
             if (peek().type != LexerTokenType::NUMBER_INT) throw std::runtime_error("Expected number int");

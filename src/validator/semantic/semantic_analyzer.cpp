@@ -60,7 +60,7 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
                 else inferredType = "i32";
             }
             else if (inferredType.rfind('f', 0) == 0) {
-                inferredType = "f64";
+                inferredType = "f32";
             }
         }
         else {

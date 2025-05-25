@@ -32,11 +32,17 @@ add_library(kimi STATIC
         src/orion/include/orion_vm.h
         src/orion/orion_vm.cpp
         src/orion/print_handlers.h++
-        src/orion/add_handlers.h++
-        src/orion/sub_handlers.h++
-        src/orion/mul_handlers.h++
-        src/orion/div_handlers.h++
-        src/orion/include/mod_handlers.h++
+        src/orion/binaryOp/add_handlers.h++
+        src/orion/binaryOp/sub_handlers.h++
+        src/orion/binaryOp/mul_handlers.h++
+        src/orion/binaryOp/div_handlers.h++
+        src/orion/binaryOp/mod_handlers.h++
+        src/orion/binaryOp/greater_handlers.h++
+        src/orion/binaryOp/less_handlers.h++
+        src/orion/binaryOp/equal_handlers.h++
+        src/orion/binaryOp/ge_handlers.h++
+        src/orion/binaryOp/le_handlers.h++
+        src/orion/binaryOp/ne_handlers.h++
 )
 
 add_subdirectory(tests)
@@ -54,4 +60,5 @@ target_include_directories(kimi PUBLIC
         src/bygen/include
         src/general/include
         src/orion/include
+        src/orion/binaryOp
 )

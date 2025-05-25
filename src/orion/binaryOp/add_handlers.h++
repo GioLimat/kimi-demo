@@ -40,6 +40,7 @@ static inline void add_f64(OrionVM& vm) {
     double dr = da + db;
     RawValue bits;
     std::memcpy(&bits, &dr, sizeof(dr));
+
     vm.pushValue(bits);
 }
 

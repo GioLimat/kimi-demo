@@ -6,6 +6,7 @@
 #define ORION_VM_H
 
 #include <cstdint>
+#include <cstring>
 #include <vector>
 
 
@@ -28,15 +29,80 @@ public:
     explicit OrionVM(const std::vector<uint8_t>& bytecode);
     void run();
 
-
     RawValue popValue() {
         return stackBuf[--sp];
     }
-
     void pushValue(const RawValue value) {
         stackBuf[sp++] = value;
     }
+
+
 private:
+    /*READER
+   *
+   */
+    using ReaderFn = RawValue(*)(OrionVM*);
+
+    static RawValue read0(OrionVM*) { return 0; }
+    static RawValue readI32(OrionVM* vm) {
+        uint32_t r = 0;
+        for (int i = 0; i < 4; ++i) r |= static_cast<uint32_t>(vm->read()) << (8 * i);
+        return static_cast<RawValue>(static_cast<int32_t>(r));
+    }
+    static RawValue readI64(OrionVM* vm) {
+        uint64_t r = 0;
+        for (int i = 0; i < 8; ++i) r |= static_cast<uint64_t>(vm->read()) << (8 * i);
+        return r;
+    }
+    static RawValue readF32(OrionVM* vm) {
+        uint32_t raw = 0;
+        for (int i = 0; i < 4; ++i) raw |= static_cast<uint32_t>(vm->read()) << (8 * i);
+        float f; std::memcpy(&f, &raw, 4);
+        uint64_t bits; std::memcpy(&bits, &f, 4);
+        return bits;
+    }
+    static RawValue readF64(OrionVM* vm) {
+        uint64_t r = 0;
+        for (int i = 0; i < 8; ++i) r |= static_cast<uint64_t>(vm->read()) << (8 * i);
+        return r;
+    }
+    static RawValue readBool(OrionVM* vm) {
+        return vm->read() != 0;
+    }
+    static RawValue readI8(OrionVM* vm) {
+        return static_cast<RawValue>(static_cast<int8_t>(vm->read()));
+    }
+    static RawValue readI16(OrionVM* vm) {
+        uint16_t r = 0;
+        for (int i = 0; i < 2; ++i) r |= static_cast<uint16_t>(vm->read()) << (8 * i);
+        return static_cast<RawValue>(static_cast<int16_t>(r));
+    }
+    static RawValue readChar(OrionVM* vm) {
+        uint32_t r = 0;
+        for (int i = 0; i < 4; ++i) r |= static_cast<uint32_t>(vm->read()) << (8 * i);
+        return r;
+    }
+
+    static constexpr ReaderFn payloadReaders[256] = {
+        /* 0x00 */ read0,
+        /* 0x01 */ readI32,
+        /* 0x02 */ readI64,
+        /* 0x03 */ readF32,
+        /* 0x04 */ readF64,
+        /* 0x05 */ readBool,
+        /* 0x06 */ read0,
+        /* 0x07 */ readI8,
+        /* 0x08 */ readI16,
+        /* 0x09 */ readChar,
+    };
+
+    RawValue readPayload(uint8_t type) {
+        return payloadReaders[type](this);
+    }
+
+    /*READER
+     *
+     */
 
 
 
@@ -46,10 +112,10 @@ private:
     RawValue                   regA  = 0;
     RawValue                   regB  = 0;
 
-    RawValue stackBuf[STACK_MAX];
+    RawValue stackBuf[STACK_MAX]{};
     size_t sp = 0;
 
-    inline void push(RawValue v) {
+    inline void push(const RawValue v) {
         stackBuf[sp++] = v;
     }
 
@@ -73,7 +139,6 @@ private:
         for (int i = 0; i < 4; ++i) id |= static_cast<uint32_t>(read()) << (8 * i);
         return id;
     }
-    RawValue readPayload(uint8_t type);
 };
 
 #endif // ORION_VM_H

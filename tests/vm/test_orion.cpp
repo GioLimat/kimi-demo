@@ -47,7 +47,7 @@ void  runOrion(const std::string& code) {
 
 
 TEST(Orion, SimpleCode) {
-    auto code = "var x = 4;  var y = 8;  println(x + y);";
+    auto code = "var x   = 4;  var y   = 2;  println(x != 4);";
     runOrion(code);
 
 }

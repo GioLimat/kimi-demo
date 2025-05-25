@@ -9,58 +9,20 @@
 
 #include "add_handlers.h++"
 #include "div_handlers.h++"
+#include "equal_handlers.h++"
+#include "ge_handlers.h++"
+#include "greater_handlers.h++"
+#include "less_handlers.h++"
+#include "le_handlers.h++"
 #include "mod_handlers.h++"
 #include "mul_handlers.h++"
+#include "ne_handlers.h++"
 #include "print_handlers.h++"
 #include "sub_handlers.h++"
 
 OrionVM::OrionVM(const std::vector<uint8_t> &bytecode) : bytecode(bytecode) {}
 
-RawValue OrionVM::readPayload(const uint8_t type) {
-    switch (type) {
-        case 0x00: return 0;
-        case 0x01: { // i32 (4 bytes)
-            uint32_t r = 0;
-            for (int i = 0; i < 4; ++i) r |= static_cast<uint32_t>(read()) << (8 * i);
-            return static_cast<RawValue>(static_cast<int32_t>(r));
-        }
-        case 0x02: { // i64 (8 bytes)
-            uint64_t r = 0;
-            for (int i = 0; i < 8; ++i) r |= static_cast<uint64_t>(read()) << (8 * i);
-            return r;
-        }
-        case 0x03: { // f32 (4 bytes)
-            uint32_t raw = 0;
-            for (int i = 0; i < 4; ++i) raw |= static_cast<uint32_t>(read()) << (8 * i);
-            float f;
-            std::memcpy(&f, &raw, sizeof(f));
-            uint64_t bits;
-            std::memcpy(&bits, &f, sizeof(f));
-            return bits;
-        }
-        case 0x04: { // f64 (8 bytes)
-            uint64_t raw = 0;
-            for (int i = 0; i < 8; ++i) raw |= static_cast<uint64_t>(read()) << (8 * i);
-            return raw;
-        }
-        case 0x05: // bool (1 byte)
-            return read() != 0;
-        case 0x07: // i8 (1 byte)
-            return static_cast<RawValue>(static_cast<int8_t>(read()));
-        case 0x08: { // i16 (2 bytes)
-            uint16_t r = 0;
-            for (int i = 0; i < 2; ++i) r |= static_cast<uint16_t>(read()) << (8 * i);
-            return static_cast<RawValue>(static_cast<int16_t>(r));
-        }
-        case 0x09: { // char (4 bytes UTF-32)
-            uint32_t r = 0;
-            for (int i = 0; i < 4; ++i) r |= static_cast<uint32_t>(read()) << (8 * i);
-            return r;
-        }
-        default:
-            return 0;
-    }
-}
+
 
 void OrionVM::run() {
     callStack.push_back({0, 0, nullptr});
@@ -80,6 +42,12 @@ void OrionVM::run() {
     OPCODE_CASE(0x10, L_MUL);
     OPCODE_CASE(0x11, L_DIV);
     OPCODE_CASE(0x12, L_MOD);
+    OPCODE_CASE(0x13, L_GREATER);
+    OPCODE_CASE(0x14, L_LESS);
+    OPCODE_CASE(0x15, L_EQUAL);
+    OPCODE_CASE(0x21, L_GREATER_EQUAL);
+    OPCODE_CASE(0x22, L_LESS_EQUAL);
+    OPCODE_CASE(0x23, L_NOT_EQUAL);
 
 
     DISPATCH();
@@ -184,6 +152,65 @@ void OrionVM::run() {
         DISPATCH();
     }
 
+
+
+    L_GREATER: {
+#if DEBUG
+        opcodeCount[0x13]++;
+#endif
+        uint8_t type = read();
+        greaterTable[type](*this);
+        DISPATCH();
+    }
+
+    L_LESS: {
+#if DEBUG
+        opcodeCount[0x14]++;
+#endif
+        uint8_t type = read();
+        lessTable[type](*this);
+        DISPATCH();
+    }
+
+
+    L_EQUAL: {
+#if DEBUG
+        opcodeCount[0x15]++;
+#endif
+        uint8_t type = read();
+
+        equalTable[type](*this);
+        DISPATCH();
+    }
+
+
+    L_GREATER_EQUAL: {
+#if DEBUG
+        opcodeCount[0x21]++;
+#endif
+        uint8_t type = read();
+        geTable[type](*this);
+        DISPATCH();
+    }
+
+    L_LESS_EQUAL: {
+#if DEBUG
+        opcodeCount[0x22]++;
+#endif
+        uint8_t type = read();
+        leTable[type](*this);
+        DISPATCH();
+    }
+
+
+    L_NOT_EQUAL: {
+#if DEBUG
+        opcodeCount[0x23]++;
+#endif
+        uint8_t type = read();
+        neTable[type](*this);
+        DISPATCH();
+    }
 
 
     L_HALT: {

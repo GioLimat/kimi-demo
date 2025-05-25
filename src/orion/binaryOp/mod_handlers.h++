@@ -8,7 +8,7 @@
 
 // mod_handlers.hpp
 #pragma once
-#include "orion_vm.h"
+#include "../include/orion_vm.h"
 
 using ModFn = void(*)(OrionVM&);
 

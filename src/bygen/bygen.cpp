@@ -106,6 +106,14 @@ bool ByGen::twoLengthInstruction(const std::string &instruction) {
            instruction == "MUL" ||
            instruction == "DIV" ||
            instruction == "MOD" ||
+
+           instruction ==  "GREATER" ||
+           instruction ==  "LESS" ||
+            instruction ==  "EQUAL" ||
+            instruction ==  "GREATER_EQUAL" ||
+            instruction ==  "LESS_EQUAL" ||
+            instruction ==  "NOT_EQUAL" ||
+
            instruction == "PRINT";
 }
 
