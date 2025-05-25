@@ -69,11 +69,52 @@ void ByGen::emitBasedOnType(const std::string &type) {
 }
 
 
+void ByGen::getMeta(const std::string &instruction)  {
+    if (instruction.find('[') != std::string::npos) {
+        std::string meta;
+        size_t storeTypeI = instruction.find('[') + 1;
+        while (instruction[storeTypeI] != ']') {
+            meta += instruction[storeTypeI];
+            storeTypeI++;
+        }
+
+        if (instruction.find(", ") != std::string::npos) {
+           auto end =  instruction.find(", ") + 2;
+            meta = instruction.substr(end, storeTypeI);
+        }
+        bytecode.push_back(ByMapper::getType(meta));
+    }
+}
+
+
+std::string ByGen::getType(const std::vector<std::string>& parts) {
+    std::string type;
+
+    for (int i = 0; i < parts.size(); ++i) {
+        if (parts[i] == ":") {
+            type = parts[i + 1];
+        }
+    }
+    return  type;
+}
+
+
+
+bool ByGen::twoLengthInstruction(const std::string &instruction) {
+    return instruction == "ADD" ||
+           instruction == "SUB" ||
+           instruction == "MUL" ||
+           instruction == "DIV" ||
+           instruction == "MOD" ||
+           instruction == "PRINT";
+}
+
+
 
 std::vector<uint8_t> ByGen::generate() {
 
     size_t i = -1;
-    for (const auto& instruction : ir) {
+    for (auto& instruction : ir) {
         i++;
         const auto parts  = splitBySpace(instruction);
         const auto& instructionType = parts[0];
@@ -82,28 +123,13 @@ std::vector<uint8_t> ByGen::generate() {
 
         bytecode.push_back(ByMapper::getInstruction(instructionType));
 
+        std::string type = getType(parts);
 
-        if (instructionType != "LOAD") {
-            if (instruction.find("[") != std::string::npos) {
-                std::string meta;
-                size_t storeTypeI = instruction.find("[") + 1;
-                while (instruction[storeTypeI] != ']') {
-                    meta += instruction[storeTypeI];
-                    storeTypeI++;
-                }
-                bytecode.push_back(ByMapper::getType(meta));
-            }
-            else bytecode.push_back(0x00);
+        if (twoLengthInstruction(instructionType)) {
+            getMeta(instruction); // the last meta if is two-length instruction, is a type
+            continue;
         }
 
-        std::string type;
-
-        for (int i = 0; i < parts.size(); ++i) {
-            if (parts[i] == ":") {
-                type = parts[i + 1];
-            }
-        }
-        if (instructionType != "LOAD") bytecode.push_back(ByMapper::getType(type));
 
         if (instructionType == "INIT_BLOCK") {
             symbolTable.emplace();
@@ -115,6 +141,8 @@ std::vector<uint8_t> ByGen::generate() {
         }
 
         if (instructionType == "CONST") {
+            emitLiteralLE<uint8_t>(ByMapper::getType(type));
+
             if (type == "i8") {
                 int8_t v = std::stoi(parts[1]);
                 emitLiteralLE<int8_t>(v);
@@ -151,7 +179,6 @@ std::vector<uint8_t> ByGen::generate() {
 
         if (instructionType == "STORE") {
             const std::string& name = parts[1];
-
             try {
                 getIdentifierId(name);
             }
@@ -188,8 +215,6 @@ std::vector<uint8_t> ByGen::generate() {
 
             // Push the meta
             emitLiteralLE<int8_t>(jumpsToFindLocal);
-
-            bytecode.push_back(ByMapper::getType(type));
 
             jumpsToFindLocal = 0;
 
@@ -302,7 +327,6 @@ std::vector<uint8_t> ByGen::generate() {
             continue;
         }
 
-        emitBasedOnType(type);
     }
     bytecode.push_back(0x00); // HALT
     return bytecode;

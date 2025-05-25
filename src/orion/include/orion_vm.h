@@ -8,7 +8,11 @@
 #include <cstdint>
 #include <vector>
 
+
+#define MAX_TYPE 0xFF
+
 static constexpr size_t STACK_MAX = 65536;
+
 
 #define DEBUG 1
 using RawValue = uint64_t;
@@ -25,8 +29,17 @@ public:
     void run();
 
 
+    RawValue popValue() {
+        return stackBuf[--sp];
+    }
 
+    void pushValue(const RawValue value) {
+        stackBuf[sp++] = value;
+    }
 private:
+
+
+
     const std::vector<uint8_t> bytecode;
     uint64_t                   ip    = 0;
     std::vector<CallFrame>     callStack;

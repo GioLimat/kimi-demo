@@ -22,6 +22,14 @@ class ByGen {
     void emitBasedOnType(const std::string& type);
 
 
+
+    void getMeta(const std::string& instruction);
+
+    static std::string getType(const std::vector<std::string>& parts);
+
+
+    static bool twoLengthInstruction(const std::string& instruction);
+
     template<typename T>
     void emitLiteralLE(const T& value) {
             static_assert(std::is_arithmetic_v<T>, "Only arithmetic types supported");

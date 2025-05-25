@@ -7,6 +7,13 @@
 #include <cstring>
 #include <iostream>
 
+#include "add_handlers.h++"
+#include "div_handlers.h++"
+#include "mod_handlers.h++"
+#include "mul_handlers.h++"
+#include "print_handlers.h++"
+#include "sub_handlers.h++"
+
 OrionVM::OrionVM(const std::vector<uint8_t> &bytecode) : bytecode(bytecode) {}
 
 RawValue OrionVM::readPayload(const uint8_t type) {
@@ -73,493 +80,116 @@ void OrionVM::run() {
     OPCODE_CASE(0x10, L_MUL);
     OPCODE_CASE(0x11, L_DIV);
     OPCODE_CASE(0x12, L_MOD);
-    OPCODE_CASE(0x13, L_GREATER);
-    OPCODE_CASE(0x14, L_LESS);
-    OPCODE_CASE(0x15, L_EQUAL);
-
-    //OPCODE_CASE(0x1C, L_NEG);
 
 
     DISPATCH();
 
 
-
-
     L_CONST: {
-    #if DEBUG
+#if DEBUG
         opcodeCount[0x01]++;
-    #endif
-        read();
+#endif
         uint8_t type = read();
         push(readPayload(type));
         DISPATCH();
     }
 
-
-
-
-
-
     L_LOAD: {
-    #if DEBUG
+#if DEBUG
         opcodeCount[0x02]++;
-    #endif
+#endif
         uint8_t meta = read();
-        uint8_t type = read();
         uint32_t varId = read32();
 
         uint8_t callDepth = meta >> 4;
-        uint8_t scope = meta & 0x0F;
 
         CallFrame* target = &callStack.back();
         for (uint8_t i = 0; i < callDepth; ++i) target = target->parent;
-
         RawValue value = stackBuf[target->stackBase + varId];
         push(value);
         DISPATCH();
     }
 
 
-
-
-
     L_STORE: {
-    #if DEBUG
+#if DEBUG
         opcodeCount[0x03]++;
-    #endif
-        read();
-        uint8_t type = read();
+#endif
         uint32_t varId = read32();
 
         RawValue value = pop();
         stackBuf[callStack.back().stackBase + varId] = value;
+        sp = callStack.back().stackBase + varId + 1;
         DISPATCH();
     }
 
 
-
-
-     L_PRINT: {
-    #if DEBUG
+    L_PRINT: {
+#if DEBUG
         opcodeCount[0x04]++;
-    #endif
+#endif
         uint8_t type = read();
-        RawValue val = pop();
-        switch (type) {
-            case 0x01: // i32 (4 bytes)
-                printf("%d\n", static_cast<int32_t>(val));
-                break;
-            case 0x02: // i64 (8 bytes)
-                printf("%lld\n", static_cast<long long>(val));
-                break;
-            case 0x03: { // f32 (4 bytes)
-                float f;
-                std::memcpy(&f, &val, sizeof(f));
-                printf("%f\n", f);
-                break;
-            }
-            case 0x04: { // f64 (8 bytes)
-                double d;
-                std::memcpy(&d, &val, sizeof(d));
-                printf("%lf\n", d);
-                break;
-            }
-            case 0x05: // bool (1 byte)
-                printf("%s\n", val ? "true" : "false");
-                break;
-            case 0x07: // i8 (1 byte)
-                printf("%d\n", static_cast<int8_t>(val));
-                break;
-            case 0x08: // i16 (2 bytes)
-                printf("%d\n", static_cast<int16_t>(val));
-                break;
-            case 0x09: { // char (4 bytes UTF-32)
-                auto c = static_cast<uint32_t>(val);
-                char utf8[5] = {0};
-                if (c <= 0x7F) {
-                    utf8[0] = static_cast<char>(c);
-                } else if (c <= 0x7FF) {
-                    utf8[0] = static_cast<char>(0xC0 | ((c >> 6) & 0x1F));
-                    utf8[1] = static_cast<char>(0x80 | (c & 0x3F));
-                } else if (c <= 0xFFFF) {
-                    utf8[0] = static_cast<char>(0xE0 | ((c >> 12) & 0x0F));
-                    utf8[1] = static_cast<char>(0x80 | ((c >> 6) & 0x3F));
-                    utf8[2] = static_cast<char>(0x80 | (c & 0x3F));
-                } else {
-                    utf8[0] = static_cast<char>(0xF0 | ((c >> 18) & 0x07));
-                    utf8[1] = static_cast<char>(0x80 | ((c >> 12) & 0x3F));
-                    utf8[2] = static_cast<char>(0x80 | ((c >> 6) & 0x3F));
-                    utf8[3] = static_cast<char>(0x80 | (c & 0x3F));
-                }
-                printf("%s\n", utf8);
-                break;
-            }
-            default:
-                printf("Unknown type\n");
-                break;
-        }
+        RawValue v = pop();
+        if (auto fn = printTable[type]) fn(v);
+        else std::printf("PRINT: unsupported type 0x%02X\n", type);
         DISPATCH();
     }
-
-
-
-
 
 
     L_ADD: {
-    #if DEBUG
+#if DEBUG
         opcodeCount[0x0E]++;
-    #endif
-        uint8_t t = read();
-        read();
-        RawValue b = pop();
-        RawValue a = pop();
-        switch (t) {
-            case 0x01: // i32 (4 bytes)
-                push(static_cast<RawValue>(static_cast<int32_t>(a) + static_cast<int32_t>(b)));
-                break;
-            case 0x02: // i64 (8 bytes)
-                push(static_cast<RawValue>(static_cast<int64_t>(a) + static_cast<int64_t>(b)));
-                break;
-            case 0x03: { // f32 (4 bytes)
-                float fa, fb;
-                std::memcpy(&fa, &a, sizeof(fa));
-                std::memcpy(&fb, &b, sizeof(fb));
-                float fr = fa + fb;
-                uint64_t bits;
-                std::memcpy(&bits, &fr, sizeof(fr));
-                push(bits);
-                break;
-            }
-            case 0x04: { // f64 (8 bytes)
-                double da, db;
-                std::memcpy(&da, &a, sizeof(da));
-                std::memcpy(&db, &b, sizeof(db));
-                double dr = da + db;
-                uint64_t bits;
-                std::memcpy(&bits, &dr, sizeof(dr));
-                push(bits);
-                break;
-            }
-            case 0x07: // i8 (1 byte)
-                push(static_cast<RawValue>(static_cast<int8_t>(a) + static_cast<int8_t>(b)));
-                break;
-            case 0x08: // i16 (2 bytes)
-                push(static_cast<RawValue>(static_cast<int16_t>(a) + static_cast<int16_t>(b)));
-                break;
-            case 0x09: // char (4 bytes UTF-32)
-                push(static_cast<uint32_t>(a) + static_cast<uint32_t>(b));
-                break;
-        }
+#endif
+        uint8_t type = read();
+        addTable[type](*this);
         DISPATCH();
     }
-
-
-
-
 
 
     L_SUB: {
-    #if DEBUG
+#if DEBUG
         opcodeCount[0x0F]++;
-    #endif
-        uint8_t t = read();
-        read();
-        RawValue b = pop();
-        RawValue a = pop();
-        switch (t) {
-            case 0x01: // i32 (4 bytes)
-                push(static_cast<RawValue>(static_cast<int32_t>(a) - static_cast<int32_t>(b)));
-                break;
-            case 0x02: // i64 (8 bytes)
-                push(static_cast<RawValue>(static_cast<int64_t>(a) - static_cast<int64_t>(b)));
-                break;
-            case 0x03: { // f32 (4 bytes)
-                float fa, fb;
-                std::memcpy(&fa, &a, sizeof(fa));
-                std::memcpy(&fb, &b, sizeof(fb));
-                float fr = fa - fb;
-                uint64_t bits;
-                std::memcpy(&bits, &fr, sizeof(fr));
-                push(bits);
-                break;
-            }
-            case 0x04: { // f64 (8 bytes)
-                double da, db;
-                std::memcpy(&da, &a, sizeof(da));
-                std::memcpy(&db, &b, sizeof(db));
-                double dr = da - db;
-                uint64_t bits;
-                std::memcpy(&bits, &dr, sizeof(dr));
-                push(bits);
-                break;
-            }
-            case 0x07: // i8 (1 byte)
-                push(static_cast<RawValue>(static_cast<int8_t>(a) - static_cast<int8_t>(b)));
-                break;
-            case 0x08: // i16 (2 bytes)
-                push(static_cast<RawValue>(static_cast<int16_t>(a) - static_cast<int16_t>(b)));
-                break;
-            case 0x09: // char (4 bytes UTF-32)
-                push(static_cast<uint32_t>(a) - static_cast<uint32_t>(b));
-                break;
-        }
+#endif
+        uint8_t type = read();
+        subTable[type](*this);
         DISPATCH();
     }
-
-
-
-
 
 
     L_MUL: {
-    #if DEBUG
-    opcodeCount[0x10]++;
-    #endif
-    uint8_t t = read();
-    read();
-    RawValue b = pop();
-    RawValue a = pop();
-    switch (t) {
-        case 0x01: // i32 (4 bytes)
-            push(static_cast<RawValue>(static_cast<int32_t>(a) * static_cast<int32_t>(b)));
-            break;
-        case 0x02: // i64 (8 bytes)
-            push(static_cast<RawValue>(static_cast<int64_t>(a) * static_cast<int64_t>(b)));
-            break;
-        case 0x03: { // f32 (4 bytes)
-            float fa, fb;
-            std::memcpy(&fa, &a, sizeof(fa));
-            std::memcpy(&fb, &b, sizeof(fb));
-            float fr = fa * fb;
-            uint64_t bits;
-            std::memcpy(&bits, &fr, sizeof(fr));
-            push(bits);
-            break;
-        }
-        case 0x04: { // f64 (8 bytes)
-            double da, db;
-            std::memcpy(&da, &a, sizeof(da));
-            std::memcpy(&db, &b, sizeof(db));
-            double dr = da * db;
-            uint64_t bits;
-            std::memcpy(&bits, &dr, sizeof(dr));
-            push(bits);
-            break;
-        }
-        case 0x07: // i8 (1 byte)
-            push(static_cast<RawValue>(static_cast<int8_t>(a) * static_cast<int8_t>(b)));
-            break;
-        case 0x08: // i16 (2 bytes)
-            push(static_cast<RawValue>(static_cast<int16_t>(a) * static_cast<int16_t>(b)));
-            break;
-        case 0x09: // char (4 bytes UTF-32)
-            push(static_cast<uint32_t>(a) * static_cast<uint32_t>(b));
-            break;
-        }
+#if DEBUG
+        opcodeCount[0x10]++;
+#endif
+        uint8_t type = read();
+        mulTable[type](*this);
         DISPATCH();
     }
-
-
-
-
 
 
     L_DIV: {
-        #if DEBUG
+#if DEBUG
         opcodeCount[0x11]++;
-        #endif
-        uint8_t t = read();
-        read();
-        RawValue b = pop();
-        RawValue a = pop();
-        switch (t) {
-            case 0x01: // i32 (4 bytes)
-                push(static_cast<RawValue>(static_cast<int32_t>(a) / static_cast<int32_t>(b)));
-                break;
-            case 0x02: // i64 (8 bytes)
-                push(static_cast<RawValue>(static_cast<int64_t>(a) / static_cast<int64_t>(b)));
-                break;
-            case 0x03: { // f32 (4 bytes)
-                float fa, fb;
-                std::memcpy(&fa, &a, sizeof(fa));
-                std::memcpy(&fb, &b, sizeof(fb));
-                float fr = fa / fb;
-                uint64_t bits;
-                std::memcpy(&bits, &fr, sizeof(fr));
-                push(bits);
-                break;
-            }
-            case 0x04: { // f64 (8 bytes)
-                double da, db;
-                std::memcpy(&da, &a, sizeof(da));
-                std::memcpy(&db, &b, sizeof(db));
-                double dr = da / db;
-                uint64_t bits;
-                std::memcpy(&bits, &dr, sizeof(dr));
-                push(bits);
-                break;
-            }
-            case 0x07: // i8 (1 byte)
-                push(static_cast<RawValue>(static_cast<int8_t>(a) / static_cast<int8_t>(b)));
-                break;
-            case 0x08: // i16 (2 bytes)
-                push(static_cast<RawValue>(static_cast<int16_t>(a) / static_cast<int16_t>(b)));
-                break;
-            case 0x09: // char (4 bytes UTF-32)
-                push(static_cast<uint32_t>(a) / static_cast<uint32_t>(b));
-                break;
-        }
+#endif
+        uint8_t type = read();
+        divTable[type](*this);
         DISPATCH();
     }
-
-
-
-
-
-
 
     L_MOD: {
     #if DEBUG
         opcodeCount[0x12]++;
     #endif
-        uint8_t t = read();
-        read();
-        RawValue b = pop();
-        RawValue a = pop();
-        switch (t) {
-            case 0x01: // i32 (4 bytes)
-                push(static_cast<RawValue>(static_cast<int32_t>(a) % static_cast<int32_t>(b)));
-                break;
-            case 0x02: // i64 (8 bytes)
-                push(static_cast<RawValue>(static_cast<int64_t>(a) % static_cast<int64_t>(b)));
-                break;
-            case 0x07: // i8 (1 byte)
-                push(static_cast<RawValue>(static_cast<int8_t>(a) % static_cast<int8_t>(b)));
-                break;
-            case 0x08: // i16 (2 bytes)
-                push(static_cast<RawValue>(static_cast<int16_t>(a) % static_cast<int16_t>(b)));
-                break;
-            case 0x09: // char (4 bytes UTF-32)
-                push(static_cast<uint32_t>(a) % static_cast<uint32_t>(b));
-                break;
-        }
+        uint8_t type = read();
+        modTable[type](*this);
         DISPATCH();
     }
-
-
-
-
-
-
-    L_GREATER: {
-    #if DEBUG
-        opcodeCount[0x13]++;
-    #endif
-        uint8_t t = read();
-        read();
-        RawValue b = pop();
-        RawValue a = pop();
-        switch (t) {
-            case 0x01: push(static_cast<int32_t>(a) > static_cast<int32_t>(b)); break; // i32
-            case 0x02: push(static_cast<int64_t>(a) > static_cast<int64_t>(b)); break; // i64
-            case 0x03: {
-                float fa, fb;
-                std::memcpy(&fa, &a, sizeof(fa));
-                std::memcpy(&fb, &b, sizeof(fb));
-                push(fa > fb);
-                break;
-            }
-            case 0x04: {
-                double da, db;
-                std::memcpy(&da, &a, sizeof(da));
-                std::memcpy(&db, &b, sizeof(db));
-                push(da > db);
-                break;
-            }
-            case 0x07: push(static_cast<int8_t>(a) > static_cast<int8_t>(b)); break;  // i8
-            case 0x08: push(static_cast<int16_t>(a) > static_cast<int16_t>(b)); break; // i16
-            case 0x09: push(static_cast<uint32_t>(a) > static_cast<uint32_t>(b)); break; // char (UTF-32)
-        }
-        DISPATCH();
-    }
-
-
-
-
-
-    L_LESS: {
-    #if DEBUG
-        opcodeCount[0x14]++;
-    #endif
-        uint8_t t = read();
-        read();
-        RawValue b = pop();
-        RawValue a = pop();
-        switch (t) {
-            case 0x01: push(static_cast<int32_t>(a) < static_cast<int32_t>(b)); break; // i32
-            case 0x02: push(static_cast<int64_t>(a) < static_cast<int64_t>(b)); break; // i64
-            case 0x03: {
-                float fa, fb;
-                std::memcpy(&fa, &a, sizeof(fa));
-                std::memcpy(&fb, &b, sizeof(fb));
-                push(fa < fb);
-                break;
-            }
-            case 0x04: {
-                double da, db;
-                std::memcpy(&da, &a, sizeof(da));
-                std::memcpy(&db, &b, sizeof(db));
-                push(da < db);
-                break;
-            }
-            case 0x07: push(static_cast<int8_t>(a) < static_cast<int8_t>(b)); break;  // i8
-            case 0x08: push(static_cast<int16_t>(a) < static_cast<int16_t>(b)); break; // i16
-            case 0x09: push(static_cast<uint32_t>(a) < static_cast<uint32_t>(b)); break; // char (UTF-32)
-        }
-        DISPATCH();
-    }
-    L_EQUAL: {
-    #if DEBUG
-        opcodeCount[0x15]++;
-    #endif
-        uint8_t t = read();
-        read();
-        RawValue b = pop();
-        RawValue a = pop();
-        switch (t) {
-            case 0x01: push(static_cast<int32_t>(a) == static_cast<int32_t>(b)); break; // i32
-            case 0x02: push(static_cast<int64_t>(a) == static_cast<int64_t>(b)); break; // i64
-            case 0x03: {
-                float fa, fb;
-                std::memcpy(&fa, &a, sizeof(fa));
-                std::memcpy(&fb, &b, sizeof(fb));
-                push(fa == fb);
-                break;
-            }
-            case 0x04: {
-                double da, db;
-                std::memcpy(&da, &a, sizeof(da));
-                std::memcpy(&db, &b, sizeof(db));
-                push(da == db);
-                break;
-            }
-            case 0x07: push(static_cast<int8_t>(a) == static_cast<int8_t>(b)); break;  // i8
-            case 0x08: push(static_cast<int16_t>(a) == static_cast<int16_t>(b)); break; // i16
-            case 0x09: push(static_cast<uint32_t>(a) == static_cast<uint32_t>(b)); break; // char (UTF-32)
-        }
-        DISPATCH();
-    }
-
-
-
-
 
 
 
     L_HALT: {
     #if DEBUG
         opcodeCount[0x00]++;
+        std::cout << "\n\n\n-------LOGGING-------" << std::endl;
         for (size_t i = 0; i < MAX_OPCODE; ++i) {
             if (opcodeCount[i] > 0) {
                 printf("Opcode 0x%02zx executed %llu times\n", i, opcodeCount[i]);

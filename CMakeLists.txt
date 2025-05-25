@@ -31,6 +31,12 @@ add_library(kimi STATIC
         src/general/include/sizes.h
         src/orion/include/orion_vm.h
         src/orion/orion_vm.cpp
+        src/orion/print_handlers.h++
+        src/orion/add_handlers.h++
+        src/orion/sub_handlers.h++
+        src/orion/mul_handlers.h++
+        src/orion/div_handlers.h++
+        src/orion/include/mod_handlers.h++
 )
 
 add_subdirectory(tests)
