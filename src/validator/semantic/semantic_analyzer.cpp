@@ -179,12 +179,19 @@ void SemanticAnalyzer::visitDoWhileStatement(DoWhileStatementNode *node) {
     exitScope();
 }
 
+
 void SemanticAnalyzer::visitPrintln(PrintlnStatementNode *node) {
-    const std::set<std::string> comparisonOps = {"==", "!=", "<", ">", "<=", ">="};
+
     node->expression->accept(*this);
     auto preType = TypeInfer::analyzeExpression(node->expression.get(), &scopes);
     if (auto bin = dynamic_cast<BinaryExprNode*>(node->expression.get())) {
         if (comparisonOps.contains(bin->op)) {
+            node->type = "bool";
+        }
+        else node->type = preType;
+    }
+    else if (auto unary = dynamic_cast<UnaryExprNode*>(node->expression.get())) {
+        if (unaryBoolOps.contains(unary->op)) {
             node->type = "bool";
         }
         else node->type = preType;

@@ -8,6 +8,12 @@
 #include <iostream>
 
 #include "add_handlers.h++"
+#include "bit_and_handlers.h++"
+#include "bit_not_handlers.h++"
+#include "bit_or_handlers.h++"
+#include "bit_sl_handlers.h++"
+#include "bit_sr_handlers.h++"
+#include "bit_xor_handlers.h++"
 #include "div_handlers.h++"
 #include "equal_handlers.h++"
 #include "ge_handlers.h++"
@@ -16,9 +22,13 @@
 #include "le_handlers.h++"
 #include "mod_handlers.h++"
 #include "mul_handlers.h++"
+#include "neg_handlers.h++"
 #include "ne_handlers.h++"
+#include "not_handlers.h++"
 #include "print_handlers.h++"
 #include "sub_handlers.h++"
+#include "logical/and_handlers.h++"
+#include "logical/or_handlers.h++"
 
 OrionVM::OrionVM(const std::vector<uint8_t> &bytecode) : bytecode(bytecode) {}
 
@@ -45,10 +55,19 @@ void OrionVM::run() {
     OPCODE_CASE(0x13, L_GREATER);
     OPCODE_CASE(0x14, L_LESS);
     OPCODE_CASE(0x15, L_EQUAL);
+    OPCODE_CASE(0x1C, L_NEG);
     OPCODE_CASE(0x21, L_GREATER_EQUAL);
     OPCODE_CASE(0x22, L_LESS_EQUAL);
     OPCODE_CASE(0x23, L_NOT_EQUAL);
-
+    OPCODE_CASE(0x24, L_AND);
+    OPCODE_CASE(0x25, L_OR);
+    OPCODE_CASE(0x26, L_NOT);
+    OPCODE_CASE(0x27, L_BIT_AND);
+    OPCODE_CASE(0x28, L_BIT_OR);
+    OPCODE_CASE(0x29, L_BIT_XOR);
+    OPCODE_CASE(0x2A, L_SHIFT_LEFT);
+    OPCODE_CASE(0x2B, L_SHIFT_RIGHT);
+    OPCODE_CASE(0x2C, L_BIT_NOT);
 
     DISPATCH();
 
@@ -183,6 +202,16 @@ void OrionVM::run() {
         DISPATCH();
     }
 
+    L_NEG : {
+#if DEBUG
+        opcodeCount[0x1C]++;
+#endif
+        uint8_t type = read();
+        negTable[type](*this);
+        DISPATCH();
+    }
+
+
 
     L_GREATER_EQUAL: {
 #if DEBUG
@@ -209,6 +238,98 @@ void OrionVM::run() {
 #endif
         uint8_t type = read();
         neTable[type](*this);
+        DISPATCH();
+    }
+
+
+
+    L_AND : {
+#if DEBUG
+        opcodeCount[0x24]++;
+#endif
+        uint8_t type = read();
+        andTable[type](*this);
+        DISPATCH();
+    }
+
+
+    L_OR : {
+#if DEBUG
+        opcodeCount[0x25]++;
+#endif
+        uint8_t type = read();
+        orTable[type](*this);
+        DISPATCH();
+    }
+
+
+
+
+    L_NOT : {
+#if DEBUG
+        opcodeCount[0x26]++;
+#endif
+        uint8_t type = read();
+        notTable[type](*this);
+        DISPATCH();
+    }
+
+
+    L_BIT_AND : {
+#if DEBUG
+        opcodeCount[0x27]++;
+#endif
+        uint8_t type = read();
+        bitAndTable[type](*this);
+        DISPATCH();
+    }
+
+
+    L_BIT_OR : {
+#if DEBUG
+        opcodeCount[0x28]++;
+#endif
+        uint8_t type = read();
+        bitOrTable[type](*this);
+        DISPATCH();
+    }
+
+
+
+    L_BIT_XOR : {
+#if DEBUG
+        opcodeCount[0x29]++;
+#endif
+        uint8_t type = read();
+        bitXorTable[type](*this);
+        DISPATCH();
+    }
+
+
+    L_SHIFT_LEFT : {
+#if DEBUG
+        opcodeCount[0x2A]++;
+#endif
+        uint8_t type = read();
+        shiftLeftTable[type](*this);
+        DISPATCH();
+    }
+
+    L_SHIFT_RIGHT : {
+#if DEBUG
+        opcodeCount[0x2B]++;
+#endif
+        uint8_t type = read();
+        shiftRightTable[type](*this);
+        DISPATCH();
+    }
+
+    L_BIT_NOT : {
+#if DEBUG
+        opcodeCount[0x2C]++;
+#endif
+        uint8_t type = read();
+        bitNotTable[type](*this);
         DISPATCH();
     }
 

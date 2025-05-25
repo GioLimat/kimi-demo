@@ -41,7 +41,7 @@ void IRGen::visitCallFunction(CallFunctionNode *node) {
 
 void IRGen::visitUnaryExpr(UnaryExprNode *node) {
     node->operand->accept(*this);
-    if (node->op == "-") bytecode.push_back(IRMapper::getInstruction(IRInstruction::NEG) + " : " + node->type);
+    if (node->op == "-") bytecode.push_back(IRMapper::getInstruction(IRInstruction::NEG)  + " [" + node->type + "]");
     else if (node->op == "--" || node->op == "++") {
         auto ident = dynamic_cast<IdentifierExprNode*>(node->operand.get());
         if (ident == nullptr) throw std::runtime_error("Undefined identifier");

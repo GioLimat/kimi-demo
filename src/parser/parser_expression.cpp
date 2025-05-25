@@ -60,6 +60,8 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
     if (isAtEnd()) return nullptr;
     auto nextToken = tokens.at(current + 1);
 
+
+
     auto isCompose = nextToken.type == LexerTokenType::PLUS_EQUAL
         || nextToken.type == LexerTokenType::MINUS_EQUAL
         || nextToken.type == LexerTokenType::MULTIPLY_EQUAL
@@ -91,6 +93,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
          nextToken.type == LexerTokenType::MINUS_MINUS   )) {
         return parsePostFix();
     }
+
     return parseBinaryOperation(0);
 }
 
@@ -207,7 +210,6 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseUnary() {
             auto operand = parseUnary();
             return std::make_unique<UnaryExprNode>(op, std::move(operand));
         }
-
         return parsePrimary();
 }
 

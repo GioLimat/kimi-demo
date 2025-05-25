@@ -114,6 +114,20 @@ bool ByGen::twoLengthInstruction(const std::string &instruction) {
             instruction ==  "LESS_EQUAL" ||
             instruction ==  "NOT_EQUAL" ||
 
+            instruction == "NOT" ||
+            instruction == "NEG" ||
+
+
+            instruction ==  "AND" ||
+            instruction == "OR" ||
+
+            instruction == "BIT_AND"  ||
+            instruction == "BIT_OR"  ||
+            instruction == "BIT_XOR"   ||
+            instruction == "SHIFT_LEFT"  ||
+            instruction == "SHIFT_RIGHT"   ||
+            instruction == "BIT_NOT"  ||
+
            instruction == "PRINT";
 }
 

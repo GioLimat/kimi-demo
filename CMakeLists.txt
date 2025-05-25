@@ -43,6 +43,16 @@ add_library(kimi STATIC
         src/orion/binaryOp/ge_handlers.h++
         src/orion/binaryOp/le_handlers.h++
         src/orion/binaryOp/ne_handlers.h++
+        src/orion/unary/not_handlers.h++
+        src/orion/unary/neg_handlers.h++
+        src/orion/logical/and_handlers.h++
+        src/orion/logical/or_handlers.h++
+        src/orion/binaryOp/bit_and_handlers.h++
+        src/orion/binaryOp/bit_or_handlers.h++
+        src/orion/binaryOp/bit_xor_handlers.h++
+        src/orion/binaryOp/bit_sl_handlers.h++
+        src/orion/binaryOp/bit_sr_handlers.h++
+        src/orion/unary/bit_not_handlers.h++
 )
 
 add_subdirectory(tests)
@@ -61,4 +71,5 @@ target_include_directories(kimi PUBLIC
         src/general/include
         src/orion/include
         src/orion/binaryOp
+        src/orion/unary
 )

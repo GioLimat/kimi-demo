@@ -5,6 +5,8 @@
 #ifndef SEMANTIC_ANALYZER_H
 #define SEMANTIC_ANALYZER_H
 
+#include <set>
+
 #include "ast.h"
 #include <stack>
 #include <visitor.h>
@@ -27,6 +29,10 @@ public:
     };
     using Scope = std::stack<std::unordered_map<std::string, std::variant<VariableInfo, FunctionInfo>>>;
 private:
+
+    const std::set<std::string> comparisonOps = {"==", "!=", "<", ">", "<=", ">="};
+    const std::set<std::string> unaryBoolOps = {"!"};
+
     std::vector<std::string> currentFns;
     Scope scopes;
 
