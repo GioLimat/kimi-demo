@@ -29,6 +29,7 @@ class ByGen {
 
 
     static bool twoLengthInstruction(const std::string& instruction);
+    static bool threeLengthInstruction(const std::string& instruction);
 
     template<typename T>
     void emitLiteralLE(const T& value) {

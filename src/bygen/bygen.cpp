@@ -69,6 +69,10 @@ void ByGen::emitBasedOnType(const std::string &type) {
 }
 
 
+
+
+
+
 void ByGen::getMeta(const std::string &instruction)  {
     if (instruction.find('[') != std::string::npos) {
         std::string meta;
@@ -120,6 +124,7 @@ bool ByGen::twoLengthInstruction(const std::string &instruction) {
 
             instruction ==  "AND" ||
             instruction == "OR" ||
+            instruction == "RET" ||
 
             instruction == "BIT_AND"  ||
             instruction == "BIT_OR"  ||
@@ -131,6 +136,14 @@ bool ByGen::twoLengthInstruction(const std::string &instruction) {
            instruction == "PRINT";
 }
 
+
+bool ByGen::threeLengthInstruction(const std::string &instruction) {
+    return instruction == "LOAD" ||
+           instruction == "INC" ||
+           instruction == "DEC" ||
+           instruction == "POST_INC" ||
+           instruction == "POST_DEC";
+}
 
 
 std::vector<uint8_t> ByGen::generate() {
@@ -224,6 +237,10 @@ std::vector<uint8_t> ByGen::generate() {
 
             const uint32_t varId = getIdentifierId(varName);
 
+            emitLiteralLE<uint8_t>(jumpsToFindLocal);
+
+            jumpsToFindLocal = 0;
+
             emitLiteralLE<int32_t>(varId);
 
             continue;
@@ -275,7 +292,7 @@ std::vector<uint8_t> ByGen::generate() {
             const auto& label = parts[1];
             const auto labelId = label.substr(1, label.size());
 
-            int64_t offset = 0;
+            int64_t offset = 1;
 
 
             // SEARCHING AT FRONT OF THE IF OR JMP
@@ -294,20 +311,16 @@ std::vector<uint8_t> ByGen::generate() {
                     continue;
                 }
                 const auto tempParts = splitBySpace(ir[tempI]);
-                std::string tempType;
+                std::string tempType = getType(tempParts);
 
-                for (size_t j = 0; j < tempParts.size(); ++j) {
-                    if (tempParts[j] == ":") {
-                        if (!tempParts[j + 1].empty()) {
-                            tempType = tempParts[j + 1];
-                        }
-                    }
+                if (twoLengthInstruction(tempParts[0])) offset += 2;
+                else if (tempParts[0] == "CONST") offset += 2 + ByMapper::getType(tempType) / 8;
+                else if (threeLengthInstruction(tempParts[0])) offset += 2 + 4;
+                else if (tempParts[0] == "END_BLOCK" || tempParts[0] == "INIT_BLOCK") offset += 1;
+                else if (tempParts[0] == "IF_FALSE" || tempParts[0] == "JMP" || tempParts[0] == "FN") offset += 1 + 4;
+                else {
+                    throw std::runtime_error("Unknown instruction " + tempParts[0]);
                 }
-                offset += 3;
-                if (tempType == "i8" || tempType == "bool") offset += 1;
-                else if (tempType == "i16") offset += 2;
-                else if (tempType == "i32" || tempType == "f32" || tempType == "char") offset += 4;
-                else if (tempType == "i64" || tempType == "f64") offset += 8;
                 tempI++;
             }
 
@@ -326,24 +339,19 @@ std::vector<uint8_t> ByGen::generate() {
                         continue;
                     }
                     const auto tempParts = splitBySpace(ir[tempI]);
-                    std::string tempType;
+                    std::string tempType = getType(tempParts);
 
-
-                    for (size_t j = 0; j < tempParts.size(); ++j) {
-                        if (tempParts[j] == ":") {
-                            if (!tempParts[j + 1].empty()) {
-                                tempType = tempParts[j + 1];
-                            }
-                        }
+                    if (twoLengthInstruction(tempParts[0])) offset -= 2;
+                    else if (tempParts[0] == "CONST") offset -= 2 + ByMapper::getType(tempType) / 8;
+                    else if (threeLengthInstruction(tempParts[0])) offset -= 2 + 4;
+                    else if (tempParts[0] == "END_BLOCK" || tempParts[0] == "INIT_BLOCK") offset -= 1;
+                    else if (tempParts[0] == "IF_FALSE" || tempParts[0] == "JMP" || tempParts[0] == "FN") offset -= 1 + 4;
+                    else {
+                        throw std::runtime_error("Unknown instruction " + tempParts[0]);
                     }
-                    offset -= 3;
-                    if (tempType == "i8" || tempType == "bool") offset -= 1;
-                    else if (tempType == "i16") offset -= 2;
-                    else if (tempType == "i32" || tempType == "f32" || tempType == "char") offset -= 4;
-                    else if (tempType == "i64" || tempType == "f64") offset -= 8;
                     tempI--;
                  }
-                offset -= 7; // This is the amount of bytes in the jmp, that is not considered at the count above
+                offset -= 1 + 4 + 1; // This is the amount of bytes in the jmp, that is not considered at the count above
                 }
             emitLiteralLE<int32_t>(offset);
             continue;

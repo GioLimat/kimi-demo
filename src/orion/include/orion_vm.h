@@ -18,10 +18,16 @@ static constexpr size_t STACK_MAX = 65536;
 #define DEBUG 1
 using RawValue = uint64_t;
 
+struct FunctionInfo {
+    uint64_t initIp;
+    uint64_t argsSize;
+};
+
 struct CallFrame {
     uint64_t    returnIp;
     uint64_t    stackBase;
     CallFrame*  parent;
+    std::vector<uint64_t> scopeSp;
 };
 
 class OrionVM {
@@ -36,6 +42,7 @@ public:
         stackBuf[sp++] = value;
     }
 
+    void preprocessFunctions();
 
 private:
     /*READER
@@ -134,11 +141,25 @@ private:
 #endif
 
     uint8_t read() { return bytecode[ip++]; }
+
     inline uint32_t read32() {
         uint32_t id = 0;
         for (int i = 0; i < 4; ++i) id |= static_cast<uint32_t>(read()) << (8 * i);
         return id;
     }
+
+    inline int32_t readSigned32() {
+        int32_t id = 0;
+        for (int i = 0; i < 4; ++i) id |= static_cast<int32_t>(read()) << (8 * i);
+        return id;
+    }
+
+
+
+    void registerFunction(uint64_t* returnPos);
+    uint64_t getInstructionLength(uint8_t op);
+
+    static uint64_t decodeType(uint8_t type);
 };
 
 #endif // ORION_VM_H

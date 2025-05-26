@@ -41,12 +41,25 @@ void  runOrion(const std::string& code) {
     }
     std::cout << std::endl;
     OrionVM vm(gen);
+    vm.preprocessFunctions();
     vm.run();
 }
 
 
 
 TEST(Orion, SimpleCode) {
-    auto code = "var x = -2;  var y   = 2;  println(~x ^ 4);";
+    auto code = "var x = -2;  var y = 2; ++y; y++; println(--y); if (x < y) { println(21); } ";
+    runOrion(code);
+}
+
+
+TEST(Orion, SimpleCode2) {
+    auto code = "var x = 2;  while (x < 10) { println(x++); } ";
+    runOrion(code);
+}
+
+
+TEST(Orion, SimpleCode3) {
+    auto code = "fn a() { 4}";
     runOrion(code);
 }

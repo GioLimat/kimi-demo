@@ -33,7 +33,6 @@
 OrionVM::OrionVM(const std::vector<uint8_t> &bytecode) : bytecode(bytecode) {}
 
 
-
 void OrionVM::run() {
     callStack.push_back({0, 0, nullptr});
 
@@ -47,6 +46,8 @@ void OrionVM::run() {
     OPCODE_CASE(0x02, L_LOAD);
     OPCODE_CASE(0x03, L_STORE);
     OPCODE_CASE(0x04, L_PRINT);
+    OPCODE_CASE(0x07, L_END_BLOCK);
+    OPCODE_CASE(0x08, L_INIT_BLOCK);
     OPCODE_CASE(0x0E, L_ADD);
     OPCODE_CASE(0x0F, L_SUB);
     OPCODE_CASE(0x10, L_MUL);
@@ -55,7 +56,13 @@ void OrionVM::run() {
     OPCODE_CASE(0x13, L_GREATER);
     OPCODE_CASE(0x14, L_LESS);
     OPCODE_CASE(0x15, L_EQUAL);
+    OPCODE_CASE(0x1A, L_IF_FALSE);
+    OPCODE_CASE(0x1B, L_JMP);
     OPCODE_CASE(0x1C, L_NEG);
+    OPCODE_CASE(0x1D, L_INC);
+    OPCODE_CASE(0x1E, L_DEC);
+    OPCODE_CASE(0x1F, L_POST_INC);
+    OPCODE_CASE(0x20, L_POST_DEC);
     OPCODE_CASE(0x21, L_GREATER_EQUAL);
     OPCODE_CASE(0x22, L_LESS_EQUAL);
     OPCODE_CASE(0x23, L_NOT_EQUAL);
@@ -122,6 +129,23 @@ void OrionVM::run() {
         DISPATCH();
     }
 
+
+    L_END_BLOCK: {
+#if DEBUG
+        opcodeCount[0x07]++;
+#endif
+        sp = callStack.back().scopeSp.back();
+        callStack.back().scopeSp.pop_back();
+        DISPATCH();
+    }
+
+    L_INIT_BLOCK: {
+#if DEBUG
+        opcodeCount[0x08]++;
+#endif
+        callStack.back().scopeSp.push_back(sp);
+        DISPATCH();
+    }
 
     L_ADD: {
 #if DEBUG
@@ -202,6 +226,28 @@ void OrionVM::run() {
         DISPATCH();
     }
 
+
+    L_IF_FALSE: {
+#if DEBUG
+        opcodeCount[0x1A]++;
+#endif
+        uint32_t offset = read32();
+        if (pop() == 0) {
+            ip += offset;
+        }
+        DISPATCH();
+    }
+
+
+    L_JMP: {
+#if DEBUG
+        opcodeCount[0x1A]++;
+#endif
+        ip += readSigned32();
+
+        DISPATCH();
+    }
+
     L_NEG : {
 #if DEBUG
         opcodeCount[0x1C]++;
@@ -210,6 +256,71 @@ void OrionVM::run() {
         negTable[type](*this);
         DISPATCH();
     }
+
+
+    L_INC : {
+#if DEBUG
+        opcodeCount[0x1D]++;
+#endif
+        uint8_t meta = read();
+        uint32_t varId = read32();
+
+        uint8_t callDepth = meta >> 4;
+
+        CallFrame* target = &callStack.back();
+        for (uint8_t i = 0; i < callDepth; ++i) target = target->parent;
+        push(++stackBuf[target->stackBase + varId]);
+        DISPATCH();
+    }
+
+    L_DEC : {
+#if DEBUG
+        opcodeCount[0x1E]++;
+#endif
+        uint8_t meta = read();
+        uint32_t varId = read32();
+
+        uint8_t callDepth = meta >> 4;
+
+        CallFrame* target = &callStack.back();
+        for (uint8_t i = 0; i < callDepth; ++i) target = target->parent;
+        push(--stackBuf[target->stackBase + varId]);
+        DISPATCH();
+    }
+
+
+
+    L_POST_INC : {
+#if DEBUG
+        opcodeCount[0x1F]++;
+#endif
+        uint8_t meta = read();
+        uint32_t varId = read32();
+
+        uint8_t callDepth = meta >> 4;
+
+        CallFrame* target = &callStack.back();
+        for (uint8_t i = 0; i < callDepth; ++i) target = target->parent;
+        push(stackBuf[target->stackBase + varId]++);
+        DISPATCH();
+    }
+
+
+    L_POST_DEC : {
+#if DEBUG
+        opcodeCount[0x20]++;
+#endif
+        uint8_t meta = read();
+        uint32_t varId = read32();
+
+        uint8_t callDepth = meta >> 4;
+
+        CallFrame* target = &callStack.back();
+        for (uint8_t i = 0; i < callDepth; ++i) target = target->parent;
+        push(stackBuf[target->stackBase + varId]--);
+        DISPATCH();
+    }
+
 
 
 
