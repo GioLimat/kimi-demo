@@ -20,6 +20,7 @@ using RawValue = uint64_t;
 
 struct FunctionInfo {
     uint64_t initIp;
+    uint64_t endIp;
     uint64_t argsSize;
 };
 
@@ -112,8 +113,8 @@ private:
      */
 
 
-
-    const std::vector<uint8_t> bytecode;
+    std::vector<FunctionInfo> functions;
+    std::vector<uint8_t> bytecode;
     uint64_t                   ip    = 0;
     std::vector<CallFrame>     callStack;
     RawValue                   regA  = 0;

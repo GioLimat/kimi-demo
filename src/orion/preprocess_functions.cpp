@@ -37,9 +37,11 @@ uint64_t OrionVM::getInstructionLength(uint8_t op) {
         case 0x1A:
         case 0x1B:
         case 0x05:
+        case 0x16:
             return 5; // 1 byte for opcode, 4 bytes for offset
         case 0x07:
         case 0x08:
+        case 0x19:
             return 1; // END_BLOCK and INIT_BLOCK are 1 byte each
         case 0x04: // PRINT
         case 0x0E: // ADD
@@ -84,9 +86,12 @@ void OrionVM::preprocessFunctions() {
             countFunctions++;
 #endif
             ip += 5; // Skip FN opcode and 4-byte identifier
-            auto c = getInstructionLength(bytecode[ip]);
-            ip += c;
 
+            uint64_t returnIp = ip; // Save the position to return to after function declaration
+
+            registerFunction(&returnIp);
+
+            ip = returnIp;
         }
         else ip++;
     }
@@ -98,5 +103,39 @@ void OrionVM::preprocessFunctions() {
 
 
 void OrionVM::registerFunction(uint64_t *returnPos) {
+    uint64_t depth = 0;
 
+    uint64_t lookupIp = ip;
+    while (lookupIp < bytecode.size()) {
+        const uint8_t op = bytecode[lookupIp];
+
+        if (op == 0x05) {
+            depth++;
+        } else if (op == 0x19) {
+            if (depth == 0) {
+                bytecode.erase(bytecode.begin() + lookupIp);
+                *returnPos = lookupIp;
+            } else {
+                depth--;
+            }
+        }
+
+        const uint64_t len = getInstructionLength(op);
+        lookupIp += len;
+    }
+
+    FunctionInfo function{};
+
+    function.initIp = ip; // Save the initial instruction pointer for the function
+    function.endIp = *returnPos; // Save the return instruction pointer
+    uint64_t totalArgs = 0;
+
+    while (ip < bytecode.size() ) {
+        if (bytecode[ip] != 0x06) break;
+
+        totalArgs++;
+        ip += getInstructionLength(bytecode[ip]);
+    }
+
+    functions.push_back(function);
 }

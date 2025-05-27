@@ -38,7 +38,7 @@ uint32_t ByGen::getIdentifierId(const std::string &name) {
     throw std::runtime_error("Unknown identifier name " +name );
 }
 
-void ByGen::declareIdentifier(const std::string &name, bool isParam = false) {
+void ByGen::declareIdentifier(const std::string &name, bool isParam = false, bool isFunction = false) {
     uint32_t varId;
     std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
 
@@ -48,7 +48,11 @@ void ByGen::declareIdentifier(const std::string &name, bool isParam = false) {
 
     if (isParam) {
         varId = currentScope.size();
-    } else {
+    }
+    else if (isFunction) {
+        varId = functionId++;
+    }
+    else {
         varId = nextId++;
     }
 
@@ -263,7 +267,7 @@ std::vector<uint8_t> ByGen::generate() {
         if (instructionType == "FN") {
             const std::string& fnName = parts[1] + "_FN";
 
-            declareIdentifier(fnName);
+            declareIdentifier(fnName, false, true);
 
             const uint32_t val = getIdentifierId(fnName);
 
@@ -316,8 +320,12 @@ std::vector<uint8_t> ByGen::generate() {
                 if (twoLengthInstruction(tempParts[0])) offset += 2;
                 else if (tempParts[0] == "CONST") offset += 2 + ByMapper::getType(tempType) / 8;
                 else if (threeLengthInstruction(tempParts[0])) offset += 2 + 4;
-                else if (tempParts[0] == "END_BLOCK" || tempParts[0] == "INIT_BLOCK") offset += 1;
-                else if (tempParts[0] == "IF_FALSE" || tempParts[0] == "JMP" || tempParts[0] == "FN") offset += 1 + 4;
+                else if (tempParts[0] == "END_BLOCK" || tempParts[0] == "INIT_BLOCK" || tempParts[0] == "END_FN") offset += 1;
+                else if (
+                    tempParts[0] == "IF_FALSE"
+                    || tempParts[0] == "JMP"
+                    || tempParts[0] == "FN"
+                    || tempParts[0] == "CALL") offset += 1 + 4;
                 else {
                     throw std::runtime_error("Unknown instruction " + tempParts[0]);
                 }
@@ -344,8 +352,12 @@ std::vector<uint8_t> ByGen::generate() {
                     if (twoLengthInstruction(tempParts[0])) offset -= 2;
                     else if (tempParts[0] == "CONST") offset -= 2 + ByMapper::getType(tempType) / 8;
                     else if (threeLengthInstruction(tempParts[0])) offset -= 2 + 4;
-                    else if (tempParts[0] == "END_BLOCK" || tempParts[0] == "INIT_BLOCK") offset -= 1;
-                    else if (tempParts[0] == "IF_FALSE" || tempParts[0] == "JMP" || tempParts[0] == "FN") offset -= 1 + 4;
+                    else if (tempParts[0] == "END_BLOCK" || tempParts[0] == "INIT_BLOCK" || tempParts[0] == "END_FN") offset -= 1;
+                    else if (
+                        tempParts[0] == "IF_FALSE"
+                        || tempParts[0] == "JMP"
+                        || tempParts[0] == "FN"
+                        || tempParts[0] == "CALL") offset -= 1 + 4;
                     else {
                         throw std::runtime_error("Unknown instruction " + tempParts[0]);
                     }

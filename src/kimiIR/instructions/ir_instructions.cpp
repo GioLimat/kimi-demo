@@ -78,6 +78,7 @@ std::string IRMapper::getInstruction(const IRInstruction ir) {
         case IRInstruction::DEC:  return "DEC";
         case IRInstruction::POST_INC: return "POST_INC";
         case IRInstruction::POST_DEC:  return "POST_DEC";
+        case IRInstruction::END_FN :  return "END_FN";
         default: return "";
     }
 }

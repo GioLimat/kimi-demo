@@ -46,6 +46,7 @@ void OrionVM::run() {
     OPCODE_CASE(0x02, L_LOAD);
     OPCODE_CASE(0x03, L_STORE);
     OPCODE_CASE(0x04, L_PRINT);
+    OPCODE_CASE(0x05, L_FN);
     OPCODE_CASE(0x07, L_END_BLOCK);
     OPCODE_CASE(0x08, L_INIT_BLOCK);
     OPCODE_CASE(0x0E, L_ADD);
@@ -56,6 +57,8 @@ void OrionVM::run() {
     OPCODE_CASE(0x13, L_GREATER);
     OPCODE_CASE(0x14, L_LESS);
     OPCODE_CASE(0x15, L_EQUAL);
+    OPCODE_CASE(0x16, L_CALL);
+    OPCODE_CASE(0x18, L_RET);
     OPCODE_CASE(0x1A, L_IF_FALSE);
     OPCODE_CASE(0x1B, L_JMP);
     OPCODE_CASE(0x1C, L_NEG);
@@ -126,6 +129,17 @@ void OrionVM::run() {
         RawValue v = pop();
         if (auto fn = printTable[type]) fn(v);
         else std::printf("PRINT: unsupported type 0x%02X\n", type);
+        DISPATCH();
+    }
+
+
+    L_FN: {
+#if DEBUG
+        opcodeCount[0x05]++;
+#endif
+        int32_t fnId = readSigned32();
+
+        ip = functions[fnId].endIp;
         DISPATCH();
     }
 
@@ -225,6 +239,43 @@ void OrionVM::run() {
         equalTable[type](*this);
         DISPATCH();
     }
+
+
+
+    L_CALL: {
+#if DEBUG
+        opcodeCount[0x16]++;
+#endif
+        int32_t fnId = readSigned32();
+
+        const auto fn = functions[fnId];
+
+        CallFrame frame{};
+        frame.scopeSp.push_back(sp);
+        frame.returnIp = ip;
+        frame.parent = &callStack.back();
+        frame.stackBase = sp;
+
+        ip = fn.initIp;
+
+        callStack.push_back(frame);
+        DISPATCH();
+    }
+
+
+
+    L_RET: {
+#if DEBUG
+        opcodeCount[0x18]++;
+#endif
+        uint8_t type = read();
+        ip = callStack.back().returnIp;
+        sp = callStack.back().scopeSp.back();
+
+        callStack.pop_back();
+        DISPATCH();
+    }
+
 
 
     L_IF_FALSE: {

@@ -12,11 +12,13 @@
 class ByGen {
     std::stack<std::unordered_map<std::string, uint32_t>> symbolTable;
     size_t nextId = 0;
+    size_t functionId = 0;
     std::vector<uint8_t> bytecode;
     std::vector<std::string> ir;
     [[nodiscard]] std::vector<std::string> splitBySpace(const std::string& str) const;
     uint32_t getIdentifierId(const std::string& name);
-    void declareIdentifier(const std::string& name, bool isParam);
+    void declareIdentifier(const std::string& name, bool isParam, bool isFunction);
+
 
     size_t jumpsToFindLocal = 0;
     void emitBasedOnType(const std::string& type);

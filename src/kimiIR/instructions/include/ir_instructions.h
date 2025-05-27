@@ -56,6 +56,7 @@ enum class IRInstruction {
   // BLOCKS
   INIT_BLOCK,
   END_BLOCK,
+  END_FN,
   END_CONDITION,
 
   // Arithmetic operations

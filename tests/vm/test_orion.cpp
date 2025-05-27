@@ -60,6 +60,6 @@ TEST(Orion, SimpleCode2) {
 
 
 TEST(Orion, SimpleCode3) {
-    auto code = "fn a() { 4}";
+    auto code = "fn a() { 4;} a();";
     runOrion(code);
 }
