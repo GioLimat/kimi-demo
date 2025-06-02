@@ -99,10 +99,6 @@ void OrionVM::preprocessFunctions() {
         else ip += getInstructionLength(bytecode[ip]);
     }
 
-    for (auto fn : functions) {
-        std::cout << fn.initIp << " -> " << fn.endIp
-                  << ", args size: " << fn.argsSize << std::endl;
-    }
 #if DEBUG
     std::cout << "Preprocessing functions: " << countFunctions << " functions found." << std::endl;
 #endif
