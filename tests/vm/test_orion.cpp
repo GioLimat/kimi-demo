@@ -48,7 +48,7 @@ void  runOrion(const std::string& code) {
 
 
 TEST(Orion, SimpleCode) {
-    auto code = "var x = -2;  var y = 2; ++y; y++; println(--y); if (x < y) { println(21); } ";
+    auto code = "var x = -2;  var y = 2; ++y; y++; println(--y); if (x < y) { println(21 << 4); } ";
     runOrion(code);
 }
 
@@ -60,6 +60,35 @@ TEST(Orion, SimpleCode2) {
 
 
 TEST(Orion, SimpleCode3) {
-    auto code = "fn a() { 4;} a();";
+    auto code = "fn a(b:  Int, c: Int) {println(b); c;} val  k = a(10, 20); println(k + 4);";
+    runOrion(code);
+}
+
+
+TEST(Orion, SimpleCode4) {
+    auto code = "fn a(b:  Int) : Int { if ( b == 1){ return 1;} return b * a(b - 1); } println(a(5));";
+    runOrion(code);
+}
+
+
+TEST(Orion, SimpleCode5) {
+    auto code = "val b = 4; if (b == 4) { println(b); } else { println(12); } ";
+    runOrion(code);
+}
+
+
+TEST(Orion, SimpleCode6) {
+    auto code = "fn a() { val x = 1; println(x); fn b() { println(x); 4; } }  a();";
+    runOrion(code);
+}
+
+
+TEST(Orion, SimpleCode7) {
+    auto code = "fn a() {fn b() { println(4); 4;} b(); 4;} a(); ";
+    runOrion(code);
+}
+
+TEST(Orion, SimpleCode8) {
+    auto code = "val a = 4; fn b() { if (4 > 2) { println(a); } 4; } b(); ";
     runOrion(code);
 }

@@ -54,6 +54,7 @@ add_library(kimi STATIC
         src/orion/binaryOp/bit_sr_handlers.h++
         src/orion/unary/bit_not_handlers.h++
         src/orion/preprocess_functions.cpp
+        src/bygen/bygen_helpers.cpp
 )
 
 add_subdirectory(tests)

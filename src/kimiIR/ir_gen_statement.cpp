@@ -51,8 +51,8 @@ void IRGen::visitWhileStatement(WhileStatementNode *node) {
     for (const auto& n : node->body->statements) {
         n->accept(*this);
     }
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::JMP) + " L" + std::to_string(conditionLabel)  + " : i32");
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK));
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::JMP) + " L" + std::to_string(conditionLabel)  + " : i32");
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(endLabel));
     scopes.pop();
 }

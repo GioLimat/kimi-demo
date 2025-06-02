@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <ranges>
 
 #include "orion_vm.h"
 
@@ -33,11 +34,13 @@ uint64_t OrionVM::getInstructionLength(uint8_t op) {
         case 0x1E:  // DEC
         case 0x1F:  // POST_INC
         case 0x20:  // POST_DEC
-            return 6;
+            return 7;
         case 0x1A:
+        case 0x03:
         case 0x1B:
         case 0x05:
         case 0x16:
+        case 0x06:
             return 5; // 1 byte for opcode, 4 bytes for offset
         case 0x07:
         case 0x08:
@@ -93,7 +96,12 @@ void OrionVM::preprocessFunctions() {
 
             ip = returnIp;
         }
-        else ip++;
+        else ip += getInstructionLength(bytecode[ip]);
+    }
+
+    for (auto fn : functions) {
+        std::cout << fn.initIp << " -> " << fn.endIp
+                  << ", args size: " << fn.argsSize << std::endl;
     }
 #if DEBUG
     std::cout << "Preprocessing functions: " << countFunctions << " functions found." << std::endl;
@@ -102,40 +110,48 @@ void OrionVM::preprocessFunctions() {
 }
 
 
-void OrionVM::registerFunction(uint64_t *returnPos) {
-    uint64_t depth = 0;
+void OrionVM::registerFunction(uint64_t* returnPos) {
+    uint64_t startIp = ip;
+    uint64_t endIp   = 0;
+    uint64_t args    = 0;
 
-    uint64_t lookupIp = ip;
-    while (lookupIp < bytecode.size()) {
-        const uint8_t op = bytecode[lookupIp];
+    FunctionInfo placeholder{};
+    placeholder.initIp   = startIp;
+    placeholder.endIp    = 0;
+    placeholder.argsSize = 0;
+    functions.push_back(placeholder);
+
+    size_t myIndex = functions.size() - 1;
+
+    while (ip < bytecode.size()) {
+        uint8_t op = bytecode[ip];
 
         if (op == 0x05) {
-            depth++;
-        } else if (op == 0x19) {
-            if (depth == 0) {
-                bytecode.erase(bytecode.begin() + lookupIp);
-                *returnPos = lookupIp;
-            } else {
-                depth--;
-            }
+            ip += 5;
+            uint64_t nestedEnd;
+            registerFunction(&nestedEnd);
+            ip = nestedEnd + 1;
+            continue;
         }
 
-        const uint64_t len = getInstructionLength(op);
-        lookupIp += len;
+        if (op == 0x06) {
+            args++;
+        } else if (op == 0x19) {
+            endIp = ip;
+            break;
+        }
+
+        ip += getInstructionLength(op);
     }
 
-    FunctionInfo function{};
+    functions[myIndex].endIp    = endIp;
+    functions[myIndex].argsSize = args;
+    *returnPos = endIp;
 
-    function.initIp = ip; // Save the initial instruction pointer for the function
-    function.endIp = *returnPos; // Save the return instruction pointer
-    uint64_t totalArgs = 0;
-
-    while (ip < bytecode.size() ) {
-        if (bytecode[ip] != 0x06) break;
-
-        totalArgs++;
-        ip += getInstructionLength(bytecode[ip]);
-    }
-
-    functions.push_back(function);
+#if DEBUG
+    std::cout << "Registered function at IP: " << startIp
+              << ", end IP: " << endIp
+              << ", args size: " << args
+              << std::endl;
+#endif
 }

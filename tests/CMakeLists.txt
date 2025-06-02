@@ -21,6 +21,7 @@ add_executable(kimi_tests lexer/test_lexer.cpp
         type_infer/test_type_infer.cpp
         bygen/test_by.cpp
         vm/test_orion.cpp
+        playground/playground.cpp
 )
 
 target_link_libraries(kimi_tests GTest::gtest_main kimi gtest gtest_main)

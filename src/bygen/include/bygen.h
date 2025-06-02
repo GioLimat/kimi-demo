@@ -10,19 +10,30 @@
 #include <unordered_map>
 
 class ByGen {
-    std::stack<std::unordered_map<std::string, uint32_t>> symbolTable;
+    using SymbolTableType = std::vector<std::unordered_map<std::string, uint32_t>>;
+    SymbolTableType symbolTable;
+
+    std::vector<uint64_t> idFnTable = {0};
+
     size_t nextId = 0;
     size_t functionId = 0;
+
     std::vector<uint8_t> bytecode;
+
     std::vector<std::string> ir;
+
     [[nodiscard]] std::vector<std::string> splitBySpace(const std::string& str) const;
+
     uint32_t getIdentifierId(const std::string& name);
+
     void declareIdentifier(const std::string& name, bool isParam, bool isFunction);
 
 
     size_t jumpsToFindLocal = 0;
-    void emitBasedOnType(const std::string& type);
+    size_t scopesToFindLocal = 0;
 
+    void emitBasedOnType(const std::string& type);
+    uint64_t getInstructionLength(const std::string& instruction, const std::string& tempType);
 
 
     void getMeta(const std::string& instruction);
@@ -31,7 +42,7 @@ class ByGen {
 
 
     static bool twoLengthInstruction(const std::string& instruction);
-    static bool threeLengthInstruction(const std::string& instruction);
+    static bool sevenLengthInstruction(const std::string& instruction);
 
     template<typename T>
     void emitLiteralLE(const T& value) {

@@ -11,7 +11,7 @@
 #include <bits/ostream.tcc>
 
 ByGen::ByGen(std::vector<std::string> ir) : ir(std::move(ir)) {
-    symbolTable.emplace();
+    symbolTable.emplace_back();
 }
 
 
@@ -25,129 +25,6 @@ std::vector<std::string> ByGen::splitBySpace(const std::string& str) const {
     return tokens;
 }
 
-uint32_t ByGen::getIdentifierId(const std::string &name) {
-
-    std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
-    while (!temp.empty()) {
-        if (temp.top().contains(name)) {
-            return temp.top()[name];
-        }
-        jumpsToFindLocal++;
-        temp.pop();
-    }
-    throw std::runtime_error("Unknown identifier name " +name );
-}
-
-void ByGen::declareIdentifier(const std::string &name, bool isParam = false, bool isFunction = false) {
-    uint32_t varId;
-    std::stack<std::unordered_map<std::string, uint32_t>> temp = symbolTable;
-
-    auto& currentScope = symbolTable.top();
-
-    if (currentScope.contains(name)) return;
-
-    if (isParam) {
-        varId = currentScope.size();
-    }
-    else if (isFunction) {
-        varId = functionId++;
-    }
-    else {
-        varId = nextId++;
-    }
-
-    currentScope[name] = varId;
-}
-
-
-
-void ByGen::emitBasedOnType(const std::string &type) {
-    if (type == "i8") emitLiteralLE<int8_t>(0);
-    else if (type == "i16") emitLiteralLE<int16_t>(0);
-    else if (type == "i32") emitLiteralLE<int32_t>(0);
-    else if (type == "i64") emitLiteralLE<int64_t>(0);
-    else if (type == "f32") emitLiteralLE<float>(0);
-    else if (type == "f64") emitLiteralLE<double>(0.0);
-    else if (type == "bool") emitLiteralLE<bool>(false);
-    else if (type == "char") emitLiteralLE<uint32_t>(0);
-}
-
-
-
-
-
-
-void ByGen::getMeta(const std::string &instruction)  {
-    if (instruction.find('[') != std::string::npos) {
-        std::string meta;
-        size_t storeTypeI = instruction.find('[') + 1;
-        while (instruction[storeTypeI] != ']') {
-            meta += instruction[storeTypeI];
-            storeTypeI++;
-        }
-
-        if (instruction.find(", ") != std::string::npos) {
-           auto end =  instruction.find(", ") + 2;
-            meta = instruction.substr(end, storeTypeI);
-        }
-        bytecode.push_back(ByMapper::getType(meta));
-    }
-}
-
-
-std::string ByGen::getType(const std::vector<std::string>& parts) {
-    std::string type;
-
-    for (int i = 0; i < parts.size(); ++i) {
-        if (parts[i] == ":") {
-            type = parts[i + 1];
-        }
-    }
-    return  type;
-}
-
-
-
-bool ByGen::twoLengthInstruction(const std::string &instruction) {
-    return instruction == "ADD" ||
-           instruction == "SUB" ||
-           instruction == "MUL" ||
-           instruction == "DIV" ||
-           instruction == "MOD" ||
-
-           instruction ==  "GREATER" ||
-           instruction ==  "LESS" ||
-            instruction ==  "EQUAL" ||
-            instruction ==  "GREATER_EQUAL" ||
-            instruction ==  "LESS_EQUAL" ||
-            instruction ==  "NOT_EQUAL" ||
-
-            instruction == "NOT" ||
-            instruction == "NEG" ||
-
-
-            instruction ==  "AND" ||
-            instruction == "OR" ||
-            instruction == "RET" ||
-
-            instruction == "BIT_AND"  ||
-            instruction == "BIT_OR"  ||
-            instruction == "BIT_XOR"   ||
-            instruction == "SHIFT_LEFT"  ||
-            instruction == "SHIFT_RIGHT"   ||
-            instruction == "BIT_NOT"  ||
-
-           instruction == "PRINT";
-}
-
-
-bool ByGen::threeLengthInstruction(const std::string &instruction) {
-    return instruction == "LOAD" ||
-           instruction == "INC" ||
-           instruction == "DEC" ||
-           instruction == "POST_INC" ||
-           instruction == "POST_DEC";
-}
 
 
 std::vector<uint8_t> ByGen::generate() {
@@ -171,11 +48,15 @@ std::vector<uint8_t> ByGen::generate() {
 
 
         if (instructionType == "INIT_BLOCK") {
-            symbolTable.emplace();
+            symbolTable.emplace_back();
+            continue;
+        }
+        if (instructionType == "END_FN") {
+            symbolTable.pop_back();
             continue;
         }
         if (instructionType == "END_BLOCK") {
-            symbolTable.pop();
+            symbolTable.pop_back();
             continue;
         }
 
@@ -222,12 +103,13 @@ std::vector<uint8_t> ByGen::generate() {
                 getIdentifierId(name);
             }
             catch (...) {
-                declareIdentifier(name);
+                declareIdentifier(name, false, false);
             }
 
             const uint32_t val = getIdentifierId(name);
 
             jumpsToFindLocal = 0;
+            scopesToFindLocal = 0;
 
             emitLiteralLE<int32_t>(val);
             continue;
@@ -242,8 +124,10 @@ std::vector<uint8_t> ByGen::generate() {
             const uint32_t varId = getIdentifierId(varName);
 
             emitLiteralLE<uint8_t>(jumpsToFindLocal);
+            emitLiteralLE<uint8_t>(scopesToFindLocal);
 
             jumpsToFindLocal = 0;
+            scopesToFindLocal = 0;
 
             emitLiteralLE<int32_t>(varId);
 
@@ -256,10 +140,11 @@ std::vector<uint8_t> ByGen::generate() {
             const uint32_t varId = getIdentifierId(varName);
 
 
-            // Push the meta
-            emitLiteralLE<int8_t>(jumpsToFindLocal);
+            emitLiteralLE<uint8_t>(jumpsToFindLocal);
+            emitLiteralLE<uint8_t>(scopesToFindLocal);
 
             jumpsToFindLocal = 0;
+            scopesToFindLocal = 0;
 
             emitLiteralLE<int32_t>(static_cast<int32_t>(varId));
             continue;
@@ -268,8 +153,13 @@ std::vector<uint8_t> ByGen::generate() {
             const std::string& fnName = parts[1] + "_FN";
 
             declareIdentifier(fnName, false, true);
+            symbolTable.emplace_back();
+            idFnTable.push_back(symbolTable.size() - 1);
 
             const uint32_t val = getIdentifierId(fnName);
+
+            scopesToFindLocal = 0;
+            jumpsToFindLocal = 0;
 
             emitLiteralLE<int32_t>(static_cast<int32_t>(val));
             continue;
@@ -277,9 +167,12 @@ std::vector<uint8_t> ByGen::generate() {
         if (instructionType == "FN_PARAM") {
             const std::string& paramName = parts[1];
 
-            declareIdentifier(paramName, true);
+            declareIdentifier(paramName, true, false);
 
             const uint32_t val = getIdentifierId(paramName);
+
+            jumpsToFindLocal = 0;
+            scopesToFindLocal = 0;
 
             emitLiteralLE<int32_t>(static_cast<int32_t>(val));
             continue;
@@ -288,6 +181,9 @@ std::vector<uint8_t> ByGen::generate() {
             const std::string& fnName = parts[1] + "_FN";
 
             const uint32_t val = getIdentifierId(fnName);
+
+            jumpsToFindLocal = 0;
+            scopesToFindLocal = 0;
 
             emitLiteralLE<int32_t>(static_cast<int32_t>(val));
             continue;
@@ -317,18 +213,7 @@ std::vector<uint8_t> ByGen::generate() {
                 const auto tempParts = splitBySpace(ir[tempI]);
                 std::string tempType = getType(tempParts);
 
-                if (twoLengthInstruction(tempParts[0])) offset += 2;
-                else if (tempParts[0] == "CONST") offset += 2 + ByMapper::getType(tempType) / 8;
-                else if (threeLengthInstruction(tempParts[0])) offset += 2 + 4;
-                else if (tempParts[0] == "END_BLOCK" || tempParts[0] == "INIT_BLOCK" || tempParts[0] == "END_FN") offset += 1;
-                else if (
-                    tempParts[0] == "IF_FALSE"
-                    || tempParts[0] == "JMP"
-                    || tempParts[0] == "FN"
-                    || tempParts[0] == "CALL") offset += 1 + 4;
-                else {
-                    throw std::runtime_error("Unknown instruction " + tempParts[0]);
-                }
+                offset += getInstructionLength(tempParts[0], tempType);
                 tempI++;
             }
 
@@ -349,18 +234,7 @@ std::vector<uint8_t> ByGen::generate() {
                     const auto tempParts = splitBySpace(ir[tempI]);
                     std::string tempType = getType(tempParts);
 
-                    if (twoLengthInstruction(tempParts[0])) offset -= 2;
-                    else if (tempParts[0] == "CONST") offset -= 2 + ByMapper::getType(tempType) / 8;
-                    else if (threeLengthInstruction(tempParts[0])) offset -= 2 + 4;
-                    else if (tempParts[0] == "END_BLOCK" || tempParts[0] == "INIT_BLOCK" || tempParts[0] == "END_FN") offset -= 1;
-                    else if (
-                        tempParts[0] == "IF_FALSE"
-                        || tempParts[0] == "JMP"
-                        || tempParts[0] == "FN"
-                        || tempParts[0] == "CALL") offset -= 1 + 4;
-                    else {
-                        throw std::runtime_error("Unknown instruction " + tempParts[0]);
-                    }
+                    offset -= getInstructionLength(tempParts[0], tempType);
                     tempI--;
                  }
                 offset -= 1 + 4 + 1; // This is the amount of bytes in the jmp, that is not considered at the count above

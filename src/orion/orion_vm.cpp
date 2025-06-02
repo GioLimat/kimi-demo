@@ -35,11 +35,16 @@ OrionVM::OrionVM(const std::vector<uint8_t> &bytecode) : bytecode(bytecode) {}
 
 void OrionVM::run() {
     callStack.push_back({0, 0, nullptr});
+    callStack.back().scopeSp.push_back(0);
 
     static void* dispatchTable[MAX_OPCODE] = {nullptr};
 
 #define OPCODE_CASE(op, label) dispatchTable[op] = &&label;
 #define DISPATCH() goto *dispatchTable[read()];
+
+    /*NO MEANING JUST READ ERASE AT THE FUTURE*/
+    OPCODE_CASE(0x06, L_FN_PARAM);
+    OPCODE_CASE(0x19, L_END_FN)
 
     OPCODE_CASE(0x00, L_HALT);
     OPCODE_CASE(0x01, L_CONST);
@@ -82,6 +87,16 @@ void OrionVM::run() {
     DISPATCH();
 
 
+    L_END_FN: {
+        DISPATCH();
+    }
+
+    L_FN_PARAM:{
+        read32();
+        DISPATCH();
+    }
+
+
     L_CONST: {
 #if DEBUG
         opcodeCount[0x01]++;
@@ -95,14 +110,15 @@ void OrionVM::run() {
 #if DEBUG
         opcodeCount[0x02]++;
 #endif
-        uint8_t meta = read();
+        uint8_t callFrame = read();
+        uint8_t scope = read();
         uint32_t varId = read32();
 
-        uint8_t callDepth = meta >> 4;
+        CallFrame* targetFrame = &callStack[callStack.size() - callFrame - 1];
 
-        CallFrame* target = &callStack.back();
-        for (uint8_t i = 0; i < callDepth; ++i) target = target->parent;
-        RawValue value = stackBuf[target->stackBase + varId];
+        uint64_t targetScope = targetFrame->scopeSp[targetFrame->scopeSp.size() - scope - 1];
+
+        RawValue value = stackBuf[targetScope + varId];
         push(value);
         DISPATCH();
     }
@@ -140,8 +156,10 @@ void OrionVM::run() {
         int32_t fnId = readSigned32();
 
         ip = functions[fnId].endIp;
+
         DISPATCH();
     }
+
 
 
     L_END_BLOCK: {
@@ -247,16 +265,17 @@ void OrionVM::run() {
         opcodeCount[0x16]++;
 #endif
         int32_t fnId = readSigned32();
-
         const auto fn = functions[fnId];
 
         CallFrame frame{};
-        frame.scopeSp.push_back(sp);
+        frame.scopeSp.push_back(sp - fn.argsSize);
         frame.returnIp = ip;
         frame.parent = &callStack.back();
-        frame.stackBase = sp;
-
+        frame.stackBase = sp - fn.argsSize;
         ip = fn.initIp;
+        for (uint64_t i = 0; i < fn.argsSize; ++i) {
+            stackBuf[sp++] = pop();
+        }
 
         callStack.push_back(frame);
         DISPATCH();
@@ -270,8 +289,9 @@ void OrionVM::run() {
 #endif
         uint8_t type = read();
         ip = callStack.back().returnIp;
-        sp = callStack.back().scopeSp.back();
-
+        RawValue value = pop();
+        sp = callStack.back().stackBase;
+        push(value);
         callStack.pop_back();
         DISPATCH();
     }
@@ -295,7 +315,6 @@ void OrionVM::run() {
         opcodeCount[0x1A]++;
 #endif
         ip += readSigned32();
-
         DISPATCH();
     }
 
@@ -313,14 +332,15 @@ void OrionVM::run() {
 #if DEBUG
         opcodeCount[0x1D]++;
 #endif
-        uint8_t meta = read();
+        uint8_t callFrame = read();
+        uint8_t scope = read();
         uint32_t varId = read32();
 
-        uint8_t callDepth = meta >> 4;
+        CallFrame* targetFrame = &callStack[callStack.size() - callFrame - 1];
 
-        CallFrame* target = &callStack.back();
-        for (uint8_t i = 0; i < callDepth; ++i) target = target->parent;
-        push(++stackBuf[target->stackBase + varId]);
+        uint64_t targetScope = targetFrame->scopeSp[targetFrame->scopeSp.size() - scope - 1];
+
+        push(++stackBuf[targetScope + varId]);
         DISPATCH();
     }
 
@@ -328,14 +348,15 @@ void OrionVM::run() {
 #if DEBUG
         opcodeCount[0x1E]++;
 #endif
-        uint8_t meta = read();
+        uint8_t callFrame = read();
+        uint8_t scope = read();
         uint32_t varId = read32();
 
-        uint8_t callDepth = meta >> 4;
+        CallFrame* targetFrame = &callStack[callStack.size() - callFrame - 1];
 
-        CallFrame* target = &callStack.back();
-        for (uint8_t i = 0; i < callDepth; ++i) target = target->parent;
-        push(--stackBuf[target->stackBase + varId]);
+        uint64_t targetScope = targetFrame->scopeSp[targetFrame->scopeSp.size() - scope - 1];
+
+        push(--stackBuf[targetScope + varId]);
         DISPATCH();
     }
 
@@ -345,14 +366,16 @@ void OrionVM::run() {
 #if DEBUG
         opcodeCount[0x1F]++;
 #endif
-        uint8_t meta = read();
+        uint8_t callFrame = read();
+        uint8_t scope = read();
         uint32_t varId = read32();
 
-        uint8_t callDepth = meta >> 4;
+        CallFrame* targetFrame = &callStack[callStack.size() - callFrame - 1];
 
-        CallFrame* target = &callStack.back();
-        for (uint8_t i = 0; i < callDepth; ++i) target = target->parent;
-        push(stackBuf[target->stackBase + varId]++);
+        uint64_t targetScope = targetFrame->scopeSp[targetFrame->scopeSp.size() - scope - 1];
+
+        push(stackBuf[targetScope + varId]++);
+
         DISPATCH();
     }
 
@@ -361,14 +384,15 @@ void OrionVM::run() {
 #if DEBUG
         opcodeCount[0x20]++;
 #endif
-        uint8_t meta = read();
+        uint8_t callFrame = read();
+        uint8_t scope = read();
         uint32_t varId = read32();
 
-        uint8_t callDepth = meta >> 4;
+        CallFrame* targetFrame = &callStack[callStack.size() - callFrame - 1];
 
-        CallFrame* target = &callStack.back();
-        for (uint8_t i = 0; i < callDepth; ++i) target = target->parent;
-        push(stackBuf[target->stackBase + varId]--);
+        uint64_t targetScope = targetFrame->scopeSp[targetFrame->scopeSp.size() - scope - 1];
+
+        push(stackBuf[targetScope + varId]--);
         DISPATCH();
     }
 
