@@ -70,7 +70,7 @@ add_library(kimi STATIC
 add_executable(kimi_cli src/cli/cli.cpp)
 target_link_libraries(kimi_cli PRIVATE kimi CLI11::CLI11)
 
-#add_subdirectory(tests)
+add_subdirectory(tests)
 
 
 target_include_directories(kimi PUBLIC

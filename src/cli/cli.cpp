@@ -8,6 +8,12 @@
 #include <exception>
 #include <filesystem>
 #include "reader.h++"
+#include "bygen.h"
+#include "ir_gen.h"
+#include "lexer.h"
+#include "orion_vm.h"
+#include "parser.h"
+#include "semantic_analyzer.h"
 
 int main(int argc, char** argv) {
     CLI::App app{"Kimi CLI - read and process a source file"};
@@ -21,7 +27,21 @@ int main(int argc, char** argv) {
         const std::filesystem::path p(file_path);
         const std::string absolute_path = std::filesystem::absolute(p).string();
         const std::string contents = Reader::read(absolute_path);
-        std::cout << contents << "\n";
+
+        Lexer lexer(contents);
+        auto tokens = lexer.tokenize();
+        Parser parser(tokens);
+        auto ast = parser.parse();
+        SemanticAnalyzer semantic_analyzer;
+        semantic_analyzer.analyze(*ast);
+        IRGen ir_gen(ast);
+        auto ir = ir_gen.generate();
+        auto by_gen = ByGen(ir);
+        auto gen = by_gen.generate();
+        std::cout << std::endl;
+        OrionVM vm(gen);
+        vm.preprocessFunctions();
+        vm.run();
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
         return 1;

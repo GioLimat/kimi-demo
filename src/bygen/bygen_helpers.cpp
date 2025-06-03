@@ -159,14 +159,16 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
         offset += 1;
     }
     else if (
-        instruction == "IF_FALSE"
-        || instruction == "JMP"
-        || instruction == "FN"
+    instruction == "FN"
         || instruction == "FN_PARAM"
         || instruction == "CALL"
         || instruction == "STORE") {
-        offset += 1 + 4;
+        offset += 1 + 4 + 1;
         }
+    else if (instruction == "IF_FALSE"
+        || instruction == "JMP") {
+        offset += 1 + 4;
+    }
     else {
         throw std::runtime_error("Unknown instruction " + instruction);
     }

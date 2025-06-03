@@ -8,7 +8,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-# Só adiciona o subdiretório do googletest se os alvos ainda não existirem
+
 if(NOT TARGET GTest::gtest)
     add_subdirectory(
             ${googletest_SOURCE_DIR}

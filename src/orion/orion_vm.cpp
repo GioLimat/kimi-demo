@@ -306,6 +306,7 @@ void OrionVM::run() {
         if (pop() == 0) {
             ip += offset;
         }
+
         DISPATCH();
     }
 
@@ -314,7 +315,9 @@ void OrionVM::run() {
 #if DEBUG
         opcodeCount[0x1A]++;
 #endif
-        ip += readSigned32();
+        uint32_t offset = readSigned32();
+        ip += offset;
+
         DISPATCH();
     }
 

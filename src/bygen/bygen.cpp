@@ -217,6 +217,8 @@ std::vector<uint8_t> ByGen::generate() {
                 tempI++;
             }
 
+            if (instructionType == "JMP") offset += 1; // to jump end block
+
 
             // SEARCHING AT BACK OF THE IF OR JMP
             if (!foundUpFront && static_cast<int64_t>(i) - 1  >= 0) {

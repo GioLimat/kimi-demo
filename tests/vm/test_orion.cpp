@@ -72,7 +72,7 @@ TEST(Orion, SimpleCode4) {
 
 
 TEST(Orion, SimpleCode5) {
-    auto code = "val b = 4; if (b == 4) { println(b); } else { println(12); } ";
+    auto code = "val b = 4; if (b == 3) { println(b); } else { println(12); } val c = 10; println(c); ";
     runOrion(code);
 }
 
