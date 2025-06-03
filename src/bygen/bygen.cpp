@@ -192,7 +192,7 @@ std::vector<uint8_t> ByGen::generate() {
             const auto& label = parts[1];
             const auto labelId = label.substr(1, label.size());
 
-            int64_t offset = 1;
+            int64_t offset = 0;
 
 
             // SEARCHING AT FRONT OF THE IF OR JMP

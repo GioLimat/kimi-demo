@@ -1,8 +1,3 @@
-cmake_minimum_required(VERSION 3.14)
-project(KimiTests)
-
-set(CMAKE_CXX_STANDARD 20)
-
 enable_testing()
 
 include(FetchContent)
@@ -13,7 +8,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-add_executable(kimi_tests lexer/test_lexer.cpp
+# Só adiciona o subdiretório do googletest se os alvos ainda não existirem
+if(NOT TARGET GTest::gtest)
+    add_subdirectory(
+            ${googletest_SOURCE_DIR}
+            ${googletest_BINARY_DIR}
+    )
+endif()
+
+add_executable(kimi_tests
+        lexer/test_lexer.cpp
         parser/test_parser_expression.cpp
         parser/test_parser_declaration.cpp
         parser/test_parser.cpp
@@ -24,11 +28,11 @@ add_executable(kimi_tests lexer/test_lexer.cpp
         playground/playground.cpp
 )
 
-target_link_libraries(kimi_tests GTest::gtest_main kimi gtest gtest_main)
+target_link_libraries(kimi_tests
+        PRIVATE
+        kimi
+        GTest::gtest_main
+)
 
 include(GoogleTest)
-
-add_test(NAME KimiTests COMMAND kimi_tests)
 gtest_discover_tests(kimi_tests)
-
-

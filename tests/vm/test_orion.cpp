@@ -89,6 +89,6 @@ TEST(Orion, SimpleCode7) {
 }
 
 TEST(Orion, SimpleCode8) {
-    auto code = "val a = 4; fn b() { if (4 > 2) { println(a); } 4; } b(); ";
+    auto code = "fn fib (a: Int) : Int { if ( a  <= 1 ) { return a; } return fib(a - 1) + fib(a - 2); } println(fib(6)); ";
     runOrion(code);
 }

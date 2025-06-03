@@ -3,6 +3,16 @@ project(kimi)
 
 set(CMAKE_CXX_STANDARD 20)
 
+include(FetchContent)
+FetchContent_Declare(
+        cli11_proj
+        GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+        GIT_TAG v2.3.2
+)
+FetchContent_MakeAvailable(cli11_proj)
+
+
+message(STATUS "CLI11 source dir: ${cli11_proj_SOURCE_DIR}")
 
 add_library(kimi STATIC
         src/lexer/lexer.cpp
@@ -55,9 +65,13 @@ add_library(kimi STATIC
         src/orion/unary/bit_not_handlers.h++
         src/orion/preprocess_functions.cpp
         src/bygen/bygen_helpers.cpp
+        src/reader/reader.cpp
 )
+add_executable(kimi_cli src/cli/cli.cpp)
+target_link_libraries(kimi_cli PRIVATE kimi CLI11::CLI11)
 
-add_subdirectory(tests)
+#add_subdirectory(tests)
+
 
 target_include_directories(kimi PUBLIC
         src/lexer/include
@@ -74,4 +88,5 @@ target_include_directories(kimi PUBLIC
         src/orion/include
         src/orion/binaryOp
         src/orion/unary
+        src/reader/include
 )

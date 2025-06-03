@@ -33,6 +33,6 @@ void  runPlayground(const std::string& code) {
 
 TEST(Code, Playground) {
     /*digite seu codigo aq*/
-    auto code = " ";
+    auto code = "  ";
     runPlayground(code);
 }
