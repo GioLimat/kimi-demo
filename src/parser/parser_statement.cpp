@@ -121,8 +121,12 @@ std::unique_ptr<StatementNode> ParserStatement::parseDoWhileStatement() {
     advance();
     int blockEnd;
     auto sliced = tokensByCurrentBlock(blockEnd);
+
+
+
     auto body = std::make_unique<BlockStatementNode>(std::move(Parser(sliced).parse()->children));
     current = blockEnd + 1;
+
 
     if (peek().type != LexerTokenType::WHILE) {
         throw std::runtime_error("Expected 'while' after do-while block");

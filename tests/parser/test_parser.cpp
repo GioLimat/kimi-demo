@@ -37,3 +37,13 @@ TEST(Parser, IfParser) {
 }
 
 
+
+TEST(Parser, DoWhile) {
+    auto lexer = Lexer("do { println(4); } while (6 > 4)");
+    auto tokens = lexer.tokenize();
+    auto parser = Parser(tokens);
+
+    auto ast = parser.parse();
+}
+
+

@@ -92,3 +92,9 @@ TEST(Orion, SimpleCode8) {
     auto code = "fn fib (a: Int) : Int { if ( a  <= 1 ) { return a; } return fib(a - 1) + fib(a - 2); } println(fib(6)); ";
     runOrion(code);
 }
+
+
+TEST(Orion, SimpleCode9) {
+    auto code = "var x = 1; do { println(x++); } while (x < 4) println(1090);";
+    runOrion(code);
+}

@@ -58,14 +58,20 @@ void IRGen::visitWhileStatement(WhileStatementNode *node) {
 }
 
 void IRGen::visitDoWhileStatement(DoWhileStatementNode *node) {
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::DO));
+    scopes.emplace();
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(currentLabel));
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
+    auto bodyLabel = currentLabel++;
     for (const auto& n : node->whileStatement->body->statements) {
         n->accept(*this);
     }
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK));
     node->whileStatement->condition->accept(*this);
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_CONDITION));
+    auto endLabel = currentLabel++;
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::IF_FALSE) + " L" + std::to_string(endLabel) + " : i32");
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::JMP) + " L" + std::to_string(bodyLabel)  + " : i32");
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(endLabel));
+    scopes.pop();
 }
 
 void IRGen::visitPrintln(PrintlnStatementNode *node) {
