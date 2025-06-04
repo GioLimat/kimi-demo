@@ -18,3 +18,10 @@ uint8_t ByMapper::getType(const std::string &type) {
     }
     return 0x00;
 }
+
+uint8_t ByMapper::getSize(const std::string &type) {
+    if (const auto it = typesSize.find(type); it != typesSize.end()) {
+        return it->second;
+    }
+    return 0x00;
+}

@@ -66,7 +66,7 @@ TEST(Orion, SimpleCode3) {
 
 
 TEST(Orion, SimpleCode4) {
-    auto code = "fn a(b:  Int) : Int { if ( b == 1){ return 1;} return b * a(b - 1); } println(a(5));";
+    auto code = "fn a(b:  Int) : Int { if ( b == 1 ){ return 1;} return b * a(b - 1); } println(a(5));";
     runOrion(code);
 }
 

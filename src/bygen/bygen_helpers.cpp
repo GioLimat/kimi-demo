@@ -150,7 +150,7 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
         offset = 2;
     }
     else if (instruction == "CONST") {
-        offset = 2 + ByMapper::getType(tempType) / 8;
+        offset = 2 + ByMapper::getSize(tempType) / 8;
     }
     else if (sevenLengthInstruction(instruction)) {
         offset += 3 + 4;
@@ -159,13 +159,13 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
         offset += 1;
     }
     else if (
-    instruction == "FN"
-        || instruction == "FN_PARAM"
-        || instruction == "CALL"
-        || instruction == "STORE") {
+     instruction == "STORE") {
         offset += 1 + 4 + 1;
         }
-    else if (instruction == "IF_FALSE"
+    else if (    instruction == "FN"
+        || instruction == "FN_PARAM"
+        || instruction == "CALL" ||
+        instruction == "IF_FALSE"
         || instruction == "JMP") {
         offset += 1 + 4;
     }

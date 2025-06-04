@@ -84,12 +84,27 @@ inline std::unordered_map<std::string, uint8_t> typeMap = {
 };
 
 
+inline std::unordered_map<std::string, uint8_t> typesSize = {
+    {"i32", 32},
+    {"i64", 64},
+    {"f32", 32},
+    {"f64", 64},
+    {"bool", 8},
+    {"string", 0x06},
+
+    {"i8", 8},
+    {"i16", 16},
+    {"char", 32}
+};
+
+
 
 class ByMapper {
 
 public:
     static uint8_t getInstruction(const std::string &ir);
     static uint8_t getType(const std::string &type);
+    static uint8_t getSize(const std::string &type);
 };
 
 #endif //BYGEN_INSTRUCTIONS_H

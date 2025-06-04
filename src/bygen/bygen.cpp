@@ -200,6 +200,7 @@ std::vector<uint8_t> ByGen::generate() {
             bool foundUpFront = false;
 
 
+
             while (tempI < ir.size()) {
                 auto tempLabel = splitBySpace(ir[tempI]);
                 if (tempLabel[0] == "LABEL") {
@@ -213,14 +214,15 @@ std::vector<uint8_t> ByGen::generate() {
                 const auto tempParts = splitBySpace(ir[tempI]);
                 std::string tempType = getType(tempParts);
 
-                offset += getInstructionLength(tempParts[0], tempType);
+                const auto len = getInstructionLength(tempParts[0], tempType);
+                //std::cout << tempParts[0] << " : " << tempType << " len " << len << std::endl;
+                offset += len;
                 tempI++;
             }
 
-            if (instructionType == "JMP") offset += 1; // to jump end block
 
 
-            // SEARCHING AT BACK OF THE IF OR JMP
+            // SEARCHING AT BACK OF THE JMP
             if (!foundUpFront && static_cast<int64_t>(i) - 1  >= 0) {
                 offset = 0;
                 tempI = i - 1;
@@ -236,10 +238,12 @@ std::vector<uint8_t> ByGen::generate() {
                     const auto tempParts = splitBySpace(ir[tempI]);
                     std::string tempType = getType(tempParts);
 
-                    offset -= getInstructionLength(tempParts[0], tempType);
+                    const auto len = getInstructionLength(tempParts[0], tempType);
+                    std::cout << tempParts[0] << " : " << tempType << " len " << len << std::endl;
+                    offset -= len;
                     tempI--;
                  }
-                offset -= 1 + 4 + 1; // This is the amount of bytes in the jmp, that is not considered at the count above
+                offset -= 1 + 4;// This is the amount of bytes in the jmp, that is not considered at the count above
                 }
             emitLiteralLE<int32_t>(offset);
             continue;

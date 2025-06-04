@@ -315,7 +315,7 @@ void OrionVM::run() {
 #if DEBUG
         opcodeCount[0x1A]++;
 #endif
-        uint32_t offset = readSigned32();
+        int32_t offset = readSigned32();
         ip += offset;
 
         DISPATCH();
@@ -527,6 +527,7 @@ void OrionVM::run() {
     #if DEBUG
         opcodeCount[0x00]++;
         std::cout << "\n\n\n-------LOGGING-------" << std::endl;
+        std::fflush(stdout);
         for (size_t i = 0; i < MAX_OPCODE; ++i) {
             if (opcodeCount[i] > 0) {
                 printf("Opcode 0x%02zx executed %llu times\n", i, opcodeCount[i]);
