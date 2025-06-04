@@ -80,6 +80,16 @@ DoWhileStatementNode::DoWhileStatementNode(std::unique_ptr<WhileStatementNode> w
 PrintlnStatementNode::PrintlnStatementNode(std::unique_ptr<ExpressionNode> expression) : expression(std::move(expression)) {}
 
 
+ForStatementNode::ForStatementNode(std::unique_ptr<ASTNode> initializer,
+                                   std::unique_ptr<ExpressionNode> condition,
+                                   std::unique_ptr<ExpressionNode> posBody,
+                                   std::unique_ptr<BlockStatementNode> body)
+        : initializer(std::move(initializer)),
+          condition(std::move(condition)),
+          posBody(std::move(posBody)),
+          body(std::move(body)) {}
+
+
 GenericExpressionNode::GenericExpressionNode(std::unique_ptr<ExpressionNode> node) : node(std::move(node)) {}
 
 
@@ -155,6 +165,11 @@ void DoWhileStatementNode::accept(ASTVisitor &visitor) {
 
 void PrintlnStatementNode::accept(ASTVisitor &visitor) {
         visitor.visitPrintln(this);
+}
+
+
+void ForStatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitForStatement(this);
 }
 
 

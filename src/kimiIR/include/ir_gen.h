@@ -27,6 +27,7 @@ class IRGen : public DefaultASTVisitor {
     void visitIfStatement(IfStatementNode *node) override;
     void visitWhileStatement(WhileStatementNode *node) override;
     void visitDoWhileStatement(DoWhileStatementNode *node) override;
+    void visitForStatement(ForStatementNode *node) override;
     void visitPrintln(PrintlnStatementNode *node) override;
     void visitCallFunction(CallFunctionNode *node) override;
     void visitReturnStatement(ReturnStatementNode *node) override;

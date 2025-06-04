@@ -47,3 +47,14 @@ TEST(Parser, DoWhile) {
 }
 
 
+TEST(Parser, ForLoop) {
+    auto lexer = Lexer("for (var i = 0; i < 10; i++) { println(i); } val x = 4;");
+    auto tokens = lexer.tokenize();
+    auto parser = Parser(tokens);
+
+    auto ast = parser.parse();
+}
+
+
+
+

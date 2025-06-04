@@ -98,3 +98,8 @@ TEST(Orion, SimpleCode9) {
     auto code = "var x = 1; do { println(x++); } while (x < 4) println(1090);";
     runOrion(code);
 }
+
+TEST(Orion, SimpleCode10) {
+    auto code = "for ( var i = 0; i < 10; i++) { println(i); } println(100);";
+    runOrion(code);
+}

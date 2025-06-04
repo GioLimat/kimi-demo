@@ -17,6 +17,7 @@ std::unique_ptr<StatementNode> ParserStatement::parseStatement() {
     if (token.type == LexerTokenType::IF) return parseIfStatement();
     if (token.type == LexerTokenType::WHILE) return parseWhileStatement();
     if (token.type == LexerTokenType::DO) return parseDoWhileStatement();
+    if (token.type == LexerTokenType::FOR) return parseForStatement();
     if (token.type == LexerTokenType::PRINTLN) return parsePrintln();
 
     const auto end = findEndOfExpression(current);
@@ -177,4 +178,60 @@ std::unique_ptr<StatementNode> ParserStatement::parsePrintln() {
     current = end;
 
     return std::make_unique<PrintlnStatementNode>(std::move(expr));
+}
+
+
+
+std::unique_ptr<StatementNode> ParserStatement::parseForStatement() {
+    advance();
+
+    if (advance().type != LexerTokenType::L_PAREN) {
+        throw std::runtime_error("Expected '(' after 'for'");
+    }
+
+    std::unique_ptr<ASTNode> initializer = nullptr;
+
+    if (peek().type == LexerTokenType::VAR || peek().type == LexerTokenType::VAL) {
+        int initEnd = findEndOfExpression(current);
+        initializer = delegateToDeclaration(initEnd);
+        current = initEnd + 1;
+
+    } else {
+        uint64_t initEnd = findEndOfExpression(current);
+        initializer = delegateToExpression(initEnd);
+        current = initEnd + 1;
+    }
+
+
+    std::unique_ptr<ExpressionNode> condition = nullptr;
+
+    uint64_t conditionEnd = findEndOfExpression(current);
+    condition = delegateToExpression(conditionEnd);
+    current = conditionEnd + 1;
+
+    std::unique_ptr<ExpressionNode> posBody = nullptr;
+
+
+    uint64_t posEnd = findRParenWithoutLParen(current);
+    posBody = delegateToExpression(posEnd);
+    current = posEnd + 1;
+
+    int blockEnd = -1;
+    auto sliced = tokensByCurrentBlock(blockEnd);
+    auto finalEnd = findMatchingBrace(current) + 1;
+    auto body = std::vector<std::unique_ptr<ASTNode>>();
+
+    if (!sliced.empty()) {
+        auto parser = Parser(sliced);
+        body = std::move(parser.parse()->children);
+    }
+    current = finalEnd;
+
+
+    return std::make_unique<ForStatementNode>(
+        std::move(initializer),
+        std::move(condition),
+        std::move(posBody),
+        std::make_unique<BlockStatementNode>(std::move(body))
+    );
 }

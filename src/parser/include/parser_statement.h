@@ -17,6 +17,7 @@ public:
     std::unique_ptr<StatementNode> parseIfStatement();
     std::unique_ptr<StatementNode> parseWhileStatement();
     std::unique_ptr<StatementNode> parseDoWhileStatement();
+    std::unique_ptr<StatementNode> parseForStatement();
     std::vector<std::unique_ptr<ASTNode>> parseBlock(int end);
 };
 #endif //PARSER_STATEMENT_H

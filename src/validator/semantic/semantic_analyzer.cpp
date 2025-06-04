@@ -227,6 +227,19 @@ void SemanticAnalyzer::visitReturnStatement(ReturnStatementNode *node) {
 }
 
 
+void SemanticAnalyzer::visitForStatement(ForStatementNode *node) {
+    enterScope();
+    node->initializer->accept(*this);
+    node->condition->accept(*this);
+    node->posBody->accept(*this);
+    for (const auto& child : node->body->statements) {
+        child->accept(*this);
+    }
+    exitScope();
+}
+
+
+
 
 void SemanticAnalyzer::visitCallFunction(CallFunctionNode *node) {;
     auto functionInfo = lookup<FunctionInfo>(node->name, "Function " + node->name + " not declared in this scope");

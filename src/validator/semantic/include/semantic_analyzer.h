@@ -103,6 +103,7 @@ private:
     void visitWhileStatement(WhileStatementNode *node) override;
     void visitDoWhileStatement(DoWhileStatementNode *node) override;
     void visitPrintln(PrintlnStatementNode *node) override;
+    void visitForStatement(ForStatementNode *node) override;
     void visitCallFunction(CallFunctionNode *node) override;
     void visitReturnStatement(ReturnStatementNode *node) override;
     void visitBlockStatement(BlockStatementNode *node) override;

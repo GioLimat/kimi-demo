@@ -42,6 +42,8 @@ protected:
     [[nodiscard]] int findEndOfParenBlock(size_t start) const;
     [[ nodiscard ]] int findEndOfIfElse(size_t start) const;
     [[ nodiscard ]] int findEndOfDoWhile(size_t start) const;
+    [[ nodiscard ]] int findEndOfForLoop(size_t start) const;
+    [[ nodiscard ]] int findRParenWithoutLParen(size_t start) const;
     std::vector<LexerToken> tokensByCurrentBlock(int& blockEnd_);
 
 

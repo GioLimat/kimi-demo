@@ -4,6 +4,7 @@
 
 #ifndef VISITOR_H
 #define VISITOR_H
+#include "ast.h"
 
 
 class ASTVisitor {
@@ -25,6 +26,7 @@ public:
     virtual void visitIfStatement(IfStatementNode* node) = 0;
     virtual void visitWhileStatement(WhileStatementNode* node) = 0;
     virtual void visitDoWhileStatement(DoWhileStatementNode* node) = 0;
+    virtual void visitForStatement(ForStatementNode* node) = 0;
     virtual void visitPrintln(PrintlnStatementNode* node) = 0;
     virtual void visitGenericExpressionNode(GenericExpressionNode* node) = 0;
     virtual void visitPostFixExpr(PostFixExprNode* node) = 0;
@@ -51,6 +53,7 @@ public:
     void visitIfStatement(IfStatementNode*) override                 {}
     void visitWhileStatement(WhileStatementNode*) override           {}
     void visitDoWhileStatement(DoWhileStatementNode*) override       {}
+    void visitForStatement(ForStatementNode*) override               {}
     void visitPrintln(PrintlnStatementNode*) override               {}
     void visitGenericExpressionNode(GenericExpressionNode* node) override {}
     void visitPostFixExpr(PostFixExprNode* node) override {}

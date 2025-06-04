@@ -88,3 +88,26 @@ void IRGen::visitReturnStatement(ReturnStatementNode *node) {
 }
 
 
+
+void IRGen::visitForStatement(ForStatementNode *node) {
+    scopes.emplace();
+    node->initializer->accept(*this);
+
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(currentLabel));
+
+    auto conditionLabel = currentLabel++;
+    auto endLabel = currentLabel++;
+
+    node->condition->accept(*this);
+
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::IF_FALSE) + " L" + std::to_string(endLabel) + " : i32");
+
+    node->body->accept(*this);
+
+    node->posBody->accept(*this);
+
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::JMP) + " L" + std::to_string(conditionLabel)  + " : i32");
+
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(endLabel));
+    scopes.pop();
+}

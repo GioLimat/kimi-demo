@@ -86,6 +86,25 @@ int Parser::findEndBraceDisconsideredFirst(size_t start) const {
 }
 
 
+int Parser::findRParenWithoutLParen(size_t start) const {
+    size_t i = start;
+    int depth = 0;
+
+    while (i < tokens.size()) {
+        if (tokens[i].type == LexerTokenType::L_PAREN) {
+            depth++;
+        } else if (tokens[i].type == LexerTokenType::R_PAREN) {
+            if (depth == 0) {
+                return static_cast<int>(i);
+            }
+            depth--;
+        }
+        i++;
+    }
+    return i;
+}
+
+
 int Parser::findEndOfDoWhile(size_t start) const {
     if (tokens[start].type != LexerTokenType::L_BRACE) {
         throw std::runtime_error("Expected '{' after 'do' keyword.");
@@ -100,6 +119,13 @@ int Parser::findEndOfDoWhile(size_t start) const {
     const size_t end = findEndOfParenBlock(doEnd + 1);
 
     return end;
+}
+
+int Parser::findEndOfForLoop(size_t start) const {
+    size_t headerEnd = findEndOfParenBlock(start);
+    size_t bodyEnd = findMatchingBrace(headerEnd);
+
+    return bodyEnd + 1;
 }
 
 
@@ -282,6 +308,7 @@ std::unique_ptr<AST> Parser::parse() {
                 if (peek().type == LexerTokenType::PRINTLN || peek().type == LexerTokenType::RETURN) end = findEndOfExpression(current);
                 else if (peek().type == LexerTokenType::IF) end = findEndOfIfElse(current);
                 else if (peek().type == LexerTokenType::DO) end = findEndOfDoWhile(current + 1);
+                else if (peek().type == LexerTokenType::FOR) end = findEndOfForLoop(current + 1);
                 else end = findEndBraceDisconsideredFirst(current) + 1;
             }
             catch (std::exception &e) {

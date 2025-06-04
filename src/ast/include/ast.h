@@ -220,6 +220,21 @@ public:
 };
 
 
+class ForStatementNode : public StatementNode {
+public:
+    std::unique_ptr<ASTNode> initializer;
+    std::unique_ptr<ExpressionNode> condition;
+    std::unique_ptr<ExpressionNode> posBody;
+
+    std::unique_ptr<BlockStatementNode> body;
+
+    explicit ForStatementNode(std::unique_ptr<ASTNode> initializer,
+                            std::unique_ptr<ExpressionNode> condition,
+                            std::unique_ptr<ExpressionNode> posBody,
+                            std::unique_ptr<BlockStatementNode> body);
+    void accept(ASTVisitor &visitor) override;
+};
+
 
 class CharLiteralExpr : public ExpressionNode {
 public:
@@ -227,6 +242,7 @@ public:
     explicit CharLiteralExpr(uint32_t code);
     void accept(ASTVisitor &visitor) override;
 };
+
 
 
 #endif // AST_H
