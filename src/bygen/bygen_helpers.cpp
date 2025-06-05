@@ -7,6 +7,7 @@
 
 #include "bygen.h"
 #include "bygen_instructions.h"
+#include "string_header.h++"
 
 uint32_t ByGen::getIdentifierId(const std::string &name) {
 
@@ -192,4 +193,39 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
         throw std::runtime_error("Unknown instruction " + instruction);
     }
     return offset;
+}
+
+
+void ByGen::emitLiteralLE(uint64_t value)  {
+    auto* bytes = reinterpret_cast<uint8_t*>(&value);
+    for (int i = 0; i < 8; i++) {
+        bytecode.push_back(bytes[i]);
+    }
+}
+
+uint64_t ByGen::placeLiteralInHeap(const std::string& utf8) {
+    uint64_t length   = static_cast<uint64_t>(utf8.size());
+    uint64_t capacity = length;
+    uint8_t  flags    = 0x01;
+
+    size_t headerSize  = sizeof(StringHeader);       // 24 bytes
+    size_t payloadSize = static_cast<size_t>(length);
+    size_t totalSize   = headerSize + payloadSize;
+
+    size_t alignedSize = (totalSize + 7) & ~static_cast<size_t>(7);
+
+
+    uint64_t addr = vm.heapAllocate(alignedSize);
+
+
+    uint8_t* base = vm.heapPtrFromAddr(addr);
+
+
+    std::memcpy(base + 0, &length,    sizeof(length));   // bytes [0..7]
+    std::memcpy(base + 8, &capacity,  sizeof(capacity)); // bytes [8..15]
+    base[16] = flags;                                   // byte [16]
+
+    std::memcpy(base + headerSize, utf8.data(), payloadSize);
+
+    return addr;
 }

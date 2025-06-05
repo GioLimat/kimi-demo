@@ -21,10 +21,11 @@ void  runPlayground(const std::string& code) {
     semantic_analyzer.analyze(*ast);
     IRGen ir_gen(ast);
     auto ir = ir_gen.generate();
-    auto by_gen = ByGen(ir);
+    OrionVM vm;
+    auto by_gen = ByGen(ir, vm);
     auto gen = by_gen.generate();
     std::cout << std::endl;
-    OrionVM vm(gen);
+    vm.bytecode = gen;
     vm.preprocessFunctions();
     vm.run();
 }

@@ -10,9 +10,12 @@
 #include <sstream>
 #include <bits/ostream.tcc>
 
-ByGen::ByGen(std::vector<std::string> ir) : ir(std::move(ir)) {
+
+ByGen::ByGen(std::vector<std::string> ir, OrionVM& vm): vm(vm), ir(std::move(ir)) {
     symbolTable.emplace_back();
 }
+
+
 
 
 std::vector<std::string> ByGen::splitBySpace(const std::string& str) const {
@@ -76,6 +79,12 @@ std::vector<uint8_t> ByGen::generate() {
                 bytecode.push_back(ByMapper::getInstruction("CONST"));
                 bytecode.push_back(0x06);
                 emitLiteralLE<uint64_t>(raw);
+            }
+            else {
+                uint64_t address = placeLiteralInHeap(value);
+                bytecode.push_back(ByMapper::getInstruction("CONST")); // 0x01
+                bytecode.push_back(0x0A); //  STR_LARGE (0x0A)
+                emitLiteralLE(address);
             }
             continue;
         }

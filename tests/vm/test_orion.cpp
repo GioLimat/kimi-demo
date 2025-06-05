@@ -25,7 +25,8 @@ void  runOrion(const std::string& code) {
     for (auto& instruction : ir) {
         std::cout << instruction << std::endl;
     }
-    auto by_gen = ByGen(ir);
+    OrionVM vm;
+    auto by_gen = ByGen(ir, vm);
     auto gen = by_gen.generate();
     for (auto b : gen) {
         auto v = static_cast<unsigned int>(b);
@@ -40,7 +41,7 @@ void  runOrion(const std::string& code) {
            << " ";
     }
     std::cout << std::endl;
-    OrionVM vm(gen);
+    vm.bytecode = gen;
     vm.preprocessFunctions();
     vm.run();
 }
@@ -116,6 +117,6 @@ TEST(Orion, SimpleCode12) {
 
 
 TEST(Orion, SimpleCode13) {
-    auto code = "var x : Char = 225; println(x); println(\"olá\");";
+    auto code = "println(\"olá mundo isso é grande vai para o heap!\");";
     runOrion(code);
 }

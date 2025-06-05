@@ -66,6 +66,7 @@ add_library(kimi STATIC
         src/orion/preprocess_functions.cpp
         src/bygen/bygen_helpers.cpp
         src/reader/reader.cpp
+        src/primitives/include/string_header.h++
 )
 add_executable(kimi_cli src/cli/cli.cpp)
 target_link_libraries(kimi_cli PRIVATE kimi CLI11::CLI11)
@@ -87,5 +88,6 @@ target_include_directories(kimi PUBLIC
         src/orion/include
         src/orion/binaryOp
         src/orion/unary
+        src/primitives/include
         src/reader/include
 )

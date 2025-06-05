@@ -152,7 +152,7 @@ void OrionVM::run() {
 #endif
         uint8_t type = read();
         RawValue v = pop();
-        if (auto fn = printTable[type]) fn(v);
+        if (auto fn = printTable[type]) fn(this, v);
         else std::printf("PRINT: unsupported type 0x%02X\n", type);
         DISPATCH();
     }

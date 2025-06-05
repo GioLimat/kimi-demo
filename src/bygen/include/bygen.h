@@ -9,6 +9,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "orion_vm.h"
+
 class ByGen {
     using SymbolTableType = std::vector<std::unordered_map<std::string, uint32_t>>;
     SymbolTableType symbolTable;
@@ -19,6 +21,8 @@ class ByGen {
     size_t functionId = 0;
 
     std::vector<uint8_t> bytecode;
+
+    OrionVM& vm;
 
     std::vector<std::string> ir;
 
@@ -53,8 +57,12 @@ class ByGen {
                 bytecode.push_back(bytes[i]);
             }
     }
+    void emitLiteralLE(uint64_t value);
+
+    uint64_t placeLiteralInHeap(const std::string& utf8);
 public:
-    ByGen(std::vector<std::string> ir);
+    explicit ByGen(std::vector<std::string> ir, OrionVM& vm);
+    explicit ByGen(std::vector<std::string> ir);
     std::vector<uint8_t>  generate();
 };
 

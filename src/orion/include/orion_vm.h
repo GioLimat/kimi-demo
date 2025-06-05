@@ -6,11 +6,16 @@
 #define ORION_VM_H
 
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <vector>
 
 
 #define MAX_TYPE 0xFF
+
+static constexpr uint64_t HEAP_BASE = 0x2000000000000000ULL;
+
+static constexpr size_t HEAP_CAPACITY = 16 * 1024 * 1024;
 
 static constexpr size_t STACK_MAX = 65536;
 
@@ -34,6 +39,9 @@ struct CallFrame {
 class OrionVM {
 public:
     explicit OrionVM(const std::vector<uint8_t>& bytecode);
+    explicit OrionVM() = default;
+
+    std::vector<uint8_t> bytecode;
     void run();
 
     RawValue popValue() {
@@ -44,6 +52,27 @@ public:
     }
 
     void preprocessFunctions();
+
+    inline uint8_t* heapPtrFromAddr(uint64_t addr) {
+        auto offset = static_cast<size_t>(addr - HEAP_BASE);
+        return heapBuffer.data() + offset;
+    }
+
+    uint64_t heapAllocate(size_t rawSize) {
+
+        size_t aligned = (rawSize + 7) & ~static_cast<size_t>(7);
+
+        if (heapOffset + aligned > HEAP_CAPACITY) {
+            std::fprintf(stderr, "VM out of heap memory (requested %zu bytes)\n", rawSize);
+            std::abort();
+        }
+        uint64_t addr = HEAP_BASE + static_cast<uint64_t>(heapOffset);
+        heapOffset += aligned;
+        if (heapBuffer.size() < heapOffset) {
+            heapBuffer.resize(heapOffset);
+        }
+        return addr;
+    }
 
 private:
     /*READER
@@ -97,6 +126,14 @@ private:
         return r;
     }
 
+    static RawValue readHeapAddr(OrionVM* vm) {
+        uint64_t addr = 0;
+        for (int i = 0; i < 8; ++i) {
+            addr |= static_cast<uint64_t>(vm->read()) << (8 * i);
+        }
+        return addr;
+    }
+
     static constexpr ReaderFn payloadReaders[256] = {
         /* 0x00 */ read0,
         /* 0x01 */ readI32,
@@ -108,6 +145,7 @@ private:
         /* 0x07 */ readI8,
         /* 0x08 */ readI16,
         /* 0x09 */ readChar,
+        /* 0x0A */ readHeapAddr,
     };
 
     RawValue readPayload(uint8_t type) {
@@ -120,14 +158,17 @@ private:
 
 
     std::vector<FunctionInfo> functions;
-    std::vector<uint8_t> bytecode;
     uint64_t                   ip    = 0;
     std::vector<CallFrame>     callStack;
     RawValue                   regA  = 0;
     RawValue                   regB  = 0;
+    std::vector<uint8_t> heapBuffer;
+    uint64_t heapOffset = 0;
 
     RawValue stackBuf[STACK_MAX]{};
     size_t sp = 0;
+
+
 
     inline void push(const RawValue v) {
         stackBuf[sp++] = v;
