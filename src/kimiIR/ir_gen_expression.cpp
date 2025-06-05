@@ -91,3 +91,10 @@ void IRGen::visitBoolean(BooleanNode *node) {
 void IRGen::visitCharLiteralExpr(CharLiteralExpr *node) {
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::CONST) + " " + std::to_string(node->code) + " : " + "char");
 }
+
+void IRGen::visitStringLiteralExpr(StringLiteralExpr *node) {
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::CONST_STR) + " " +
+        node->value + " : "
+        + (node->value.size() <= 8 ? "str_small" : "str_large")
+        + " [" + std::to_string(node->value.size()) + + ", " + std::to_string(node->value.length()) + "]");
+}

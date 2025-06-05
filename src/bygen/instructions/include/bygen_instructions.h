@@ -67,6 +67,8 @@ inline std::unordered_map<std::string, uint8_t> instructionMap  = {
     {"SHIFT_RIGHT", 0x2B},
     {"BIT_NOT", 0x2C},
 
+    {"CONST_STR", 0x2D}
+
 };
 
 
@@ -76,7 +78,7 @@ inline std::unordered_map<std::string, uint8_t> typeMap = {
     {"f32", 0x03},
     {"f64", 0x04},
     {"bool", 0x05},
-    {"string", 0x06},
+    {"str_small", 0x06},
 
     {"i8", 0x07},
     {"i16", 0x08},
@@ -90,8 +92,7 @@ inline std::unordered_map<std::string, uint8_t> typesSize = {
     {"f32", 32},
     {"f64", 64},
     {"bool", 8},
-    {"string", 0x06},
-
+    {"str_small", 64},
     {"i8", 8},
     {"i16", 16},
     {"char", 32}

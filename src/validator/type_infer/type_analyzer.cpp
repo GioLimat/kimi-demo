@@ -41,6 +41,10 @@ void TypeInfer::visitCharLiteralExpr(CharLiteralExpr *node) {
     currentType = "char";
 }
 
+void TypeInfer::visitStringLiteralExpr(StringLiteralExpr *node) {
+    currentType = node->value.size() <= 8 ? "str_small" : "str_large";
+}
+
 void TypeInfer::visitBoolean(BooleanNode* node) {
     currentType = "bool";
 }
@@ -74,22 +78,17 @@ void TypeInfer::visitBinaryExpr(BinaryExprNode* node) {
 
     const std::string& op = node->op;
 
+
     if (arithmeticOps.contains(op) ||
-        bitwiseOps.contains(op) ||
-        comparisonOps.contains(op)) {
+        bitwiseOps.contains(op) || comparisonOps.contains(op) || logicalOps.contains(op)) {
         if (typePrecedence.contains(left) && typePrecedence.contains(right)) {
             const std::string resultType = promoteNumericTypes(left, right);
             node->type = resultType;
-            currentType = resultType;
+            if (comparisonOps.contains(op) || logicalOps.contains(op)) currentType = "bool";
+            else currentType = resultType;
             return;
         }
         throw std::runtime_error("Arithmetic operators require numeric types, got: " + left + " and " + right);
-    }
-
-    if (logicalOps.contains(op)) {
-        currentType = "bool";
-        node->type = "bool";
-        return;
     }
 
     throw std::runtime_error("Unknown binary operator: " + op);

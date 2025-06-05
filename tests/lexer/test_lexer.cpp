@@ -188,3 +188,24 @@ TEST (LexerTest, CharVar) {
 
     assertTokenVector(tokens, expected);
 }
+
+
+TEST(LexerTest, StringLiteral) {
+    auto lexer = Lexer("val nome: Str = \"Olá, mundo\";");
+
+    const auto tokens = lexer.tokenize();
+
+
+    const auto expected = {
+        LexerTokenType::VAL,
+        LexerTokenType::IDENTIFIER,
+        LexerTokenType::COLON,
+        LexerTokenType::STR,
+        LexerTokenType::EQUALS,
+        LexerTokenType::STR_LITERAL,
+        LexerTokenType::SEMICOLON,
+        LexerTokenType::EOS
+    };
+
+    assertTokenVector(tokens, expected);
+}

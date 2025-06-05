@@ -212,6 +212,63 @@ LexerToken Lexer::identifyIdentifierKeyword() {
 }
 
 
+LexerToken Lexer::identifyStringLiteral() {
+    size_t startLine = line;
+    size_t startColumn = column;
+    advanceCp();
+    std::string value;
+    while (!isAtEnd()) {
+        char32_t cp = peekCp();
+        if (cp == U'"') {
+            advanceCp();
+            break;
+        }
+        if (cp == U'\\') {
+            advanceCp();
+            if (isAtEnd()) {
+                throw std::runtime_error("Unterminated string literal (escape no EOF)");
+            }
+            char32_t escCp = advanceCp();
+            switch (escCp) {
+                case U'n':  value += '\n';  break;
+                case U't':  value += '\t';  break;
+                case U'r':  value += '\r';  break;
+                case U'"':  value += '"';   break;
+                case U'\\': value += '\\';  break;
+                default:
+                    value += static_cast<char>(escCp);
+                    break;
+            }
+        }
+        else {
+            const auto c0 = static_cast<unsigned char>(sourceCode[currentIndex]);
+            int width = 1;
+            if ((c0 & 0x80) == 0x00) {
+                width = 1;
+            }
+            else if ((c0 & 0xE0) == 0xC0) {
+                width = 2;
+            }
+            else if ((c0 & 0xF0) == 0xE0) {
+                width = 3;
+            }
+            else if ((c0 & 0xF8) == 0xF0) {
+                width = 4;
+            }
+            else {
+                throw std::runtime_error("Invalid UTF-8 start byte inside string literal");
+            }
+            value.append(sourceCode, currentIndex, width);
+            advanceCp();
+        }
+    }
+    if (isAtEnd() && sourceCode[currentIndex - 1] != '"') {
+        throw std::runtime_error("Unterminated string literal");
+    }
+    return LexerToken(LexerTokenType::STR_LITERAL, value, startLine, startColumn);
+}
+
+
 
 
 
@@ -230,6 +287,9 @@ LexerToken Lexer::identify() {
         advanceCp();
         std::wstring_convert<std::codecvt_utf8<char32_t>,char32_t> cv;
         return LexerToken(LexerTokenType::CHAR_LITERAL, cv.to_bytes(cp), line, column);
+    }
+    if (peekCp() == U'"') {
+        return identifyStringLiteral();
     }
 
     char32_t cp = peekCp();

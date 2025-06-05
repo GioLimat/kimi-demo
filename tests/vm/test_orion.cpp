@@ -108,3 +108,14 @@ TEST(Orion, SimpleCode11) {
     auto code = "var x = 1; var b = 4; fn a(){ x = 4; return 4;} a(); if (x == 4) { x = 2;  }  println(b); b= 1; println(x);  println(b);";
     runOrion(code);
 }
+
+TEST(Orion, SimpleCode12) {
+    auto code = "fn isEven(a: Int): Bool { a % 2 == 0 } println(isEven(4));  ";
+    runOrion(code);
+}
+
+
+TEST(Orion, SimpleCode13) {
+    auto code = "var x : Char = 225; println(x); println(\"olá\");";
+    runOrion(code);
+}

@@ -84,6 +84,10 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
     {LexerTokenType::CHAR_LITERAL, "CHAR_LITERAL"},
     {LexerTokenType::CHAR, "Char"},
 
+    {LexerTokenType::STR_LITERAL, "STR_LITERAL"},
+    {LexerTokenType::STR, "Str"},
+    {LexerTokenType::STRING, "String"},
+
     {LexerTokenType::EOS, "EOS"},
     {LexerTokenType::UNDEFINED, "UNDEFINED"}
 };

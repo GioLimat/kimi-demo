@@ -23,7 +23,7 @@ enum class LexerTokenType {
     // Identifiers and literals
     IDENTIFIER,
     NUMBER_FLOAT, NUMBER_INT, CHAR,
-    INT, FLOAT, BOOLEAN, TRUE, FALSE,
+    INT, FLOAT, BOOLEAN, TRUE, FALSE, STR,
 
     // Symbols and punctuation
     L_PAREN, R_PAREN,
@@ -71,6 +71,7 @@ enum class LexerTokenType {
 
     // String
     CHAR_LITERAL,
+    STR_LITERAL,             // String literal
     STRING,
     SINGLE_QUOTE,
     DOUBLE_QUOTE,

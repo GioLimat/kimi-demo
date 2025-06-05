@@ -99,6 +99,11 @@ PostFixExprNode::PostFixExprNode(std::string op, std::unique_ptr<ExpressionNode>
 CharLiteralExpr::CharLiteralExpr(uint32_t code) : code(code) {}
 
 
+StringLiteralExpr::StringLiteralExpr(std::string v)
+        : value(std::move(v))
+{}
+
+
 
 
  //VISITORS
@@ -192,4 +197,9 @@ void PostFixExprNode::accept(ASTVisitor &visitor) {
 
 void CharLiteralExpr::accept(ASTVisitor &visitor) {
         visitor.visitCharLiteralExpr(this);
+}
+
+
+void StringLiteralExpr::accept(ASTVisitor &visitor) {
+        visitor.visitStringLiteralExpr(this);
 }

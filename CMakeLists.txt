@@ -79,7 +79,6 @@ target_include_directories(kimi PUBLIC
         src/ast/include
         src/kimiIR/include
         src/kimiIR/instructions/include
-        src/kimiIR/optimizer/include
         src/validator/semantic/include
         src/validator/type_infer/include
         src/bygen/instructions/include

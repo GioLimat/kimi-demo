@@ -47,6 +47,7 @@ std::string IRMapper::getType(const IRType type) {
         case IRType::FLOAT64: return "f64";
         case IRType::CHAR:  return "char";
         case IRType::BOOL: return "bool";
+        case IRType::STR: return  "str";
         default: return "";
     }
 
@@ -79,6 +80,7 @@ std::string IRMapper::getInstruction(const IRInstruction ir) {
         case IRInstruction::POST_INC: return "POST_INC";
         case IRInstruction::POST_DEC:  return "POST_DEC";
         case IRInstruction::END_FN :  return "END_FN";
+        case IRInstruction::CONST_STR: return  "CONST_STR";
         default: return "";
     }
 }

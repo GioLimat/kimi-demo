@@ -245,4 +245,14 @@ public:
 
 
 
+class StringLiteralExpr : public ExpressionNode {
+public:
+    std::string value;
+
+    explicit StringLiteralExpr(std::string v);
+    void accept(ASTVisitor &visitor) override;
+};
+
+
+
 #endif // AST_H

@@ -45,6 +45,14 @@ std::string ParserDeclaration::getType() {
         advance();
         type = "char";
     }
+    else if (peek().type == LexerTokenType::BOOLEAN) {
+        advance();
+        type = "bool";
+    }
+    else if (peek().type == LexerTokenType::STR) {
+        advance();
+        type = "str";
+    }
     else {
         type = LexerTokensMap::getStringByToken(peek().type);
     }

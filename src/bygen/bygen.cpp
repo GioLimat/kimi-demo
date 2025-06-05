@@ -37,12 +37,12 @@ std::vector<uint8_t> ByGen::generate() {
 
         if (instructionType == "LABEL") continue;
 
-        bytecode.push_back(ByMapper::getInstruction(instructionType));
+        if (instructionType != "CONST_STR") bytecode.push_back(ByMapper::getInstruction(instructionType));
 
         std::string type = getType(parts);
 
         if (twoLengthInstruction(instructionType)) {
-            getMeta(instruction); // the last meta if is two-length instruction, is a type
+            emmitMeta(instruction); // the last meta if is two-length instruction, is a type
             continue;
         }
 
@@ -59,6 +59,24 @@ std::vector<uint8_t> ByGen::generate() {
         if (instructionType == "END_BLOCK") {
             if (instruction.find("ignorable") != std::string::npos) continue;
             symbolTable.pop_back();
+            continue;
+        }
+
+        if (instructionType == "CONST_STR") {
+            std::string value = instruction.substr(10,  std::stoi(getMeta(instruction)));
+
+            uint64_t len = value.size();
+
+            // iF the string is less equal than 7 bytes, we need to emit it as a 64-bit integer to store at the stack instead of the heap
+            if (value.size() <= 8) {
+                uint64_t raw = 0;
+                for (size_t i = 0; i < value.size(); ++i) {
+                    raw |= (static_cast<uint64_t>(static_cast<uint8_t>(value[i])) << (8 * i));
+                }
+                bytecode.push_back(ByMapper::getInstruction("CONST"));
+                bytecode.push_back(0x06);
+                emitLiteralLE<uint64_t>(raw);
+            }
             continue;
         }
 
@@ -222,7 +240,7 @@ std::vector<uint8_t> ByGen::generate() {
                 const auto tempParts = splitBySpace(ir[tempI]);
                 std::string tempType = getType(tempParts);
 
-                const auto len = getInstructionLength(tempParts[0], tempType);
+                const auto len = getInstructionLength(tempParts[0], tempType, ir[tempI]);
                 //std::cout << tempParts[0] << " : " << tempType << " len " << len << std::endl;
                 offset += len;
                 tempI++;
@@ -246,7 +264,7 @@ std::vector<uint8_t> ByGen::generate() {
                     const auto tempParts = splitBySpace(ir[tempI]);
                     std::string tempType = getType(tempParts);
 
-                    const auto len = getInstructionLength(tempParts[0], tempType);
+                    const auto len = getInstructionLength(tempParts[0], tempType, ir[tempI]);
                     //std::cout << tempParts[0] << " : " << tempType << " len " << len << std::endl;
                     offset -= len;
                     tempI--;

@@ -59,6 +59,8 @@ enum class IRInstruction {
   END_FN,
   END_CONDITION,
 
+    CONST_STR,
+
   // Arithmetic operations
   ADD,
   SUB,
@@ -89,6 +91,8 @@ enum class IRType {
 
   // Boolean
   BOOL,
+
+  STR
 };
 
 enum class IRMeta {

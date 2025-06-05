@@ -30,6 +30,7 @@ public:
     using Scope = std::stack<std::unordered_map<std::string, std::variant<VariableInfo, FunctionInfo>>>;
 private:
 
+    const std::set<std::string> logicalOps = {"&&", "||"};
     const std::set<std::string> comparisonOps = {"==", "!=", "<", ">", "<=", ">="};
     const std::set<std::string> unaryBoolOps = {"!"};
 
@@ -110,6 +111,7 @@ private:
     void visitGenericExpressionNode(GenericExpressionNode *node) override;
     void visitPostFixExpr(PostFixExprNode *node) override;
     void visitCharLiteralExpr(CharLiteralExpr *node) override;
+    void visitStringLiteralExpr(StringLiteralExpr *node) override;
 };
 
 #endif //SEMANTIC_ANALYZER_H

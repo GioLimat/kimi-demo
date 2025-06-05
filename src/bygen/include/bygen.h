@@ -33,10 +33,11 @@ class ByGen {
     size_t scopesToFindLocal = 0;
 
     void emitBasedOnType(const std::string& type);
-    uint64_t getInstructionLength(const std::string& instruction, const std::string& tempType);
+    uint64_t getInstructionLength(const std::string& instruction, const std::string& tempType, const std::string& fullInstruction = "");
 
 
-    void getMeta(const std::string& instruction);
+    void emmitMeta(const std::string& instruction);
+    std::string getMeta(const std::string& instruction);
 
     static std::string getType(const std::vector<std::string>& parts);
 

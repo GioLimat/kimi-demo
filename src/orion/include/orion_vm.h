@@ -91,6 +91,12 @@ private:
         return r;
     }
 
+    static RawValue readStrSmall(OrionVM* vm) {
+        uint64_t r = 0;
+        for (int i = 0; i < 8; ++i) r |= static_cast<uint64_t>(vm->read()) << (8 * i);
+        return r;
+    }
+
     static constexpr ReaderFn payloadReaders[256] = {
         /* 0x00 */ read0,
         /* 0x01 */ readI32,
@@ -98,7 +104,7 @@ private:
         /* 0x03 */ readF32,
         /* 0x04 */ readF64,
         /* 0x05 */ readBool,
-        /* 0x06 */ read0,
+        /* 0x06 */ readStrSmall,
         /* 0x07 */ readI8,
         /* 0x08 */ readI16,
         /* 0x09 */ readChar,

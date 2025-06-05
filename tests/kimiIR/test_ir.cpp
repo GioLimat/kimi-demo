@@ -78,3 +78,13 @@ TEST (IRGen, Char) {
         std::cout << i << std::endl;
     }
 }
+
+TEST (IRGen, StringLiteral) {
+    const std::string code = "\"olá mundo!\";";
+
+    auto ir = gen(code);
+
+    for (const auto& i : ir) {
+        std::cout << i << std::endl;
+    }
+}

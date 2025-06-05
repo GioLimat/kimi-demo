@@ -26,6 +26,7 @@ private:
     LexerToken identifyNumber();
     LexerToken identifyIdentifierKeyword();
     LexerToken identifyCharLiteral();
+    LexerToken identifyStringLiteral();
     LexerToken identifySymbol();
     LexerToken identifySpecialSymbol();
 

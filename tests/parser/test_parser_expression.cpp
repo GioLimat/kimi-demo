@@ -248,5 +248,22 @@ TEST(ParserExpression, Char) {
 
     auto charExpr = dynamic_cast<CharLiteralExpr*>(expr.get());
 
-    std::cout << charExpr->code << std::endl;
+    ASSERT_EQ(charExpr->code, 225);
+}
+
+
+TEST(ParserExpression, StringLiteral) {
+    const std::string code = "\"olá mundo \n mundo\";";
+    Lexer lexer(code);
+
+    const auto tokens = lexer.tokenize();
+
+    auto parser = MockExpression(tokens);
+
+    auto expr = parser.parseExpression();
+
+    auto strExpr = dynamic_cast<StringLiteralExpr*>(expr.get());
+
+
+    ASSERT_EQ("olá mundo \n mundo", strExpr->value);
 }

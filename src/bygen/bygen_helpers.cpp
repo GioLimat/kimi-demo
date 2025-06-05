@@ -71,7 +71,7 @@ void ByGen::emitBasedOnType(const std::string &type) {
 
 
 
-void ByGen::getMeta(const std::string &instruction)  {
+void ByGen::emmitMeta(const std::string &instruction)  {
     if (instruction.find('[') != std::string::npos) {
         std::string meta;
         size_t storeTypeI = instruction.find('[') + 1;
@@ -88,6 +88,22 @@ void ByGen::getMeta(const std::string &instruction)  {
     }
 }
 
+std::string ByGen::getMeta(const std::string &instruction)  {
+    if (instruction.find('[') != std::string::npos) {
+        std::string meta;
+        size_t storeTypeI = instruction.find('[') + 1;
+        while (instruction[storeTypeI] != ']') {
+            meta += instruction[storeTypeI];
+            storeTypeI++;
+        }
+
+        if (instruction.find(", ") != std::string::npos) {
+            auto end =  instruction.find(", ") + 2;
+            meta = instruction.substr(end, storeTypeI);
+        }
+        return meta;
+    }
+}
 
 std::string ByGen::getType(const std::vector<std::string>& parts) {
     std::string type;
@@ -145,7 +161,7 @@ bool ByGen::sevenLengthInstruction(const std::string &instruction) {
 }
 
 
-uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::string& tempType = "") {
+uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::string& tempType = "", const std::string& fullInstruction ) {
     uint64_t offset = 0;
 
     if (twoLengthInstruction(instruction)) {
@@ -153,6 +169,11 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
     }
     else if (instruction == "CONST") {
         offset = 2 + ByMapper::getSize(tempType) / 8;
+    }
+    else if (instruction == "CONST_STR") {
+        if (std::stoi(getMeta(fullInstruction)) <= 8) {
+            offset = 2 + 8;
+        }
     }
     else if (sevenLengthInstruction(instruction)) {
         offset += 3 + 4;

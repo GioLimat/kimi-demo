@@ -261,6 +261,11 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
         return std::make_unique<CharLiteralExpr>(static_cast<uint32_t>(u32[0]));
     }
 
+    if (token.type == LexerTokenType::STR_LITERAL) {
+        std::string lex = advance().value;
+        return std::make_unique<StringLiteralExpr>(std::move(lex));
+    }
+
 
     if (token.type == LexerTokenType::TRUE || token.type == LexerTokenType::FALSE) {
         bool value = advance().type == LexerTokenType::TRUE;

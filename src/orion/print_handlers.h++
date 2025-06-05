@@ -13,6 +13,16 @@
 
 using PrintFn = void(*)(RawValue);
 
+
+static inline void print_str_small(RawValue v) {
+    char buf[9];
+    for (int i = 0; i < 8; ++i) {
+        buf[i] = static_cast<char>((v >> (8 * i)) & 0xFF);
+    }
+    buf[8] = '\0';
+    std::printf("%s\n", buf);
+}
+
 static inline void print_i32(RawValue v) {
     std::printf("%d\n", static_cast<int32_t>(v));
 }
@@ -68,7 +78,7 @@ static inline void print_char(RawValue v) {
 
 static constexpr PrintFn printTable[256] = {
     nullptr, print_i32, print_i64, print_f32, print_f64, print_bool,
-    nullptr, print_i8, print_i16, print_char
+    print_str_small, print_i8, print_i16, print_char
 };
 
 
