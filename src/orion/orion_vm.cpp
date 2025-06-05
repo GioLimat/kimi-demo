@@ -128,11 +128,20 @@ void OrionVM::run() {
 #if DEBUG
         opcodeCount[0x03]++;
 #endif
+        uint8_t callFrame = read();
+        uint8_t scope = read();
         uint32_t varId = read32();
 
+        CallFrame* targetFrame = &callStack[callStack.size() - callFrame - 1];
+
+        uint64_t targetScope = targetFrame->scopeSp[targetFrame->scopeSp.size() - scope - 1];
+
         RawValue value = pop();
-        stackBuf[callStack.back().stackBase + varId] = value;
-        sp = callStack.back().stackBase + varId + 1;
+
+        stackBuf[targetScope + varId] = value;
+
+
+        sp = targetScope + varId + 1;
         DISPATCH();
     }
 
@@ -306,7 +315,6 @@ void OrionVM::run() {
         if (pop() == 0) {
             ip += offset;
         }
-
         DISPATCH();
     }
 

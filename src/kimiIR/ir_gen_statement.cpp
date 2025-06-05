@@ -90,10 +90,10 @@ void IRGen::visitReturnStatement(ReturnStatementNode *node) {
 
 
 void IRGen::visitForStatement(ForStatementNode *node) {
-    scopes.emplace();
     node->initializer->accept(*this);
-
+    scopes.emplace();
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(currentLabel));
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INIT_BLOCK));
 
     auto conditionLabel = currentLabel++;
     auto endLabel = currentLabel++;
@@ -105,9 +105,11 @@ void IRGen::visitForStatement(ForStatementNode *node) {
     node->body->accept(*this);
 
     node->posBody->accept(*this);
-
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK));
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::JMP) + " L" + std::to_string(conditionLabel)  + " : i32");
 
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::LABEL) + " L" + std::to_string(endLabel));
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::END_BLOCK) + " [ignorable]");
+
     scopes.pop();
 }

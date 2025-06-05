@@ -53,9 +53,11 @@ std::vector<uint8_t> ByGen::generate() {
         }
         if (instructionType == "END_FN") {
             symbolTable.pop_back();
+            idFnTable.pop_back();
             continue;
         }
         if (instructionType == "END_BLOCK") {
+            if (instruction.find("ignorable") != std::string::npos) continue;
             symbolTable.pop_back();
             continue;
         }
@@ -99,14 +101,18 @@ std::vector<uint8_t> ByGen::generate() {
 
         if (instructionType == "STORE") {
             const std::string& name = parts[1];
-            try {
-                getIdentifierId(name);
-            }
-            catch (...) {
+
+            const auto isDeclaration = instruction.find("declaration") != std::string::npos;
+
+
+            if (isDeclaration) {
                 declareIdentifier(name, false, false);
             }
 
             const uint32_t val = getIdentifierId(name);
+
+            emitLiteralLE<uint8_t>(jumpsToFindLocal);
+            emitLiteralLE<uint8_t>(scopesToFindLocal);
 
             jumpsToFindLocal = 0;
             scopesToFindLocal = 0;
@@ -138,6 +144,8 @@ std::vector<uint8_t> ByGen::generate() {
             const std::string& varName = parts[1];
 
             const uint32_t varId = getIdentifierId(varName);
+
+
 
 
             emitLiteralLE<uint8_t>(jumpsToFindLocal);
@@ -239,7 +247,7 @@ std::vector<uint8_t> ByGen::generate() {
                     std::string tempType = getType(tempParts);
 
                     const auto len = getInstructionLength(tempParts[0], tempType);
-                    std::cout << tempParts[0] << " : " << tempType << " len " << len << std::endl;
+                    //std::cout << tempParts[0] << " : " << tempType << " len " << len << std::endl;
                     offset -= len;
                     tempI--;
                  }

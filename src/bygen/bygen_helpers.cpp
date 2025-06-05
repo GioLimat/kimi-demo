@@ -50,6 +50,7 @@ void ByGen::declareIdentifier(const std::string &name, bool isParam = false, boo
     }
 
     currentScope[name] = varId;
+
 }
 
 
@@ -139,7 +140,8 @@ bool ByGen::sevenLengthInstruction(const std::string &instruction) {
            instruction == "INC" ||
            instruction == "DEC" ||
            instruction == "POST_INC" ||
-           instruction == "POST_DEC";
+           instruction == "POST_DEC"
+    || instruction == "STORE";
 }
 
 
@@ -158,10 +160,6 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
     else if (instruction == "END_BLOCK" || instruction == "INIT_BLOCK" || instruction == "END_FN") {
         offset += 1;
     }
-    else if (
-     instruction == "STORE") {
-        offset += 1 + 4 + 1;
-        }
     else if (    instruction == "FN"
         || instruction == "FN_PARAM"
         || instruction == "CALL" ||

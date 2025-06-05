@@ -34,9 +34,9 @@ uint64_t OrionVM::getInstructionLength(uint8_t op) {
         case 0x1E:  // DEC
         case 0x1F:  // POST_INC
         case 0x20:  // POST_DEC
+        case 0x03:
             return 7;
         case 0x1A:
-        case 0x03:
         case 0x1B:
         case 0x05:
         case 0x16:

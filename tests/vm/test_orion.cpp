@@ -100,6 +100,11 @@ TEST(Orion, SimpleCode9) {
 }
 
 TEST(Orion, SimpleCode10) {
-    auto code = "for ( var i = 0; i < 10; i++) { println(i); } println(100);";
+    auto code = "var i : Int; for (i = 0; i < 10; i++) { println(i); } println(i);";
+    runOrion(code);
+}
+
+TEST(Orion, SimpleCode11) {
+    auto code = "var x = 1; var b = 4; fn a(){ x = 4; return 4;} a(); if (x == 4) { x = 2;  }  println(b); b= 1; println(x);  println(b);";
     runOrion(code);
 }
