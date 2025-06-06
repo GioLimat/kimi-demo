@@ -120,3 +120,8 @@ TEST(Orion, SimpleCode13) {
     auto code = "println(\"olá mundo isso é grande vai para o heap!\");";
     runOrion(code);
 }
+
+TEST(Orion, SimpleCode14) {
+    auto code = "var x = \" essa é a continuação da string \"; println(\"olá mundo isso é grande vai para o heap!\" + x); ";
+    runOrion(code);
+}

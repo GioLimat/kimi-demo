@@ -95,6 +95,6 @@ void IRGen::visitCharLiteralExpr(CharLiteralExpr *node) {
 void IRGen::visitStringLiteralExpr(StringLiteralExpr *node) {
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::CONST_STR) + " " +
         node->value + " : "
-        + (node->value.size() <= 8 ? "str_small" : "str_large")
+        + "str"
         + " [" + std::to_string(node->value.size()) + + ", " + std::to_string(node->value.length()) + "]");
 }

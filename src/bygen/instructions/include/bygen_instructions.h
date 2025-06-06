@@ -78,12 +78,11 @@ inline std::unordered_map<std::string, uint8_t> typeMap = {
     {"f32", 0x03},
     {"f64", 0x04},
     {"bool", 0x05},
-    {"str_small", 0x06},
 
     {"i8", 0x07},
     {"i16", 0x08},
     {"char", 0x09},
-    {"str_large", 0x0A}
+    {"str", 0x0A}
 };
 
 
@@ -93,7 +92,7 @@ inline std::unordered_map<std::string, uint8_t> typesSize = {
     {"f32", 32},
     {"f64", 64},
     {"bool", 8},
-    {"str_small", 64},
+
     {"i8", 8},
     {"i16", 16},
     {"char", 32}

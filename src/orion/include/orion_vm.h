@@ -10,6 +10,8 @@
 #include <cstring>
 #include <vector>
 
+#include "heap.h++"
+
 
 #define MAX_TYPE 0xFF
 
@@ -18,6 +20,8 @@ static constexpr uint64_t HEAP_BASE = 0x2000000000000000ULL;
 static constexpr size_t HEAP_CAPACITY = 16 * 1024 * 1024;
 
 static constexpr size_t STACK_MAX = 65536;
+
+
 
 
 #define DEBUG 1
@@ -53,25 +57,28 @@ public:
 
     void preprocessFunctions();
 
-    inline uint8_t* heapPtrFromAddr(uint64_t addr) {
-        auto offset = static_cast<size_t>(addr - HEAP_BASE);
-        return heapBuffer.data() + offset;
+
+
+    inline uint8_t* alloc(size_t size) {
+        return heap.alloc(size);
     }
 
-    uint64_t heapAllocate(size_t rawSize) {
+    inline void free(uint8_t* ptr) {
+        heap.free(ptr);
+    }
 
-        size_t aligned = (rawSize + 7) & ~static_cast<size_t>(7);
+    inline uint8_t* realloc(uint8_t* ptr, const size_t newSize) {
+        return heap.realloc(ptr, newSize);
+    }
 
-        if (heapOffset + aligned > HEAP_CAPACITY) {
-            std::fprintf(stderr, "VM out of heap memory (requested %zu bytes)\n", rawSize);
-            std::abort();
-        }
-        uint64_t addr = HEAP_BASE + static_cast<uint64_t>(heapOffset);
-        heapOffset += aligned;
-        if (heapBuffer.size() < heapOffset) {
-            heapBuffer.resize(heapOffset);
-        }
-        return addr;
+    inline RawValue addrFromHeapPtr(const uint8_t* ptr) const {
+        size_t offset = ptr - heap.buffer.data();
+        return HEAP_BASE + static_cast<RawValue>(offset);
+    }
+
+    inline uint8_t* heapPtrFromAddr(const uint64_t addr) {
+        auto offset = static_cast<size_t>(addr - HEAP_BASE);
+        return heap.buffer.data() + offset;
     }
 
 private:
@@ -141,7 +148,7 @@ private:
         /* 0x03 */ readF32,
         /* 0x04 */ readF64,
         /* 0x05 */ readBool,
-        /* 0x06 */ readStrSmall,
+        /* 0x06 */ nullptr,
         /* 0x07 */ readI8,
         /* 0x08 */ readI16,
         /* 0x09 */ readChar,
@@ -162,8 +169,7 @@ private:
     std::vector<CallFrame>     callStack;
     RawValue                   regA  = 0;
     RawValue                   regB  = 0;
-    std::vector<uint8_t> heapBuffer;
-    uint64_t heapOffset = 0;
+    HeapManager heap = HeapManager(HEAP_CAPACITY);
 
     RawValue stackBuf[STACK_MAX]{};
     size_t sp = 0;

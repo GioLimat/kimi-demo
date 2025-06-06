@@ -14,16 +14,7 @@
 #include "string_header.h++"
 using PrintFn = void(*)(OrionVM* vm, RawValue);
 
-static inline void print_str_small(OrionVM* /*vm*/, RawValue v) {
-    char buf[9];
-    for (int i = 0; i < 8; ++i) {
-        buf[i] = static_cast<char>((v >> (8 * i)) & 0xFF);
-    }
-    buf[8] = '\0';
-    std::printf("%s\n", buf);
-}
-
-static inline void print_str_large(OrionVM* vm, RawValue v) {
+static inline void print_str(OrionVM* vm, RawValue v) {
     uint8_t* rawPtr = vm->heapPtrFromAddr(v);
     auto* header = reinterpret_cast<const StringHeader*>(rawPtr);
     uint64_t length = header->length;
@@ -88,7 +79,7 @@ static inline void print_char(OrionVM* /*vm*/, RawValue v) {
 
 static constexpr PrintFn printTable[256] = {
     nullptr, print_i32, print_i64, print_f32, print_f64, print_bool,
-    print_str_small, print_i8, print_i16, print_char, print_str_large
+    nullptr, print_i8, print_i16, print_char, print_str
 };
 
 #endif //PRINT_HANDLERS_H

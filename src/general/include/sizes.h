@@ -16,9 +16,10 @@ const std::unordered_map<std::string, int> typePrecedence = {
     {"i64", 3},
     {"f32", 4},
     {"f64", 5},
-    {"str", 6},
-    {"bool", 7},
-    {"void", 8}
+
+    {"str", 7},
+    {"bool", 8},
+    {"void", 9}
 };
 
 

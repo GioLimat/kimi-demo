@@ -68,24 +68,12 @@ std::vector<uint8_t> ByGen::generate() {
         if (instructionType == "CONST_STR") {
             std::string value = instruction.substr(10,  std::stoi(getMeta(instruction)));
 
-            uint64_t len = value.size();
 
-            // iF the string is less equal than 7 bytes, we need to emit it as a 64-bit integer to store at the stack instead of the heap
-            if (value.size() <= 8) {
-                uint64_t raw = 0;
-                for (size_t i = 0; i < value.size(); ++i) {
-                    raw |= (static_cast<uint64_t>(static_cast<uint8_t>(value[i])) << (8 * i));
-                }
-                bytecode.push_back(ByMapper::getInstruction("CONST"));
-                bytecode.push_back(0x06);
-                emitLiteralLE<uint64_t>(raw);
-            }
-            else {
-                uint64_t address = placeLiteralInHeap(value);
-                bytecode.push_back(ByMapper::getInstruction("CONST")); // 0x01
-                bytecode.push_back(0x0A); //  STR_LARGE (0x0A)
-                emitLiteralLE(address);
-            }
+            uint64_t address = placeLiteralInHeap(value);
+            bytecode.push_back(ByMapper::getInstruction("CONST")); // 0x01
+            bytecode.push_back(0x0A); //  STR_LARGE (0x0A)
+            emitLiteralLE(address);
+
             continue;
         }
 

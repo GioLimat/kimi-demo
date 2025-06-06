@@ -172,9 +172,7 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
         offset = 2 + ByMapper::getSize(tempType) / 8;
     }
     else if (instruction == "CONST_STR") {
-        if (std::stoi(getMeta(fullInstruction)) <= 8) {
-            offset = 2 + 8;
-        }
+        offset = 2 + 8;
     }
     else if (sevenLengthInstruction(instruction)) {
         offset += 3 + 4;
@@ -204,28 +202,24 @@ void ByGen::emitLiteralLE(uint64_t value)  {
 }
 
 uint64_t ByGen::placeLiteralInHeap(const std::string& utf8) {
-    uint64_t length   = static_cast<uint64_t>(utf8.size());
+    auto length   = static_cast<uint64_t>(utf8.size());
     uint64_t capacity = length;
     uint8_t  flags    = 0x01;
 
     size_t headerSize  = sizeof(StringHeader);       // 24 bytes
-    size_t payloadSize = static_cast<size_t>(length);
+    auto payloadSize = static_cast<size_t>(length);
     size_t totalSize   = headerSize + payloadSize;
 
     size_t alignedSize = (totalSize + 7) & ~static_cast<size_t>(7);
 
+    uint8_t* base = vm.alloc(alignedSize);
 
-    uint64_t addr = vm.heapAllocate(alignedSize);
-
-
-    uint8_t* base = vm.heapPtrFromAddr(addr);
-
-
-    std::memcpy(base + 0, &length,    sizeof(length));   // bytes [0..7]
-    std::memcpy(base + 8, &capacity,  sizeof(capacity)); // bytes [8..15]
-    base[16] = flags;                                   // byte [16]
+    std::memset(base, 0, headerSize);
+    std::memcpy(base + 0, &length, sizeof(length));
+    std::memcpy(base + 8, &capacity, sizeof(capacity));
+    base[16] = flags;
 
     std::memcpy(base + headerSize, utf8.data(), payloadSize);
 
-    return addr;
+    return vm.addrFromHeapPtr(base);
 }

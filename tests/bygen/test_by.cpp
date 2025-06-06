@@ -79,3 +79,16 @@ TEST(Bygen, StringLiteralLarge) {
     }
     std::cout << std::endl;
 }
+
+
+TEST(Bygen, StringConcatenation) {
+    auto byte = genBy("println(\"olá mundo isso é grande vai para o heap!\" + \" ola\");");
+
+    for (const auto& b : byte) {
+        std::cout << "0x"
+            << std::hex
+            << (int)b
+           << " ";
+    }
+    std::cout << std::endl;
+}

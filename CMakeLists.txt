@@ -67,6 +67,7 @@ add_library(kimi STATIC
         src/bygen/bygen_helpers.cpp
         src/reader/reader.cpp
         src/primitives/include/string_header.h++
+        src/orion/include/heap.h++
 )
 add_executable(kimi_cli src/cli/cli.cpp)
 target_link_libraries(kimi_cli PRIVATE kimi CLI11::CLI11)

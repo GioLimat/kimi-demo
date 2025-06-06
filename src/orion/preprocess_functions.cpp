@@ -20,6 +20,7 @@ uint64_t OrionVM::decodeType(const uint8_t type) {
         case 0x07: return 1;
         case 0x08: return 2;
         case 0x09: return 4;
+        case 0x0a: return 8;
         default:   return 0;
     }
 }
