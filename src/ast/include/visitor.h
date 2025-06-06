@@ -32,6 +32,7 @@ public:
     virtual void visitPostFixExpr(PostFixExprNode* node) = 0;
     virtual void visitCharLiteralExpr(CharLiteralExpr* node) = 0;
     virtual void visitStringLiteralExpr(StringLiteralExpr* node) = 0;
+    virtual void visitIndexAccessExpr(IndexAccessExpr* node) = 0;
     virtual ~ASTVisitor() = default;
 };
 
@@ -60,5 +61,7 @@ public:
     void visitPostFixExpr(PostFixExprNode* node) override {}
     void visitCharLiteralExpr(CharLiteralExpr* node) override {}
     void visitStringLiteralExpr(StringLiteralExpr *node) override {};
+    void visitIndexAccessExpr(IndexAccessExpr* node) override {};
+
 };
 #endif //VISITOR_H

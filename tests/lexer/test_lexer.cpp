@@ -209,3 +209,21 @@ TEST(LexerTest, StringLiteral) {
 
     assertTokenVector(tokens, expected);
 }
+
+TEST(LexerTest, StringLiteralIndex) {
+    auto lexer = Lexer("\"Olá, mundo\"[0];");
+
+    const auto tokens = lexer.tokenize();
+
+
+    const auto expected = {
+        LexerTokenType::STR_LITERAL,
+        LexerTokenType::L_BRACKET,
+        LexerTokenType::NUMBER_INT,
+        LexerTokenType::R_BRACKET,
+        LexerTokenType::SEMICOLON,
+        LexerTokenType::EOS
+    };
+
+    assertTokenVector(tokens, expected);
+}

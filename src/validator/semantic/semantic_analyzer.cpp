@@ -314,6 +314,22 @@ void SemanticAnalyzer::visitStringLiteralExpr(StringLiteralExpr *node) {
 }
 
 
+void SemanticAnalyzer::visitIndexAccessExpr(IndexAccessExpr *node) {
+    node->index->accept(*this);
+    std::string inferIdx = TypeInfer::analyzeExpression(node->index.get(), &scopes);
+    if (inferIdx.empty() || inferIdx[0] != 'i') {
+        throw std::runtime_error("Index access requires an integer type, got: " + inferIdx);
+    }
+
+    node->base->accept(*this);
+    std::string inferBase = TypeInfer::analyzeExpression(node->base.get(), &scopes);
+    if (inferBase == "str") {
+        node->generateHeapValue = true;
+    } else {
+        throw std::runtime_error("Index access requires a string type, got: " + inferBase);
+    }
+}
+
 
 void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters, const std::string &returnType) {
     if (scopes.top().contains(name)) {

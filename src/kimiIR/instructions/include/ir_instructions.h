@@ -61,6 +61,9 @@ enum class IRInstruction {
 
     CONST_STR,
 
+
+  INDEX_ACESS,
+
   // Arithmetic operations
   ADD,
   SUB,

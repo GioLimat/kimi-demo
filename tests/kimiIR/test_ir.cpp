@@ -88,3 +88,4 @@ TEST (IRGen, StringLiteral) {
         std::cout << i << std::endl;
     }
 }
+

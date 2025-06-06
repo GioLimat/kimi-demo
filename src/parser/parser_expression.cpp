@@ -60,8 +60,6 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
     if (isAtEnd()) return nullptr;
     auto nextToken = tokens.at(current + 1);
 
-
-
     auto isCompose = nextToken.type == LexerTokenType::PLUS_EQUAL
         || nextToken.type == LexerTokenType::MINUS_EQUAL
         || nextToken.type == LexerTokenType::MULTIPLY_EQUAL
@@ -239,63 +237,59 @@ std::string inferFloatType(const std::string& valueStr) {
     return "f64";
 }
 
-
 std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
+    std::unique_ptr<ExpressionNode> node;
     auto token = peek();
-    if (token.type == LexerTokenType::NUMBER_INT
-        || token.type == LexerTokenType::NUMBER_FLOAT) {
+
+    if (token.type == LexerTokenType::NUMBER_INT || token.type == LexerTokenType::NUMBER_FLOAT) {
         std::string value = advance().value;
         std::string type;
         if (token.type == LexerTokenType::NUMBER_INT) {
             type = inferIntegerType(token.value);
-        } else if (token.type == LexerTokenType::NUMBER_FLOAT) {
+        } else {
             type = inferFloatType(token.value);
         }
-        return std::make_unique<NumberNode>(value, type);
+        node = std::make_unique<NumberNode>(value, type);
     }
-
-    if (token.type == LexerTokenType::CHAR_LITERAL) {
+    else if (token.type == LexerTokenType::CHAR_LITERAL) {
         std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
-        const std::u32string u32 = conv.from_bytes(advance().value);
+        auto u32 = conv.from_bytes(advance().value);
         if (u32.empty()) throw std::runtime_error("Invalid UTF-8 in char literal");
-        return std::make_unique<CharLiteralExpr>(static_cast<uint32_t>(u32[0]));
+        node = std::make_unique<CharLiteralExpr>(static_cast<uint32_t>(u32[0]));
     }
-
-    if (token.type == LexerTokenType::STR_LITERAL) {
-        std::string lex = advance().value;
-        return std::make_unique<StringLiteralExpr>(std::move(lex));
+    else if (token.type == LexerTokenType::STR_LITERAL) {
+        std::string lit = advance().value;
+        node = std::make_unique<StringLiteralExpr>(std::move(lit));
     }
-
-
-    if (token.type == LexerTokenType::TRUE || token.type == LexerTokenType::FALSE) {
-        bool value = advance().type == LexerTokenType::TRUE;
-        return std::make_unique<BooleanNode>(value);
+    else if (token.type == LexerTokenType::TRUE || token.type == LexerTokenType::FALSE) {
+        bool v = advance().type == LexerTokenType::TRUE;
+        node = std::make_unique<BooleanNode>(v);
     }
-
-    if (token.type == LexerTokenType::IDENTIFIER) {
-        return parseCallIdentifier();
+    else if (token.type == LexerTokenType::IDENTIFIER) {
+        node = parseCallIdentifier();
     }
-
-
-    if (token.type == LexerTokenType::L_PAREN) {
+    else if (token.type == LexerTokenType::L_PAREN) {
         advance();
-        auto expr = parseExpression();
-        if (peek().type != LexerTokenType::R_PAREN) {
-            throw std::runtime_error("Expected ')' after expression");
-        }
+        auto inner = parseExpression();
+        if (peek().type != LexerTokenType::R_PAREN) throw std::runtime_error("Expected ')' after expression");
         advance();
-        return expr;
+        node = std::move(inner);
     }
-
-    if (token.type == LexerTokenType::EOS
-        || token.type == LexerTokenType::SEMICOLON
-        || token.type == LexerTokenType::R_BRACE
-        || token.type == LexerTokenType::L_BRACE) {
+    else {
         return nullptr;
     }
-    throw std::runtime_error("Unexpected token: " + token.value);
 
+    while (peek().type == LexerTokenType::L_BRACKET) {
+        advance();
+        auto idxExpr = parseExpression();
+        if (peek().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']' after index expression");
+        advance();
+        node = std::make_unique<IndexAccessExpr>(
+           std::move(node),
+           std::move(idxExpr),
+           true
+       );
+    }
+
+    return node;
 }
-
-
-

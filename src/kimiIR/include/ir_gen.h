@@ -37,6 +37,7 @@ class IRGen : public DefaultASTVisitor {
     void visitBoolean(BooleanNode *node) override;
     void visitCharLiteralExpr(CharLiteralExpr *node) override;
     void visitStringLiteralExpr(StringLiteralExpr *node) override;
+    void visitIndexAccessExpr(IndexAccessExpr *node) override;
 
     protected:
     std::vector<std::string> bytecode;

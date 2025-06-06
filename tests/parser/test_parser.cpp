@@ -57,4 +57,20 @@ TEST(Parser, ForLoop) {
 
 
 
+TEST(Parser, StringStrIndex) {
+    auto lexer = Lexer("\"Olá, mundo\"[2];");
+    auto tokens = lexer.tokenize();
+    auto parser = Parser(tokens);
+
+    auto ast = parser.parse();
+    auto indexAccessor = dynamic_cast<IndexAccessExpr*>(ast->children[0].get());
+
+    auto base = dynamic_cast<StringLiteralExpr*>(indexAccessor->base.get());
+    std::cout << "base = \"" << base->value << "\"" << std::endl;
+
+    auto idxNode = dynamic_cast<NumberNode*>(indexAccessor->index.get());
+    std::cout << "index = " << idxNode->value << std::endl;
+}
+
+
 

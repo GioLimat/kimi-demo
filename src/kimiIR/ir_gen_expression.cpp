@@ -98,3 +98,14 @@ void IRGen::visitStringLiteralExpr(StringLiteralExpr *node) {
         + "str"
         + " [" + std::to_string(node->value.size()) + + ", " + std::to_string(node->value.length()) + "]");
 }
+
+void IRGen::visitIndexAccessExpr(IndexAccessExpr *node) {
+
+    node->base->accept(*this);
+
+    node->index->accept(*this);
+
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INDEX_ACESS) + " [ " +
+        (node->generateHeapValue ? "heap" : "value")
+    +  "]");
+}

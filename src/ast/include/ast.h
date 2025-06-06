@@ -254,5 +254,18 @@ public:
 };
 
 
+class IndexAccessExpr : public ExpressionNode {
+public:
+    std::unique_ptr<ExpressionNode> base;
+    std::unique_ptr<ExpressionNode> index;
+    bool generateHeapValue;
+
+    explicit IndexAccessExpr(std::unique_ptr<ExpressionNode> base,
+                    std::unique_ptr<ExpressionNode> index,
+                    const bool genPtr);
+
+    void accept(ASTVisitor &visitor) override;
+};
+
 
 #endif // AST_H

@@ -104,6 +104,13 @@ StringLiteralExpr::StringLiteralExpr(std::string v)
 {}
 
 
+IndexAccessExpr::IndexAccessExpr(std::unique_ptr<ExpressionNode> base,
+                    std::unique_ptr<ExpressionNode> index,
+                    const bool genPtr)
+      : base(std::move(base)),
+        index(std::move(index)),
+        generateHeapValue(genPtr)
+{}
 
 
  //VISITORS
@@ -202,4 +209,9 @@ void CharLiteralExpr::accept(ASTVisitor &visitor) {
 
 void StringLiteralExpr::accept(ASTVisitor &visitor) {
         visitor.visitStringLiteralExpr(this);
+}
+
+
+void IndexAccessExpr::accept(ASTVisitor &visitor) {
+        visitor.visitIndexAccessExpr(this);
 }
