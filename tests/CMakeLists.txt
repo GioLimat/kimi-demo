@@ -8,7 +8,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-
 if(NOT TARGET GTest::gtest)
     add_subdirectory(
             ${googletest_SOURCE_DIR}
@@ -26,11 +25,15 @@ add_executable(kimi_tests
         bygen/test_by.cpp
         vm/test_orion.cpp
         playground/playground.cpp
+        pipeline/test_integration.cpp
 )
+
+add_dependencies(kimi_tests rust_build)
 
 target_link_libraries(kimi_tests
         PRIVATE
         kimi
+        rust_lib
         GTest::gtest_main
 )
 
