@@ -11,7 +11,7 @@ pub extern "C" fn run_vm(data: *const u8, len: usize){
     let vec: Vec<u8> = slice.to_vec();
 
     println!("Bytecode Mapper: {:?}", vec);
-    println!("Invocation successful!");
+    println!("\n------------------Invocation successful!------------------\n\n");
     
     
     VM::new(vec).run();

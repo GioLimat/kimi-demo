@@ -1,4 +1,6 @@
-pub fn op_add(vm: &mut crate::vm::vm::VM) {
+use crate::vm::vm::VM;
+
+pub fn op_add(vm: &mut VM) {
     let op_type = vm.bytecode.get(vm.ip as usize).unwrap();
     vm.ip += 1;
 

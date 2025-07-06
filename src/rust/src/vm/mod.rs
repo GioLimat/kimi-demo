@@ -4,3 +4,6 @@ mod heap_manager;
 mod op_const;
 mod vm_utils;
 mod op_add;
+mod op_println;
+mod op_store;
+mod op_load;

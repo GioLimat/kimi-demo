@@ -7,6 +7,6 @@
 
 
 TEST(Integration, SimpleCode) {
-    auto code = "println(4 + 4);";
+    auto code = "var x = 4; println(x);";
     runVm(code);
 }
