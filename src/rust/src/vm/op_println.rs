@@ -1,3 +1,4 @@
+use crate::vm::heap_manager::HeapValue;
 use crate::vm::vm::VM;
 
 pub fn op_println(vm: &mut VM) {
@@ -16,6 +17,15 @@ pub fn op_println(vm: &mut VM) {
             match char_val {
                 Some(c) => println!("{}", c),
                 None => println!("Invalid char: {}", value),
+            }
+        }
+        0x0A => { 
+            let string = vm.heap_manager.get(value).expect("Invalid heap ID");
+            
+            if let HeapValue::String(s) = string {
+                println!("\"{s}\"");
+            } else {
+                println!("Expected a string, but got a different type");
             }
         }
         _ => {

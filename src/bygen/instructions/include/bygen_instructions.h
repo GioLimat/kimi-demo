@@ -20,11 +20,11 @@ inline std::unordered_map<std::string, uint8_t> instructionMap  = {
     {"FN_PARAM", 0x06},
     {"END_BLOCK", 0x07},
     {"INIT_BLOCK", 0x08},
-    {"IF", 0x09},
-    {"DO", 0x0A},
-    {"WHILE", 0x0B},
-    {"ELSE", 0x0C},
-    {"END_CONDITION", 0x0D},
+    {"IF", 0x09}, //not used
+    {"DO", 0x0A}, //not used
+    {"WHILE", 0x0B}, //not used
+    {"ELSE", 0x0C}, //not used
+    {"END_CONDITION", 0x0D}, //not used
 
 
 
@@ -67,8 +67,11 @@ inline std::unordered_map<std::string, uint8_t> instructionMap  = {
     {"SHIFT_RIGHT", 0x2B},
     {"BIT_NOT", 0x2C},
 
-    {"CONST_STR", 0x2D}
-
+    {"CONST_STR", 0x2D}, //not used
+    {"ALLOC", 0x2E},
+    {"FREE", 0x2F},
+    {"REALLOC", 0x30},
+    {"INDEX_ACCESS", 0x31},
 };
 
 

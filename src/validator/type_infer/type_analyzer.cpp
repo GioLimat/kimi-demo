@@ -110,6 +110,12 @@ void TypeInfer::visitPostFixExpr(PostFixExprNode *node) {
 }
 
 
+void TypeInfer::visitIndexAccessExpr(IndexAccessExpr *node) {
+    node->base->accept(*this);
+}
+
+
+
 SemanticAnalyzer::VariableInfo TypeInfer::lookupVariable(const std::string &name) {
     if (!scopes) {
         throw std::runtime_error("Scope stack is not initialized in TypeInfer");
@@ -126,3 +132,5 @@ SemanticAnalyzer::VariableInfo TypeInfer::lookupVariable(const std::string &name
 
     throw std::runtime_error("Variable " + name + " not declared in any scope");
 }
+
+

@@ -81,7 +81,10 @@ std::string IRMapper::getInstruction(const IRInstruction ir) {
         case IRInstruction::POST_DEC:  return "POST_DEC";
         case IRInstruction::END_FN :  return "END_FN";
         case IRInstruction::CONST_STR: return  "CONST_STR";
-        case IRInstruction::INDEX_ACESS: return  "INDEX_ACCESS";
+        case IRInstruction::INDEX_ACCESS: return  "INDEX_ACCESS";
+        case IRInstruction::ALLOC: return  "ALLOC";
+        case IRInstruction::FREE: return  "FREE";
+        case IRInstruction::REALLOC: return  "REALLOC";
         default: return "";
     }
 }

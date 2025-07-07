@@ -21,8 +21,7 @@ void  runVm(const std::string& code) {
     semantic_analyzer.analyze(*ast);
     IRGen ir_gen(ast);
     auto ir = ir_gen.generate();
-    OrionVM vm;
-    auto by_gen = ByGen(ir, vm);
+    auto by_gen = ByGen(ir);
     auto gen = by_gen.generate();
     run_vm(gen.data(), gen.size());
 }

@@ -72,39 +72,80 @@ void ByGen::emitBasedOnType(const std::string &type) {
 
 
 
-void ByGen::emmitMeta(const std::string &instruction)  {
-    if (instruction.find('[') != std::string::npos) {
-        std::string meta;
-        size_t storeTypeI = instruction.find('[') + 1;
-        while (instruction[storeTypeI] != ']') {
-            meta += instruction[storeTypeI];
-            storeTypeI++;
-        }
+static inline std::string trim(const std::string &s) {
+    auto l = s.find_first_not_of(" \t\n\r");
+    auto r = s.find_last_not_of(" \t\n\r");
+    return (l == std::string::npos)
+         ? std::string{}
+    : s.substr(l, r - l + 1);
+}
 
-        if (instruction.find(", ") != std::string::npos) {
-           auto end =  instruction.find(", ") + 2;
-            meta = instruction.substr(end, storeTypeI);
-        }
+void ByGen::emmitMeta(const std::string &instruction) {
+    if (instruction.find('[') != std::string::npos){
+        size_t left  = instruction.find('[');
+        size_t right = instruction.find(']');
+        if (left == std::string::npos || right == std::string::npos || right <= left)
+            return;
+
+        std::string meta = instruction.substr(left + 1, right - left - 1);
+        meta = trim(meta);
+
+        auto pos = meta.rfind(',');
+        if (pos != std::string::npos)
+            meta = trim(meta.substr(pos + 1));
+
         bytecode.push_back(ByMapper::getType(meta));
-    }
+}
 }
 
 std::string ByGen::getMeta(const std::string &instruction)  {
     if (instruction.find('[') != std::string::npos) {
-        std::string meta;
-        size_t storeTypeI = instruction.find('[') + 1;
-        while (instruction[storeTypeI] != ']') {
-            meta += instruction[storeTypeI];
-            storeTypeI++;
-        }
+        size_t left  = instruction.find('[');
+        size_t right = instruction.find(']');
+        if (left == std::string::npos || right == std::string::npos || right <= left)
+            return "";
 
-        if (instruction.find(", ") != std::string::npos) {
-            auto end =  instruction.find(", ") + 2;
-            meta = instruction.substr(end, storeTypeI);
-        }
+        std::string meta = instruction.substr(left + 1, right - left - 1);
+        meta = trim(meta);
+
+        auto pos = meta.rfind(',');
+        if (pos != std::string::npos)
+            meta = trim(meta.substr(pos + 1));
+
         return meta;
     }
 }
+
+std::string ByGen::getFirstMeta(const std::string &instruction) {
+    size_t start = instruction.find('[');
+    size_t end = instruction.find(']');
+
+    if (start == std::string::npos || end == std::string::npos || start + 1 >= end) {
+        return "";
+    }
+
+    std::string insideBrackets = instruction.substr(start + 1, end - start - 1);
+    size_t commaPos = insideBrackets.find(',');
+
+    if (commaPos != std::string::npos) {
+        return insideBrackets.substr(0, commaPos);
+    } else {
+        return insideBrackets;
+    }
+}
+
+
+std::string ByGen::extractStringLiteral(const std::string &instruction) {
+    size_t firstQuote = instruction.find('\'');
+    size_t secondQuote = instruction.find('\'', firstQuote + 1);
+
+    if (firstQuote == std::string::npos || secondQuote == std::string::npos || secondQuote <= firstQuote) {
+        return "";
+    }
+
+    return instruction.substr(firstQuote + 1, secondQuote - firstQuote - 1);
+}
+
 
 std::string ByGen::getType(const std::vector<std::string>& parts) {
     std::string type;
@@ -148,6 +189,8 @@ bool ByGen::twoLengthInstruction(const std::string &instruction) {
             instruction == "SHIFT_RIGHT"   ||
             instruction == "BIT_NOT"  ||
 
+            instruction == "INDEX_ACCESS" ||
+
            instruction == "PRINT";
 }
 
@@ -174,6 +217,9 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
     else if (instruction == "CONST_STR") {
         offset = 2 + 8;
     }
+    else if (instruction == "ALLOC") {
+        offset = 10 + std::stoll(getMeta(fullInstruction)) / 8;
+    }
     else if (sevenLengthInstruction(instruction)) {
         offset += 3 + 4;
     }
@@ -199,27 +245,4 @@ void ByGen::emitLiteralLE(uint64_t value)  {
     for (int i = 0; i < 8; i++) {
         bytecode.push_back(bytes[i]);
     }
-}
-
-uint64_t ByGen::placeLiteralInHeap(const std::string& utf8) {
-    auto length   = static_cast<uint64_t>(utf8.size());
-    uint64_t capacity = length;
-    uint8_t  flags    = 0x01;
-
-    size_t headerSize  = sizeof(StringHeader);       // 24 bytes
-    auto payloadSize = static_cast<size_t>(length);
-    size_t totalSize   = headerSize + payloadSize;
-
-    size_t alignedSize = (totalSize + 7) & ~static_cast<size_t>(7);
-
-    uint8_t* base = vm.alloc(alignedSize);
-
-    std::memset(base, 0, headerSize);
-    std::memcpy(base + 0, &length, sizeof(length));
-    std::memcpy(base + 8, &capacity, sizeof(capacity));
-    base[16] = flags;
-
-    std::memcpy(base + headerSize, utf8.data(), payloadSize);
-
-    return vm.addrFromHeapPtr(base);
 }

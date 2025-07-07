@@ -45,8 +45,6 @@ add_library(kimi STATIC
         src/kimiIR/ir_gen_statement.cpp
         src/bygen/instructions/bygen_instructions.cpp
         src/bygen/bygen.cpp
-        src/orion/orion_vm.cpp
-        src/orion/preprocess_functions.cpp
         src/bygen/bygen_helpers.cpp
         src/reader/reader.cpp
         src/pipeline/pipeline.cpp
@@ -63,9 +61,6 @@ target_include_directories(kimi PUBLIC
         src/bygen/instructions/include
         src/bygen/include
         src/general/include
-        src/orion/include
-        src/orion/binaryOp
-        src/orion/unary
         src/primitives/include
         src/reader/include
         src/pipeline/include

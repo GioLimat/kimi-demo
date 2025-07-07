@@ -10,9 +10,13 @@ pub extern "C" fn run_vm(data: *const u8, len: usize){
 
     let vec: Vec<u8> = slice.to_vec();
 
-    println!("Bytecode Mapper: {:?}", vec);
-    println!("\n------------------Invocation successful!------------------\n\n");
-    
-    
+    print!("Bytecode Mapper (hex): ");
+    for byte in &vec {
+        print!("{:02X} ", byte);
+    }
+    println!();
+    println!("\n------------------Invocation successful!------------------\n");
+
+    println!("\n------------------Functions Found------------------\n");
     VM::new(vec).run();
 }

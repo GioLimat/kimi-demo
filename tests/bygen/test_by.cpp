@@ -26,8 +26,7 @@ std::vector<uint8_t>  genBy(const std::string& code) {
     for (auto& instruction : ir) {
         std::cout << instruction << std::endl;
     }
-    OrionVM vm;
-    ByGen by_gen = ByGen(ir, vm);
+    ByGen by_gen = ByGen(ir);
     return by_gen.generate();
 }
 

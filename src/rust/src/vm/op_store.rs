@@ -1,7 +1,7 @@
 use crate::vm::vm::VM;
 
 pub fn op_store(vm: &mut VM) {
-    let value = vm.pop().unwrap();
+    let value = vm.pop().unwrap_or(0);
     
     let frames_to_store = vm.bytecode[vm.ip as usize];
     vm.ip += 1;

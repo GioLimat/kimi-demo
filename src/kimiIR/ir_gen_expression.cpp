@@ -93,19 +93,20 @@ void IRGen::visitCharLiteralExpr(CharLiteralExpr *node) {
 }
 
 void IRGen::visitStringLiteralExpr(StringLiteralExpr *node) {
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::CONST_STR) + " " +
-        node->value + " : "
-        + "str"
-        + " [" + std::to_string(node->value.size()) + + ", " + std::to_string(node->value.length()) + "]");
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::ALLOC) +
+       " '" + node->value + "'"
+       + " : str "
+        + " [" + std::to_string(node->value.length()) + + ", " + std::to_string(node->value.size()) + "]");
 }
 
 void IRGen::visitIndexAccessExpr(IndexAccessExpr *node) {
-
     node->base->accept(*this);
 
     node->index->accept(*this);
 
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INDEX_ACESS) + " [ " +
-        (node->generateHeapValue ? "heap" : "value")
+    std::string type = TypeInfer::analyzeExpression(node->base.get(), &scopes);
+
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INDEX_ACCESS) + " : " + type  + " [" +
+        (node->generateHeapValue ? "heap" : "value") + ", " + type
     +  "]");
 }

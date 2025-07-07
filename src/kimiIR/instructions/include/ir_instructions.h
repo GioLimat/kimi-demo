@@ -11,6 +11,10 @@ enum class IRInstruction {
   // Store at stack
   CONST,
 
+  ALLOC,
+  REALLOC,
+  FREE,
+
   // Load from stack
   LOAD,
   GLOAD,
@@ -62,7 +66,7 @@ enum class IRInstruction {
     CONST_STR,
 
 
-  INDEX_ACESS,
+  INDEX_ACCESS,
 
   // Arithmetic operations
   ADD,

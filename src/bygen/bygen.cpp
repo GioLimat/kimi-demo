@@ -11,11 +11,6 @@
 #include <bits/ostream.tcc>
 
 
-ByGen::ByGen(std::vector<std::string> ir, OrionVM& vm): vm(vm), ir(std::move(ir)) {
-    symbolTable.emplace_back();
-}
-
-
 
 
 std::vector<std::string> ByGen::splitBySpace(const std::string& str) const {
@@ -40,7 +35,7 @@ std::vector<uint8_t> ByGen::generate() {
 
         if (instructionType == "LABEL") continue;
 
-        if (instructionType != "CONST_STR") bytecode.push_back(ByMapper::getInstruction(instructionType));
+        bytecode.push_back(ByMapper::getInstruction(instructionType));
 
         std::string type = getType(parts);
 
@@ -65,17 +60,29 @@ std::vector<uint8_t> ByGen::generate() {
             continue;
         }
 
-        if (instructionType == "CONST_STR") {
-            std::string value = instruction.substr(10,  std::stoi(getMeta(instruction)));
+        if (instructionType == "ALLOC") {
+            std::string type = getType(parts);
+            std::string length = getFirstMeta(instruction);
+            std::string bytes = getMeta(instruction);
 
+            // EMMITING THE TYPE OF THE ALLOCATION
+            emitLiteralLE<uint8_t>(ByMapper::getType(type));
+            // EMMITING THE LENGTH OF THE ALLOCATION
+            emitLiteralLE<uint32_t>(std::stoi(length)); // This is the length of the allocation in bytes
+            // EMMITING THE SIZE OF THE ALLOCATION IN BYTES
+            emitLiteralLE<uint32_t>(std::stoi(bytes)); // This is the size of the allocation in bytes
 
-            uint64_t address = placeLiteralInHeap(value);
-            bytecode.push_back(ByMapper::getInstruction("CONST")); // 0x01
-            bytecode.push_back(0x0A); //  STR_LARGE (0x0A)
-            emitLiteralLE(address);
+            if (type == "str") {
+                std::string value = extractStringLiteral(instruction);
+                for (unsigned char byte : value) {
+                    emitLiteralLE<uint8_t>(byte);
+                }
+            }
 
             continue;
         }
+
+
 
         if (instructionType == "CONST") {
             emitLiteralLE<uint8_t>(ByMapper::getType(type));

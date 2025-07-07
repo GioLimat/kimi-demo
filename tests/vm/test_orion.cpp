@@ -8,13 +8,13 @@
 #include "bygen.h"
 #include "ir_gen.h"
 #include "lexer.h"
-#include "orion_vm.h"
 #include "parser.h"
 #include "semantic_analyzer.h"
 #include <gtest/gtest.h>
+#include "pipeline.h++";
 
 void  runOrion(const std::string& code) {
-    Lexer lexer(code);
+    /*Lexer lexer(code);
     auto tokens = lexer.tokenize();
     Parser parser(tokens);
     auto ast = parser.parse();
@@ -43,7 +43,8 @@ void  runOrion(const std::string& code) {
     std::cout << std::endl;
     vm.bytecode = gen;
     vm.preprocessFunctions();
-    vm.run();
+    vm.run();*/
+    runVm(code);
 }
 
 

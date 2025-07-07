@@ -8,14 +8,21 @@ impl VM {
         
         call_stack.push(CallFrame::new());
         
-        VM {
+        let mut vm = VM {
             stack: Vec::new(),
             bytecode,
             ip: 0,
             stack_ptr: 0,
             heap_manager: HeapManager::new(),
-            call_stack
-        }
+            call_stack,
+            functions: Vec::new(),
+        };
+        
+        vm.preprocess_functions();
+        
+        println!("{:?}\n\n", vm.functions);
+        
+        vm
     }
 
     pub fn push(&mut self, value: u64) {
@@ -49,6 +56,17 @@ impl VM {
 
 
 impl VM {
+
+    pub fn read_i32(&mut self) -> i32 {
+        self.ip += 1;
+        let mut bytes = [0u8; 4];
+        for byte in 0..bytes.len() as usize {
+            bytes[byte] = self.bytecode[self.ip as usize];
+            self.ip += 1;
+        }
+        i32::from_le_bytes(bytes)
+    }
+
     pub fn read_u8(&mut self) -> u8 {
         self.ip += 1;
         let value = self.bytecode[self.ip as usize];

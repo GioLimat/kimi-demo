@@ -14,7 +14,7 @@ pub fn op_const(vm: &mut VM) {
             vm.push(value);
         }
         0x03 => {
-            let value = vm.read_f32();
+            let value = vm.read_f32() as f64; // CONSERTAR ISSO NO FRONT END COM O COMPILER O VARIAVEL F64 E VALOR F32 GERA BUG, FAZER CAST DA EXPRESSÂO PARA F64 NO FRONT
             vm.push(value.to_bits().into());
         }
         0x04 => {
