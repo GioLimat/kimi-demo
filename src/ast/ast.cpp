@@ -113,6 +113,10 @@ IndexAccessExpr::IndexAccessExpr(std::unique_ptr<ExpressionNode> base,
 {}
 
 
+ArrayLiteralNode::ArrayLiteralNode(std::vector<std::unique_ptr<ExpressionNode>> elements) : elements(std::move(elements)) {}
+
+
+
  //VISITORS
 
 void NumberNode::accept(ASTVisitor &visitor) {
@@ -214,4 +218,9 @@ void StringLiteralExpr::accept(ASTVisitor &visitor) {
 
 void IndexAccessExpr::accept(ASTVisitor &visitor) {
         visitor.visitIndexAccessExpr(this);
+}
+
+
+void ArrayLiteralNode::accept(ASTVisitor &visitor) {
+        visitor.visitArrayLiteralNode(this);
 }

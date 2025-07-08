@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+#include "bygen_instructions.h"
 #include "ir_gen.h"
 #include "ir_instructions.h"
 #include "type_analyzer.h"
@@ -109,4 +110,17 @@ void IRGen::visitIndexAccessExpr(IndexAccessExpr *node) {
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::INDEX_ACCESS) + " : " + type  + " [" +
         (node->generateHeapValue ? "heap" : "value") + ", " + type
     +  "]");
+}
+
+
+
+void IRGen::visitArrayLiteralNode(ArrayLiteralNode *node) {
+    for (const auto& elem : node->elements) {
+        elem->accept(*this);
+    }
+
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::ALLOC_ARR) +" : " +
+        node->elemType + " [" + std::to_string(node->elements.size()) + ", "  +
+        std::to_string(node->elements.size() * ByMapper::getSize(node->elemType) / 8)  + "]"
+    );
 }

@@ -28,6 +28,24 @@ pub fn op_println(vm: &mut VM) {
                 println!("Expected a string, but got a different type");
             }
         }
+        0x0B =>{
+            let (elem_type, _, elements) = vm
+                .heap_manager
+                .get(value)
+                .expect("Invalid heap ID")
+                .as_array()
+                .unwrap();
+
+            match elem_type {
+                0x07 => {
+                    let signed: Vec<i64> = elements.iter().map(|&b| b as i64).collect();
+                    println!("{:?}", signed);
+                }
+                _ => {
+                    println!("Array of type {elem_type} is not supported for printing");
+                }
+            }
+        }
         _ => {
             println!("Unknown print type: {}", op_type);
         }

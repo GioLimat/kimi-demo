@@ -48,6 +48,7 @@ std::string IRMapper::getType(const IRType type) {
         case IRType::CHAR:  return "char";
         case IRType::BOOL: return "bool";
         case IRType::STR: return  "str";
+        case IRType::ARRAY:  return "array";
         default: return "";
     }
 
@@ -85,6 +86,7 @@ std::string IRMapper::getInstruction(const IRInstruction ir) {
         case IRInstruction::ALLOC: return  "ALLOC";
         case IRInstruction::FREE: return  "FREE";
         case IRInstruction::REALLOC: return  "REALLOC";
+        case IRInstruction::ALLOC_ARR: return  "ALLOC_ARR";
         default: return "";
     }
 }

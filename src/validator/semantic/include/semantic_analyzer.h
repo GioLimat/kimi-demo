@@ -113,6 +113,7 @@ private:
     void visitCharLiteralExpr(CharLiteralExpr *node) override;
     void visitStringLiteralExpr(StringLiteralExpr *node) override;
     void visitIndexAccessExpr(IndexAccessExpr *node) override;
+    void visitArrayLiteralNode(ArrayLiteralNode *node) override;
 };
 
 #endif //SEMANTIC_ANALYZER_H

@@ -267,3 +267,20 @@ TEST(ParserExpression, StringLiteral) {
 
     ASSERT_EQ("olá mundo \n mundo", strExpr->value);
 }
+
+
+TEST(ParserExpression, ArrayLiteral) {
+    const std::string code = "[1, 4, 5, 6]";
+    Lexer lexer(code);
+
+    const auto tokens = lexer.tokenize();
+
+    auto parser = MockExpression(tokens);
+
+    auto expr = parser.parseExpression();
+
+    auto arrExpr = dynamic_cast<ArrayLiteralNode*>(expr.get());
+
+
+    ASSERT_EQ(arrExpr->elements.size(), 4);
+}

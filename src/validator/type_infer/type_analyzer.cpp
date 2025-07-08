@@ -114,6 +114,19 @@ void TypeInfer::visitIndexAccessExpr(IndexAccessExpr *node) {
     node->base->accept(*this);
 }
 
+void TypeInfer::visitArrayLiteralNode(ArrayLiteralNode *node) {
+    for (const auto& element : node->elements) {
+        element->accept(*this);
+        std::string type = currentType;
+        if (type.empty()) {
+            throw std::runtime_error("Array element type cannot be empty");
+        }
+        node->elemType = type;
+        node->type = "array<" + type + ">";
+    }
+    currentType = "array";
+}
+
 
 
 SemanticAnalyzer::VariableInfo TypeInfer::lookupVariable(const std::string &name) {

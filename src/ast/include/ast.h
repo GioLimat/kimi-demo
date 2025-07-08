@@ -268,4 +268,16 @@ public:
 };
 
 
+class ArrayLiteralNode : public ExpressionNode {
+public:
+    std::vector<std::unique_ptr<ExpressionNode>> elements;
+    std::string elemType;
+    std::string type;
+    bool isConst;
+
+    explicit ArrayLiteralNode(std::vector<std::unique_ptr<ExpressionNode>> elements);
+    void accept(ASTVisitor &visitor) override;
+};
+
+
 #endif // AST_H

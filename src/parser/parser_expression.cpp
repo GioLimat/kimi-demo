@@ -241,8 +241,29 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
     std::unique_ptr<ExpressionNode> node;
     auto token = peek();
 
-    if (token.type == LexerTokenType::NUMBER_INT || token.type == LexerTokenType::NUMBER_FLOAT) {
-        std::string value = advance().value;
+    if (token.type == LexerTokenType::L_BRACKET) {
+        advance();
+        std::vector<std::unique_ptr<ExpressionNode>> elements;
+        if (peek().type != LexerTokenType::R_BRACKET) {
+            while (true) {
+                auto elem = parseExpression();
+                elements.push_back(std::move(elem));
+                if (peek().type == LexerTokenType::COMMA) {
+                    advance();
+                    continue;
+                }
+                break;
+            }
+        }
+        if (peek().type != LexerTokenType::R_BRACKET)
+            throw std::runtime_error("Expected ']' after array literal");
+        advance();
+        node = std::make_unique<ArrayLiteralNode>(std::move(elements));
+    }
+
+    else if (token.type == LexerTokenType::NUMBER_INT || token.type == LexerTokenType::NUMBER_FLOAT) {
+        std::string value;
+        value = advance().value;
         std::string type;
         if (token.type == LexerTokenType::NUMBER_INT) {
             type = inferIntegerType(token.value);
@@ -282,13 +303,14 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
     while (peek().type == LexerTokenType::L_BRACKET) {
         advance();
         auto idxExpr = parseExpression();
-        if (peek().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']' after index expression");
+        if (peek().type != LexerTokenType::R_BRACKET)
+            throw std::runtime_error("Expected ']' after index expression");
         advance();
         node = std::make_unique<IndexAccessExpr>(
-           std::move(node),
-           std::move(idxExpr),
-           true
-       );
+            std::move(node),
+            std::move(idxExpr),
+            true
+        );
     }
 
     return node;

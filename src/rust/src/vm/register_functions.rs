@@ -32,6 +32,9 @@ impl VM {
                 let bytes = &self.bytecode[(self.ip  + 5) as usize..(self.ip + 9) as usize];
                 u32::from_le_bytes(bytes.try_into().unwrap()) as u64
             },
+            0x32 => {
+                6
+            },
             0x00 => 1,
             _ => 0,
         }

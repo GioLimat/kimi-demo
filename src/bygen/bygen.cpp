@@ -11,7 +11,7 @@
 #include <bits/ostream.tcc>
 
 
-
+#define DEBUG 1
 
 std::vector<std::string> ByGen::splitBySpace(const std::string& str) const {
     std::istringstream iss(str);
@@ -29,6 +29,9 @@ std::vector<uint8_t> ByGen::generate() {
 
     size_t i = -1;
     for (auto& instruction : ir) {
+#if DEBUG
+        std::cout << instruction << std::endl;
+#endif
         i++;
         const auto parts  = splitBySpace(instruction);
         const auto& instructionType = parts[0];
@@ -65,6 +68,7 @@ std::vector<uint8_t> ByGen::generate() {
             std::string length = getFirstMeta(instruction);
             std::string bytes = getMeta(instruction);
 
+
             // EMMITING THE TYPE OF THE ALLOCATION
             emitLiteralLE<uint8_t>(ByMapper::getType(type));
             // EMMITING THE LENGTH OF THE ALLOCATION
@@ -81,6 +85,22 @@ std::vector<uint8_t> ByGen::generate() {
 
             continue;
         }
+
+
+        if (instructionType == "ALLOC_ARR") {
+            std::string type = getType(parts);
+            std::string length = getFirstMeta(instruction);
+            std::string bytes = getMeta(instruction);
+
+
+            // EMMITING THE TYPE OF THE ALLOCATION
+            emitLiteralLE<uint8_t>(ByMapper::getType(type));
+            // EMMITING THE LENGTH OF THE ALLOCATION
+            emitLiteralLE<uint32_t>(std::stoi(length)); // This is the length of the allocation in bytes
+
+            continue;
+        }
+
 
 
 

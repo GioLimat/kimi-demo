@@ -218,7 +218,10 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
         offset = 2 + 8;
     }
     else if (instruction == "ALLOC") {
-        offset = 10 + std::stoll(getMeta(fullInstruction)) / 8;
+        offset = 10 + std::stoll(getMeta(fullInstruction));
+    }
+    else if (instruction == "ALLOC_ARR") {
+        offset = 6;
     }
     else if (sevenLengthInstruction(instruction)) {
         offset += 3 + 4;

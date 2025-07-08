@@ -102,6 +102,7 @@ impl VM {
                 0x2C => op_bit_not(self), // op_bit_not
                 0x2E => op_alloc(self), // op_alloc
                 0x31 => op_index_access(self), // op_index_access
+                0x32 => op_alloc_array(self), // op_alloc_array
                 _ => {
                     println!("Unknown opcode: 0x{:02X}", opcode);
                     break;

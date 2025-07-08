@@ -33,6 +33,7 @@ public:
     void visitPostFixExpr(PostFixExprNode *node) override;
     void visitCharLiteralExpr(CharLiteralExpr *node) override;
     void visitStringLiteralExpr(StringLiteralExpr *node) override;
+    void visitArrayLiteralNode(ArrayLiteralNode *node) override;
 };
 
 

@@ -7,6 +7,6 @@
 
 
 TEST(Integration, SimpleCode) {
-    auto code = "println(\"sola\"[3]) " ;
+    auto code = "println([1, 4]);" ;
     runVm(code);
 }

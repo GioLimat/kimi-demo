@@ -72,6 +72,8 @@ inline std::unordered_map<std::string, uint8_t> instructionMap  = {
     {"FREE", 0x2F},
     {"REALLOC", 0x30},
     {"INDEX_ACCESS", 0x31},
+
+    {"ALLOC_ARR", 0x32},
 };
 
 
@@ -85,7 +87,8 @@ inline std::unordered_map<std::string, uint8_t> typeMap = {
     {"i8", 0x07},
     {"i16", 0x08},
     {"char", 0x09},
-    {"str", 0x0A}
+    {"str", 0x0A},
+    {"array", 0x0B}
 };
 
 

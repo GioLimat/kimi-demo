@@ -12,6 +12,7 @@ enum class IRInstruction {
   CONST,
 
   ALLOC,
+  ALLOC_ARR,
   REALLOC,
   FREE,
 
@@ -99,7 +100,9 @@ enum class IRType {
   // Boolean
   BOOL,
 
-  STR
+  STR,
+
+  ARRAY
 };
 
 enum class IRMeta {

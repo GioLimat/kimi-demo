@@ -331,6 +331,38 @@ void SemanticAnalyzer::visitIndexAccessExpr(IndexAccessExpr *node) {
 }
 
 
+void SemanticAnalyzer::visitArrayLiteralNode(ArrayLiteralNode *node) {
+    std::vector<std::string> elementTypes;
+
+    for (const auto& element : node->elements) {
+        element->accept(*this);
+        std::string type = TypeInfer::analyzeExpression(element.get(), &scopes);
+        if (type.empty()) {
+            throw std::runtime_error("Array element type cannot be empty");
+        }
+        elementTypes.push_back(type);
+    }
+
+    if (elementTypes.empty()) {
+        throw std::runtime_error("Array literal cannot be empty");
+    }
+    const std::string& firstType = elementTypes.front();
+    bool mixed = std::any_of(
+        elementTypes.begin() + 1,
+        elementTypes.end(),
+        [&](const std::string& t){ return t != firstType; }
+    );
+    if (mixed) {
+        throw std::runtime_error("Inconsistent element types in array literal");
+    }
+
+    node->type = "array<" + firstType + ">";
+    node->elemType = firstType;
+}
+
+
+
+
 void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters, const std::string &returnType) {
     if (scopes.top().contains(name)) {
         if (std::holds_alternative<FunctionInfo>(scopes.top().at(name))) {

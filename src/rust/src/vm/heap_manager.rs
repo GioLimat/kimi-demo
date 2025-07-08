@@ -5,6 +5,11 @@ pub enum HeapValue {
         type_id: u64,
         data: Vec<u64>,
     },
+    Array {
+        elem_type: u8,
+        elem_type_id: Option<u64>,
+        elements: Vec<u64>,
+    }
 }
 
 impl HeapValue {
@@ -19,6 +24,19 @@ impl HeapValue {
     pub fn as_object(&self) -> Option<(&u64, &Vec<u64>)> {
         if let HeapValue::Object { type_id, data } = self {
             Some((type_id, data))
+        } else {
+            None
+        }
+    }
+    
+    pub fn as_array(&self) -> Option<(&u8, &Option<u64>, &Vec<u64>)> {
+        if let HeapValue::Array {
+            elem_type,
+            elem_type_id,
+            elements,
+        } = self
+        {
+            Some((elem_type, elem_type_id, elements))
         } else {
             None
         }
