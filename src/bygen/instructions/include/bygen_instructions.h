@@ -74,6 +74,7 @@ inline std::unordered_map<std::string, uint8_t> instructionMap  = {
     {"INDEX_ACCESS", 0x31},
 
     {"ALLOC_ARR", 0x32},
+    {"EL_ARRAY_ASSIGN", 0x33}
 };
 
 

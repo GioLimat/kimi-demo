@@ -36,3 +36,4 @@ pub fn op_index_access(vm: &mut VM) {
         }
     }
 }
+

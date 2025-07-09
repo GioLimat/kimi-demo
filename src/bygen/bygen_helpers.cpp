@@ -208,6 +208,7 @@ bool ByGen::sevenLengthInstruction(const std::string &instruction) {
 uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::string& tempType = "", const std::string& fullInstruction ) {
     uint64_t offset = 0;
 
+
     if (twoLengthInstruction(instruction)) {
         offset = 2;
     }
@@ -224,17 +225,17 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
         offset = 6;
     }
     else if (sevenLengthInstruction(instruction)) {
-        offset += 3 + 4;
+        offset = 3 + 4;
     }
-    else if (instruction == "END_BLOCK" || instruction == "INIT_BLOCK" || instruction == "END_FN") {
-        offset += 1;
+    else if (instruction == "END_BLOCK" || instruction == "INIT_BLOCK" || instruction == "END_FN" || instruction == "EL_ARRAY_ASSIGN") {
+        offset = 1;
     }
     else if (    instruction == "FN"
         || instruction == "FN_PARAM"
         || instruction == "CALL" ||
         instruction == "IF_FALSE"
         || instruction == "JMP") {
-        offset += 1 + 4;
+        offset = 1 + 4;
     }
     else {
         throw std::runtime_error("Unknown instruction " + instruction);

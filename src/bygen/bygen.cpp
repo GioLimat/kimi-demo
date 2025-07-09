@@ -63,6 +63,8 @@ std::vector<uint8_t> ByGen::generate() {
             continue;
         }
 
+        if (instructionType == "EL_ARRAY_ASSIGN") continue;
+
         if (instructionType == "ALLOC") {
             std::string type = getType(parts);
             std::string length = getFirstMeta(instruction);

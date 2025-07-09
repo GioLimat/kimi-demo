@@ -127,3 +127,19 @@ void IRGen::visitArrayLiteralNode(ArrayLiteralNode *node) {
         std::to_string(bytes == 0 ? node->elements.size() : bytes)  + "]"
     );
 }
+
+
+void IRGen::visitAssignmentIndexExpr(AssignmentIndexExprNode *node) {
+    auto idxNode = dynamic_cast<IndexAccessExpr*>(node->target.get());
+    idxNode->base->accept(*this);
+
+    idxNode->index->accept(*this);
+
+    node->value->accept(*this);
+
+    std::string elemType = idxNode->type;
+    bytecode.push_back(
+        IRMapper::getInstruction(IRInstruction::EL_ARRAY_ASSIGN)
+        + " : " + elemType
+    );
+}

@@ -24,6 +24,7 @@ protected:
     std::unique_ptr<ExpressionNode> parsePostFix();
     std::unique_ptr<ExpressionNode> parseComposeAssignment();
     std::unique_ptr<ExpressionNode> parseLeftHandSide();
+    std::unique_ptr<ExpressionNode> parseAssignmentIndexExpression();
 };
 
 #endif //PARSER_EXPRESSION_H

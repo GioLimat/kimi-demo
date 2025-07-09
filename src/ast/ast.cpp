@@ -116,6 +116,8 @@ IndexAccessExpr::IndexAccessExpr(std::unique_ptr<ExpressionNode> base,
 ArrayLiteralNode::ArrayLiteralNode(std::vector<std::unique_ptr<ExpressionNode>> elements) : elements(std::move(elements)) {}
 
 
+AssignmentIndexExprNode::AssignmentIndexExprNode(std::string name, std::unique_ptr<ExpressionNode> value, std::unique_ptr<ExpressionNode> target): name(std::move(name)), value(std::move(value)), target(std::move(target)) {}
+
 
  //VISITORS
 
@@ -223,4 +225,8 @@ void IndexAccessExpr::accept(ASTVisitor &visitor) {
 
 void ArrayLiteralNode::accept(ASTVisitor &visitor) {
         visitor.visitArrayLiteralNode(this);
+}
+
+void AssignmentIndexExprNode::accept(ASTVisitor &visitor) {
+        visitor.visitAssignmentIndexExpr(this);
 }

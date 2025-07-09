@@ -82,5 +82,15 @@ TEST(ParserExpression, ArrayLiteralMutation) {
 
     auto ast = parser.parse();
 
+    auto assignment = dynamic_cast<AssignmentIndexExprNode*>(ast->children[1].get());
 
+    ASSERT_EQ(assignment->name, "x");
+
+    auto idx = dynamic_cast<IndexAccessExpr*>(assignment->target.get());
+    ASSERT_NE(idx, nullptr);
+    auto id = dynamic_cast<IdentifierExprNode*>(idx->base.get());
+
+    ASSERT_NE(id, nullptr);
+    ASSERT_EQ(id->name, "x");
 }
+

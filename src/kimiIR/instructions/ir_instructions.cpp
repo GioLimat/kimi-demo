@@ -87,6 +87,7 @@ std::string IRMapper::getInstruction(const IRInstruction ir) {
         case IRInstruction::FREE: return  "FREE";
         case IRInstruction::REALLOC: return  "REALLOC";
         case IRInstruction::ALLOC_ARR: return  "ALLOC_ARR";
+        case IRInstruction::EL_ARRAY_ASSIGN: return "EL_ARRAY_ASSIGN";
         default: return "";
     }
 }

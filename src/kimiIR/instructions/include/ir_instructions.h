@@ -68,6 +68,7 @@ enum class IRInstruction {
 
 
   INDEX_ACCESS,
+  EL_ARRAY_ASSIGN,
 
   // Arithmetic operations
   ADD,

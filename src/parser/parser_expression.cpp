@@ -89,6 +89,12 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
                       || tok == LexerTokenType::BIT_AND_EQUAL
                       || tok == LexerTokenType::BIT_OR_EQUAL
                       || tok == LexerTokenType::XOR_EQUAL;
+
+
+        if (const auto* idx = dynamic_cast<IndexAccessExpr*>(lhs.get()); idx != nullptr && isEq) {
+            current = save;
+            return parseAssignmentIndexExpression();
+        }
         if (isEq || isCompose) {
             current = save;
             if (isCompose) return parseComposeAssignment();
@@ -105,6 +111,19 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
     return parseBinaryOperation(0);
 }
 
+std::unique_ptr<ExpressionNode> ParserExpression::parseAssignmentIndexExpression() {
+    auto name = peek().value;
+    auto left = parseLeftHandSide();
+    if (peek().type != LexerTokenType::EQUALS) {
+        throw std::runtime_error("Expected '=' after index expression");
+    }
+    advance();
+    auto value = parseExpression();
+
+    return std::make_unique<AssignmentIndexExprNode>(
+        move(name), move(value), move(left)
+        );
+}
 
 
 std::unique_ptr<ExpressionNode> ParserExpression::parseBinaryOperation(const int minPrecedence) {

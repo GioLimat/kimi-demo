@@ -7,6 +7,6 @@
 
 
 TEST(Integration, SimpleCode) {
-    auto code = "val x = [[10,20], [30, 40]];  for (var i = 0; i < 2; i++) { for (var j = 0; j < 2; j++) { println(x[i][j]); } }" ;
+    auto code = "var x = [[4]]; x[0][0] = 10; println(x);" ;
     runVm(code);
 }

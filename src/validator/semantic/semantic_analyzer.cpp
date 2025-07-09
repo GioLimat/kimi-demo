@@ -374,6 +374,20 @@ void SemanticAnalyzer::visitArrayLiteralNode(ArrayLiteralNode *node) {
 
 
 
+void SemanticAnalyzer::visitAssignmentIndexExpr(AssignmentIndexExprNode *node) {
+    node->target->accept(*this);
+    std::string targetType = TypeInfer::analyzeExpression(node->target.get(), &scopes);
+    auto varInfo = lookup<VariableInfo>(node->name, "Variable " + node->name + " not declared in this scope");
+    if (varInfo.isConst) {
+        throw std::runtime_error("Cannot assign to const variable " + node->name);
+    }
+    if (varInfo.arrayType.empty() || !varInfo.arrayType.starts_with("array") || varInfo.arrayType == "void") {
+        throw std::runtime_error("Assignment target must be an array, got: " + targetType);
+    }
+    node->value->accept(*this);
+}
+
+
 
 void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters, const std::string &returnType) {
     if (scopes.top().contains(name)) {

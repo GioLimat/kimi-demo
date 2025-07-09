@@ -284,4 +284,15 @@ public:
 };
 
 
+class AssignmentIndexExprNode : public ExpressionNode {
+public:
+    std::string name;
+    std::unique_ptr<ExpressionNode> value;
+    std::unique_ptr<ExpressionNode> target;
+    std::string type;
+
+    explicit AssignmentIndexExprNode(std::string name, std::unique_ptr<ExpressionNode> value, std::unique_ptr<ExpressionNode> target);
+    void accept(ASTVisitor &visitor) override;
+};
+
 #endif // AST_H
