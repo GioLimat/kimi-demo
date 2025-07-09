@@ -15,12 +15,15 @@ public:
 protected:
     [[nodiscard]] int precedence(LexerTokenType type) ;
     std::unique_ptr<ExpressionNode> parseBinaryOperation(int minPrecedence);
+    std::unique_ptr<ExpressionNode> parseBinaryOperation(int minPrecedence,
+                                                         std::unique_ptr<ExpressionNode> left);
     std::unique_ptr<ExpressionNode> parsePrimary();
     std::unique_ptr<ExpressionNode> parseUnary();
     std::unique_ptr<ExpressionNode> parseCallIdentifier();
     std::unique_ptr<ExpressionNode> parseAssignment();
     std::unique_ptr<ExpressionNode> parsePostFix();
     std::unique_ptr<ExpressionNode> parseComposeAssignment();
+    std::unique_ptr<ExpressionNode> parseLeftHandSide();
 };
 
 #endif //PARSER_EXPRESSION_H

@@ -126,3 +126,14 @@ TEST(Orion, SimpleCode14) {
     auto code = "var x = \" essa é a continuação da string \"; println(\"olá mundo isso é grande vai para o heap!\" + x); ";
     runOrion(code);
 }
+TEST(Orion, SimpleCode15) {
+    auto code = "println([[4, 4] ,[4, 6, 7]]);" ;
+    runOrion(code);
+}
+
+
+TEST(Orion, SimpleCode16) {
+    auto code = "val x = [[10,20], [30, 40]];  for (var i = 0; i < 2; i++) { for (var j = 0; j < 2; j++) { println(x[i][j]); } }" ;
+    runOrion(code);
+}
+

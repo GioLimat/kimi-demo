@@ -16,8 +16,6 @@ fn read_allocation(vm: &mut VM) -> (u8, Vec<u8>, u32) {
 
     vm.ip += bytes as u64; // Move IP forward after reading the value bytes
     
-    println!("{len  } bytes read for allocation type {op_type}");
-    
     (op_type, value_bytes, len)
 }
 

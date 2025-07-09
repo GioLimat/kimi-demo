@@ -49,10 +49,17 @@ void SemanticAnalyzer::visitIdentifier(IdentifierExprNode *node) {
 
 void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     std::string inferredType;
-
+    std::string arrType = "";
     if (var->initializer) {
         var->initializer->accept(*this);
         inferredType = TypeInfer::analyzeExpression(var->initializer.get(), &scopes);
+
+
+        if (auto* arr = dynamic_cast<ArrayLiteralNode*>(var->initializer.get())) {
+            arrType = arr->extendType;
+        }
+
+
 
         if (var->declaredType.empty()) {
             if (inferredType.rfind('i', 0) == 0) {
@@ -96,14 +103,15 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     }
 
     const std::string finalType = var->declaredType.empty() ? inferredType : var->declaredType;
-    declareVariable(var->name, finalType, var->isConst, var->isGlobal);
+
+    declareVariable(var->name, finalType, var->isConst, var->isGlobal, arrType);
     var->type = finalType;
 }
 
 void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
     std::string storeType = TypeInfer::analyzeExpression(expr->value.get(), &scopes);
 
-    auto [varType, isConst, isGlobal] =
+    auto [varType, isConst, isGlobal, _] =
         lookup<VariableInfo>(expr->name, "Variable " + expr->name + " not declared in this scope");
     if (isConst) {
         throw std::runtime_error("Cannot assign to const variable " + expr->name);
@@ -133,7 +141,7 @@ void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
     declareFunction(node->name, node->parameters, node->returnType);
     enterScope();
     for (const auto& param : node->parameters) {
-        declareVariable(param.name, param.type, false, false);
+        declareVariable(param.name, param.type, false, false, "");
     }
     for (const auto& child : node->body->statements) {
         child->accept(*this);
@@ -322,10 +330,14 @@ void SemanticAnalyzer::visitIndexAccessExpr(IndexAccessExpr *node) {
     }
 
     node->base->accept(*this);
+    TypeInfer::analyzeExpression(node, &scopes);
+
     std::string inferBase = TypeInfer::analyzeExpression(node->base.get(), &scopes);
-    if (inferBase == "str") {
+
+    if (inferBase == "str" || node->baseType.starts_with("array")) {
         node->generateHeapValue = true;
-    } else {
+    }
+    else {
         throw std::runtime_error("Index access requires a string type, got: " + inferBase);
     }
 }
@@ -374,11 +386,11 @@ void SemanticAnalyzer::declareFunction(const std::string &name, const std::vecto
 
 
 
-void SemanticAnalyzer::declareVariable(const std::string& name, const std::string& type, const bool isConst, const bool isGlobal) {
+void SemanticAnalyzer::declareVariable(const std::string& name, const std::string& type, const bool isConst, const bool isGlobal, const std::string& arrayType = "") {
     if (scopes.top().contains(name)) {
         throw std::runtime_error("Variable " + name + " already declared in this scope");
     }
-    scopes.top()[name] = VariableInfo{type, isConst, isGlobal};
+    scopes.top()[name] = VariableInfo{type, isConst, isGlobal, arrayType};
 }
 
 

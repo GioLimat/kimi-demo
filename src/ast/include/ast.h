@@ -94,9 +94,10 @@ class AssignmentExprNode : public ExpressionNode {
 public:
     std::string name;
     std::unique_ptr<ExpressionNode> value;
+    std::unique_ptr<ExpressionNode> target;
     std::string type;
 
-    explicit AssignmentExprNode(std::string name, std::unique_ptr<ExpressionNode> value);
+    explicit AssignmentExprNode(std::string name, std::unique_ptr<ExpressionNode> value, std::unique_ptr<ExpressionNode> target);
     void accept(ASTVisitor &visitor) override;
 };
 
@@ -259,6 +260,8 @@ public:
     std::unique_ptr<ExpressionNode> base;
     std::unique_ptr<ExpressionNode> index;
     bool generateHeapValue;
+    std::string type;
+    std::string baseType;
 
     explicit IndexAccessExpr(std::unique_ptr<ExpressionNode> base,
                     std::unique_ptr<ExpressionNode> index,
@@ -273,6 +276,7 @@ public:
     std::vector<std::unique_ptr<ExpressionNode>> elements;
     std::string elemType;
     std::string type;
+    std::string extendType;
     bool isConst;
 
     explicit ArrayLiteralNode(std::vector<std::unique_ptr<ExpressionNode>> elements);

@@ -74,3 +74,13 @@ TEST(Parser, StringStrIndex) {
 
 
 
+TEST(ParserExpression, ArrayLiteralMutation) {
+    const std::string code = "var x = [1, 4, 5, 6]; x[3] = 10;";
+    Lexer lexer(code);
+    auto tokens = lexer.tokenize();
+    auto parser = Parser(tokens);
+
+    auto ast = parser.parse();
+
+
+}

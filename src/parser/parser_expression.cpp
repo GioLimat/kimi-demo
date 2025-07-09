@@ -56,86 +56,54 @@ int ParserExpression::precedence(const LexerTokenType type) {
 
 
 
+std::unique_ptr<ExpressionNode> ParserExpression::parseLeftHandSide() {
+    auto lhs = parseCallIdentifier();
+    while (peek().type == LexerTokenType::L_BRACKET)
+    {
+        if (peek().type == LexerTokenType::L_BRACKET) {
+            advance();
+            auto idx = parseExpression();
+            if (peek().type != LexerTokenType::R_BRACKET)
+                throw std::runtime_error("Expected ]");
+            advance();
+            lhs = std::make_unique<IndexAccessExpr>(std::move(lhs), std::move(idx), true);
+        }
+    }
+    return lhs;
+}
+
 std::unique_ptr<ExpressionNode> ParserExpression::parseExpression() {
     if (isAtEnd()) return nullptr;
-    auto nextToken = tokens.at(current + 1);
-
-    auto isCompose = nextToken.type == LexerTokenType::PLUS_EQUAL
-        || nextToken.type == LexerTokenType::MINUS_EQUAL
-        || nextToken.type == LexerTokenType::MULTIPLY_EQUAL
-        || nextToken.type == LexerTokenType::DIVIDE_EQUAL
-        || nextToken.type == LexerTokenType::MODULUS_EQUAL
-        || nextToken.type == LexerTokenType::SHIFT_LEFT_EQUAL
-        || nextToken.type == LexerTokenType::SHIFT_RIGHT_EQUAL
-        || nextToken.type == LexerTokenType::BIT_AND_EQUAL
-        || nextToken.type == LexerTokenType::BIT_OR_EQUAL
-        || nextToken.type == LexerTokenType::XOR_EQUAL
-    ;
-
-    if (peek().type == LexerTokenType::IDENTIFIER &&
-        (nextToken.type == LexerTokenType::EQUALS
-        || isCompose)) {
-
-        if (isCompose) {
-            if (auto asg = parseComposeAssignment(); asg != nullptr)
-                return asg;
+    if (peek().type == LexerTokenType::IDENTIFIER) {
+        size_t save = current;
+        auto lhs = parseLeftHandSide();
+        auto tok = peek().type;
+        bool isEq      = tok == LexerTokenType::EQUALS;
+        bool isCompose = tok == LexerTokenType::PLUS_EQUAL
+                      || tok == LexerTokenType::MINUS_EQUAL
+                      || tok == LexerTokenType::MULTIPLY_EQUAL
+                      || tok == LexerTokenType::DIVIDE_EQUAL
+                      || tok == LexerTokenType::MODULUS_EQUAL
+                      || tok == LexerTokenType::SHIFT_LEFT_EQUAL
+                      || tok == LexerTokenType::SHIFT_RIGHT_EQUAL
+                      || tok == LexerTokenType::BIT_AND_EQUAL
+                      || tok == LexerTokenType::BIT_OR_EQUAL
+                      || tok == LexerTokenType::XOR_EQUAL;
+        if (isEq || isCompose) {
+            current = save;
+            if (isCompose) return parseComposeAssignment();
+            return parseAssignment();
         }
-        else {
-            if (auto asg = parseAssignment(); asg != nullptr)
-                return asg;
-        }
+        current = save;
     }
-
-    if (peek().type == LexerTokenType::IDENTIFIER &&
-        (nextToken.type == LexerTokenType::PLUS_PLUS ||
-         nextToken.type == LexerTokenType::MINUS_MINUS   )) {
+    if (peek().type == LexerTokenType::IDENTIFIER
+        && (tokens.at(current + 1).type == LexerTokenType::PLUS_PLUS
+         || tokens.at(current + 1).type == LexerTokenType::MINUS_MINUS))
+    {
         return parsePostFix();
     }
-
     return parseBinaryOperation(0);
 }
-
-
-
-std::unique_ptr<ExpressionNode> ParserExpression::parsePostFix() {
-
-    auto identifier = parseCallIdentifier();
-
-    if (auto id = dynamic_cast<IdentifierExprNode*>(identifier.get()); id == nullptr) throw std::runtime_error("Expected identifier");
-    return std::make_unique<PostFixExprNode>(advance().value, std::move(identifier));
-}
-
-
-
-std::unique_ptr<ExpressionNode> ParserExpression::parseAssignment() {
-    auto identifier = advance().value;
-    advance();
-
-    auto expr = parseBinaryOperation(0);
-
-    return std::make_unique<AssignmentExprNode>(std::move(identifier), std::move(expr));
-}
-
-
-
-std::unique_ptr<ExpressionNode> ParserExpression::parseComposeAssignment() {
-    std::string varName = advance().value;
-    std::string compOp = advance().value;
-
-    auto rhs = parseBinaryOperation(0);
-
-    char binOp = compOp[0];
-
-    auto leftIdent = std::make_unique<IdentifierExprNode>(varName);
-    auto addExpr = std::make_unique<BinaryExprNode>(
-        std::string(1, binOp),
-        std::move(leftIdent),
-        std::move(rhs)
-    );
-
-    return std::make_unique<AssignmentExprNode>(varName, std::move(addExpr));
-}
-
 
 
 
@@ -158,6 +126,54 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseBinaryOperation(const int
 
     return left;
 }
+
+
+
+std::unique_ptr<ExpressionNode> ParserExpression::parsePostFix() {
+
+    auto identifier = parseCallIdentifier();
+
+    if (auto id = dynamic_cast<IdentifierExprNode*>(identifier.get()); id == nullptr) throw std::runtime_error("Expected identifier");
+    return std::make_unique<PostFixExprNode>(advance().value, std::move(identifier));
+}
+
+
+std::unique_ptr<ExpressionNode> ParserExpression::parseAssignment() {
+    auto target = parseLeftHandSide();
+    advance();
+    auto expr = parseExpression();
+    std::string name;
+    if (auto id = dynamic_cast<IdentifierExprNode*>(target.get())) {
+        name = id->name;
+    }
+    return std::make_unique<AssignmentExprNode>(
+        std::move(name),
+        std::move(expr),
+        std::move(target)
+    );
+}
+
+
+std::unique_ptr<ExpressionNode> ParserExpression::parseComposeAssignment() {
+    std::string varName = advance().value;
+    std::string compOp = advance().value;
+
+    auto rhs = parseBinaryOperation(0);
+
+    char binOp = compOp[0];
+
+    auto leftIdent = std::make_unique<IdentifierExprNode>(varName);
+    auto addExpr = std::make_unique<BinaryExprNode>(
+        std::string(1, binOp),
+        std::move(leftIdent),
+        std::move(rhs)
+    );
+
+    return std::make_unique<AssignmentExprNode>(varName, std::move(addExpr), nullptr);
+}
+
+
+
 
 std::unique_ptr<ExpressionNode> ParserExpression::parseCallIdentifier() {
     std::string functionName = advance().value;

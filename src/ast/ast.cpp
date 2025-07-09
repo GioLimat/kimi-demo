@@ -28,7 +28,7 @@ BinaryExprNode::BinaryExprNode(std::string op,
       right(std::move(right)) {}
 
 
-AssignmentExprNode::AssignmentExprNode(std::string name, std::unique_ptr<ExpressionNode> value): name(std::move(name)), value(std::move(value)) {}
+AssignmentExprNode::AssignmentExprNode(std::string name, std::unique_ptr<ExpressionNode> value, std::unique_ptr<ExpressionNode> target): name(std::move(name)), value(std::move(value)), target(std::move(target)) {}
 
 VarDeclarationNode::VarDeclarationNode(std::string name,
                                        std::unique_ptr<ExpressionNode> initializer, bool isConst)

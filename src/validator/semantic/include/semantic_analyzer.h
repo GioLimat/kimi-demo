@@ -20,6 +20,7 @@ public:
         std::string type;
         bool isConst;
         bool isGlobal;
+        std::string arrayType = "void";
     };
     struct FunctionInfo {
         std::string name;
@@ -40,7 +41,8 @@ private:
     void printAllScopes();
     void enterScope();
     void exitScope();
-    void declareVariable(const std::string& name, const std::string& type, bool isConst, bool isGlobal);
+    void declareVariable(const std::string& name, const std::string& type, bool isConst, bool isGlobal,
+        const std::string& arrayType);
     void declareFunction(const std::string& name,
         const std::vector<FunctionDeclarationNode::Param>& parameters, const std::string& returnType);
 

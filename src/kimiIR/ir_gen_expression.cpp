@@ -101,14 +101,15 @@ void IRGen::visitStringLiteralExpr(StringLiteralExpr *node) {
 }
 
 void IRGen::visitIndexAccessExpr(IndexAccessExpr *node) {
-    node->base->accept(*this);
 
+
+
+    node->base->accept(*this);
     node->index->accept(*this);
 
-    std::string type = TypeInfer::analyzeExpression(node->base.get(), &scopes);
 
-    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INDEX_ACCESS) + " : " + type  + " [" +
-        (node->generateHeapValue ? "heap" : "value") + ", " + type
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INDEX_ACCESS) + " : " + node->type  + " [" +
+        (node->generateHeapValue ? "heap" : "value") + ", " + node->type
     +  "]");
 }
 
@@ -119,8 +120,10 @@ void IRGen::visitArrayLiteralNode(ArrayLiteralNode *node) {
         elem->accept(*this);
     }
 
+    const auto bytes = (node->elements.size() * ByMapper::getSize(node->elemType) / 8);
+
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::ALLOC_ARR) +" : " +
         node->elemType + " [" + std::to_string(node->elements.size()) + ", "  +
-        std::to_string(node->elements.size() * ByMapper::getSize(node->elemType) / 8)  + "]"
+        std::to_string(bytes == 0 ? node->elements.size() : bytes)  + "]"
     );
 }

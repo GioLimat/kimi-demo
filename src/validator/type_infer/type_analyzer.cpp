@@ -10,7 +10,8 @@
 #include "sizes.h"
 
 
-
+std::string TypeInfer::currentExtendedArrayType = "void";
+std::string TypeInfer::currentArrayType = "void";
 SemanticAnalyzer::Scope* TypeInfer::scopes = nullptr;
 
 std::string promoteNumericTypes(const std::string& left, const std::string& right) {
@@ -110,21 +111,97 @@ void TypeInfer::visitPostFixExpr(PostFixExprNode *node) {
 }
 
 
-void TypeInfer::visitIndexAccessExpr(IndexAccessExpr *node) {
-    node->base->accept(*this);
+static std::string unwrapArrayType(const std::string& t) {
+    const std::string prefix = "array<";
+    if (!t.starts_with(prefix)) return t;
+
+    size_t first = t.find('<');
+    size_t last = t.rfind('>');
+    if (first == std::string::npos || last == std::string::npos || last <= first)
+        throw std::runtime_error("Invalid array type format: " + t);
+
+    std::string inner = t.substr(first + 1, last - first - 1);
+
+    size_t pos = inner.find('<');
+    if (pos != std::string::npos) {
+        return inner.substr(0, pos);
+    }
+
+    return inner;
 }
 
-void TypeInfer::visitArrayLiteralNode(ArrayLiteralNode *node) {
-    for (const auto& element : node->elements) {
-        element->accept(*this);
-        std::string type = currentType;
-        if (type.empty()) {
-            throw std::runtime_error("Array element type cannot be empty");
+void TypeInfer::visitIndexAccessExpr(IndexAccessExpr *node) {
+    node->index->accept(*this);
+    node->base->accept(*this);
+
+    std::string baseType;
+
+    if (auto* baseArr = dynamic_cast<ArrayLiteralNode*>(node->base.get())) {
+        baseType = baseArr->extendType;
+    } else if (auto* baseIdx = dynamic_cast<IndexAccessExpr*>(node->base.get())) {
+        baseType = baseIdx->baseType;
+        if (baseType.starts_with("array<")) {
+            baseType = baseType.substr(baseType.find('<') + 1, baseType.length() - baseType.find('<') - 2);
         }
-        node->elemType = type;
-        node->type = "array<" + type + ">";
+    } else if (auto* ident = dynamic_cast<IdentifierExprNode*>(node->base.get())) {
+        auto varInfo = lookupVariable(ident->name);
+        baseType = varInfo.arrayType.empty() || varInfo.arrayType == "void" ? varInfo.type : varInfo.arrayType;
     }
+    else {
+        throw std::runtime_error("Base of index access must be an array or identifier");
+    }
+
+    std::string innerType = unwrapArrayType(baseType);
+
+
+    node->baseType = baseType;
+    node->type = innerType;
+
+
+    if (baseType.starts_with("array<")) {
+        currentType = innerType;
+        node->type = "array";
+    } else {
+        currentType = innerType;
+        node->type = baseType;
+    }
+}
+
+
+void TypeInfer::visitArrayLiteralNode(ArrayLiteralNode *node) {
+    if (node->elements.empty())
+        throw std::runtime_error("Array literal cannot be empty");
+
+    node->elements[0]->accept(*this);
+    std::string baseType;
+    if (auto* arr = dynamic_cast<ArrayLiteralNode*>(node->elements[0].get())) {
+        baseType = arr->extendType;
+    } else {
+        baseType = currentType;
+    }
+
+    for (size_t i = 1; i < node->elements.size(); ++i) {
+        node->elements[i]->accept(*this);
+
+        std::string elemType;
+        if (auto* arr = dynamic_cast<ArrayLiteralNode*>(node->elements[i].get())) {
+            elemType = arr->extendType;
+        } else {
+            elemType = currentType;
+        }
+
+        if (elemType != baseType) {
+            throw std::runtime_error(
+                "Inconsistent element types in array literal: " + baseType + " vs " + elemType
+            );
+        }
+    }
+
+    node->elemType = baseType.starts_with("array<") ? "array" : baseType;
+    node->extendType = "array<" + baseType + ">";
+    node->type = "array";
     currentType = "array";
+
 }
 
 

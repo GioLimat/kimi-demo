@@ -21,6 +21,16 @@ pub fn op_index_access(vm: &mut VM) {
                 println!("Error: Index out of bounds for string access");
             }
         }
+        0x0B => {
+            let (elem_type, elem_type_id, elements) = vm.heap_manager.get(operand).unwrap().as_array().unwrap();
+
+            if index < elements.len() {
+                let value = elements[index];
+                vm.push(value);
+            } else {
+                println!("Error: Index out of bounds for array access");
+            }
+        }
         _ => {
             println!("Error: Unsupported index access operation type: {}", op_type);
         }
