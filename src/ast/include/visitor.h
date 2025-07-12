@@ -35,6 +35,8 @@ public:
     virtual void visitIndexAccessExpr(IndexAccessExpr* node) = 0;
     virtual void visitArrayLiteralNode(ArrayLiteralNode* node) = 0;
     virtual void visitAssignmentIndexExpr(AssignmentIndexExprNode* node) = 0;
+    virtual void visitInsertCollection(InsertStatementNode* node) = 0;
+    virtual void visitRemoveCollection(RemoveStatementNode* node) = 0;
     virtual ~ASTVisitor() = default;
 };
 
@@ -66,5 +68,7 @@ public:
     void visitIndexAccessExpr(IndexAccessExpr* node) override {};
     void visitArrayLiteralNode(ArrayLiteralNode *node) override {};
     void visitAssignmentIndexExpr(AssignmentIndexExprNode* node) override {};
+    void visitInsertCollection(InsertStatementNode* node) override {};
+    void visitRemoveCollection(RemoveStatementNode* node) override {};
 };
 #endif //VISITOR_H

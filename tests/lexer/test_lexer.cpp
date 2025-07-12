@@ -227,3 +227,21 @@ TEST(LexerTest, StringLiteralIndex) {
 
     assertTokenVector(tokens, expected);
 }
+
+
+TEST(LexerTest, Push) {
+    auto lexer = Lexer("insert!();");
+
+    const auto tokens = lexer.tokenize();
+
+
+    const auto expected = {
+        LexerTokenType::INSERT_,
+        LexerTokenType::L_PAREN,
+        LexerTokenType::R_PAREN,
+        LexerTokenType::SEMICOLON,
+        LexerTokenType::EOS
+    };
+
+    assertTokenVector(tokens, expected);
+}

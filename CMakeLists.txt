@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(kimi)
 
 set(CMAKE_CXX_STANDARD 20)
+option(BUILD_TESTS "Enable building of unit/integration tests" ON)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -67,6 +68,14 @@ target_include_directories(kimi PUBLIC
 )
 
 add_executable(kimi_cli src/cli/cli.cpp)
+set_target_properties(kimi_cli PROPERTIES OUTPUT_NAME kimi)
 target_link_libraries(kimi_cli PRIVATE kimi rust_lib CLI11::CLI11)
 
+install(TARGETS kimi_cli
+        RUNTIME DESTINATION bin
+)
+
+
+#if(BUILD_TESTS)
 add_subdirectory(tests)
+#endif()

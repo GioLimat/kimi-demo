@@ -19,6 +19,7 @@ std::unique_ptr<StatementNode> ParserStatement::parseStatement() {
     if (token.type == LexerTokenType::DO) return parseDoWhileStatement();
     if (token.type == LexerTokenType::FOR) return parseForStatement();
     if (token.type == LexerTokenType::PRINTLN) return parsePrintln();
+    if (token.type == LexerTokenType::INSERT_ || token.type == LexerTokenType::REMOVE_) return parseInsertRemoveStatement();
 
     const auto end = findEndOfExpression(current);
     auto expr = delegateToExpression(end);
@@ -234,4 +235,9 @@ std::unique_ptr<StatementNode> ParserStatement::parseForStatement() {
         std::move(posBody),
         std::make_unique<BlockStatementNode>(std::move(body))
     );
+}
+
+
+std::unique_ptr<StatementNode> ParserStatement::parseInsertRemoveStatement() {
+
 }

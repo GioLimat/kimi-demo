@@ -295,4 +295,31 @@ public:
     void accept(ASTVisitor &visitor) override;
 };
 
+
+class BaseCollectionMutationStatementNode : public StatementNode {
+public:
+    std::unique_ptr<ExpressionNode> collection;
+    std::unique_ptr<ExpressionNode> idx;
+    std::unique_ptr<ExpressionNode> value;
+    std::string operandType;
+
+    explicit BaseCollectionMutationStatementNode(std::unique_ptr<ExpressionNode> collection,
+                                                std::unique_ptr<ExpressionNode> idx,
+                                                std::unique_ptr<ExpressionNode> value,
+                                                std::string operandType);
+};
+
+class InsertStatementNode : public BaseCollectionMutationStatementNode {
+public:
+    InsertStatementNode() = delete;
+    void accept(ASTVisitor &visitor) override;
+};
+
+class RemoveStatementNode : public BaseCollectionMutationStatementNode {
+public:
+    RemoveStatementNode() = delete;
+    void accept(ASTVisitor &visitor) override;
+};
+
+
 #endif // AST_H

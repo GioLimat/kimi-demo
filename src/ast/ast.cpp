@@ -119,6 +119,13 @@ ArrayLiteralNode::ArrayLiteralNode(std::vector<std::unique_ptr<ExpressionNode>> 
 AssignmentIndexExprNode::AssignmentIndexExprNode(std::string name, std::unique_ptr<ExpressionNode> value, std::unique_ptr<ExpressionNode> target): name(std::move(name)), value(std::move(value)), target(std::move(target)) {}
 
 
+BaseCollectionMutationStatementNode::BaseCollectionMutationStatementNode(std::unique_ptr<ExpressionNode> collection, std::unique_ptr<ExpressionNode> idx, std::unique_ptr<ExpressionNode> value, std::string operandType)
+        : collection(std::move(collection)),
+          idx(std::move(idx)),
+          value(std::move(value)),
+          operandType(std::move(operandType)) {}
+
+
  //VISITORS
 
 void NumberNode::accept(ASTVisitor &visitor) {
@@ -229,4 +236,13 @@ void ArrayLiteralNode::accept(ASTVisitor &visitor) {
 
 void AssignmentIndexExprNode::accept(ASTVisitor &visitor) {
         visitor.visitAssignmentIndexExpr(this);
+}
+
+
+void InsertStatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitInsertCollection(this);
+}
+
+void RemoveStatementNode::accept(ASTVisitor &visitor) {
+        visitor.visitRemoveCollection(this);
 }

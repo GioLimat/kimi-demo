@@ -7,6 +7,6 @@
 
 
 TEST(Integration, SimpleCode) {
-    auto code = "var x = [[4]]; x[0][0] = 10; println(x);" ;
+    auto code = "var x = [[4]]; x[10 - 10][0] = 10; println(x[0][0]);" ;
     runVm(code);
 }

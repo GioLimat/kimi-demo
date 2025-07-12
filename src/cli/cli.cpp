@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     CLI::App app{"Kimi CLI - read and process a source file"};
 
     std::string file_path;
-    app.add_option("-f", file_path, "Input source file")->required();
+    app.add_option("output", file_path, "Input source file")->required();
 
     CLI11_PARSE(app, argc, argv);
 

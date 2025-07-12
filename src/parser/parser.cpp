@@ -274,7 +274,9 @@ bool Parser::isStatement(const LexerToken &token) {
             token.type == LexerTokenType::RETURN ||
             token.type == LexerTokenType::IF ||
             token.type == LexerTokenType::WHILE ||
-            token.type == LexerTokenType::FOR;
+            token.type == LexerTokenType::FOR ||
+            token.type == LexerTokenType::INSERT_  ||
+            token.type == LexerTokenType::REMOVE_;
 }
 
 
@@ -305,7 +307,9 @@ std::unique_ptr<AST> Parser::parse() {
             int end;
 
             try {
-                if (peek().type == LexerTokenType::PRINTLN || peek().type == LexerTokenType::RETURN) end = findEndOfExpression(current);
+                if (peek().type == LexerTokenType::PRINTLN ||
+                    peek().type == LexerTokenType::INSERT_ ||
+                    peek().type == LexerTokenType::REMOVE_ || peek().type == LexerTokenType::RETURN) end = findEndOfExpression(current);
                 else if (peek().type == LexerTokenType::IF) end = findEndOfIfElse(current);
                 else if (peek().type == LexerTokenType::DO) end = findEndOfDoWhile(current + 1);
                 else if (peek().type == LexerTokenType::FOR) end = findEndOfForLoop(current + 1);

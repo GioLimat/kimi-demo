@@ -89,7 +89,10 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
     {LexerTokenType::STRING, "String"},
 
     {LexerTokenType::EOS, "EOS"},
-    {LexerTokenType::UNDEFINED, "UNDEFINED"}
+    {LexerTokenType::UNDEFINED, "UNDEFINED"},
+
+    {LexerTokenType::INSERT_, "insert!"},
+    {LexerTokenType::REMOVE_, "remove!"},
 };
 
 

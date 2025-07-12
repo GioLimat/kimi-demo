@@ -82,7 +82,11 @@ enum class LexerTokenType {
 
     // Misc
     EOS,              // End of source
-    UNDEFINED         // Invalid or unknown token
+    UNDEFINED,         // Invalid or unknown token
+
+
+    INSERT_,
+    REMOVE_,
 };
 
 

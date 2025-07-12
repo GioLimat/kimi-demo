@@ -203,6 +203,10 @@ LexerToken Lexer::identifyIdentifierKeyword() {
         utf8 += conv.to_bytes(cp2);
         advanceCp();
     }
+    if (!isAtEnd() && peekCp() == '!') {
+        utf8 += '!';
+        advanceCp();
+    }
     try {
         auto tk = LexerTokensMap::getTokenByString(utf8);
         return LexerToken(tk, utf8, line, column);
