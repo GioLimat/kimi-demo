@@ -12,6 +12,7 @@
 #include <visitor.h>
 #include <unordered_map>
 #include <variant>
+#include <stdexcept>
 
 class SemanticAnalyzer : public DefaultASTVisitor {
 public:

@@ -1,11 +1,12 @@
 enable_testing()
-
 include(FetchContent)
 FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/refs/tags/v1.16.0.zip
         DOWNLOAD_EXTRACT_TIMESTAMP true
 )
+
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 if(NOT TARGET GTest::gtest)
@@ -36,6 +37,18 @@ target_link_libraries(kimi_tests
         rust_lib
         GTest::gtest_main
 )
+
+if(MSVC)
+    target_link_libraries(kimi_tests
+            PRIVATE
+            ws2_32
+            userenv
+            ntdll
+            iphlpapi
+            secur32
+    )
+endif()
+
 
 include(GoogleTest)
 gtest_discover_tests(kimi_tests)

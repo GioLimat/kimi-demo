@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 3.14)
 project(kimi)
 
 set(CMAKE_CXX_STANDARD 20)
+
 option(BUILD_TESTS "Enable building of unit/integration tests" ON)
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
+endif()
 
 include(FetchContent)
 FetchContent_Declare(
@@ -15,19 +20,19 @@ FetchContent_MakeAvailable(cli11_proj)
 set(RUST_CRATE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/rust)
 
 add_custom_command(
-        OUTPUT ${RUST_CRATE_DIR}/target/release/libkimi.a
+        OUTPUT ${RUST_CRATE_DIR}/target/release/kimi.lib
         COMMAND cargo build --release
         WORKING_DIRECTORY ${RUST_CRATE_DIR}
         COMMENT "Building Rust crate in ${RUST_CRATE_DIR}"
 )
 
 add_custom_target(rust_build ALL
-        DEPENDS ${RUST_CRATE_DIR}/target/release/libkimi.a
+        DEPENDS ${RUST_CRATE_DIR}/target/release/kimi.lib
 )
 
 add_library(rust_lib STATIC IMPORTED GLOBAL)
 set_target_properties(rust_lib PROPERTIES
-        IMPORTED_LOCATION ${RUST_CRATE_DIR}/target/release/libkimi.a
+        IMPORTED_LOCATION ${RUST_CRATE_DIR}/target/release/kimi.lib
 )
 add_library(kimi STATIC
         src/lexer/lexer.cpp

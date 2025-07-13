@@ -5,6 +5,7 @@
 #ifndef BYGEN_INSTRUCTIONS_H
 #define BYGEN_INSTRUCTIONS_H
 
+#include <cstdint>
 #include <stdexcept>
 
 #include "ir_instructions.h"

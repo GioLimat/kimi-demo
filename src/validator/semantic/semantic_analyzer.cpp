@@ -3,6 +3,7 @@
 //
 #include "semantic_analyzer.h"
 
+#include <algorithm>
 #include <complex>
 #include <iostream>
 

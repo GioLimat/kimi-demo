@@ -4,7 +4,8 @@
 
 #include <iostream>
 #include <ostream>
-
+#include <cstdlib>
+#include <cstdint>
 #include "bygen.h"
 #include "bygen_instructions.h"
 #include "string_header.h++"
@@ -19,7 +20,7 @@ uint32_t ByGen::getIdentifierId(const std::string &name) {
         if (temp.back().contains(name)) {
             return temp.back()[name];
         }
-        if (std::find(idFnTable.begin(), idFnTable.end(), id) != idFnTable.end()) {
+        if (std::ranges::find(idFnTable, id) != idFnTable.end()) {
             jumpsToFindLocal ++;
             scopesToFindLocal = 0;
         }

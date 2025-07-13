@@ -5,6 +5,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include <cstdint>
+
 #include "lexer_tokens.h"
 #include <vector>
 #include <string>

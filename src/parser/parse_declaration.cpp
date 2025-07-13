@@ -6,8 +6,6 @@
 
 #include <algorithm>
 #include <ranges>
-#include <bits/locale_facets_nonio.h>
-
 #include "sizes.h"
 
 

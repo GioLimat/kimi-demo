@@ -239,5 +239,5 @@ std::unique_ptr<StatementNode> ParserStatement::parseForStatement() {
 
 
 std::unique_ptr<StatementNode> ParserStatement::parseInsertRemoveStatement() {
-
+    return nullptr;
 }

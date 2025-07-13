@@ -8,7 +8,6 @@
 #include <iostream>
 #include <ranges>
 #include <sstream>
-#include <bits/ostream.tcc>
 
 
 #define DEBUG 1
