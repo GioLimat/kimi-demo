@@ -4,7 +4,9 @@
 
 #include <lexer.h>
 #include <gtest/gtest.h>
-#include "parser.h"
+
+#include "ast.h"
+#include <parser.h>
 
 
 TEST(Parser, FullParser) {
@@ -93,4 +95,34 @@ TEST(ParserExpression, ArrayLiteralMutation) {
     ASSERT_NE(id, nullptr);
     ASSERT_EQ(id->name, "x");
 }
+
+
+TEST(Parser, Insert) {
+    auto lexer = Lexer("insert!(arr, 2, 10);");
+    auto tokens = lexer.tokenize();
+    auto parser = Parser(tokens);
+
+    auto ast = parser.parse();
+
+    const auto insertNode = dynamic_cast<InsertStatementNode*>(ast->children[0].get());
+    const auto value = dynamic_cast<NumberNode*>(insertNode->value.get());
+
+    ASSERT_NE(insertNode, nullptr);
+    ASSERT_EQ(value->value, "10");
+}
+
+
+
+TEST(Parser, Casting) {
+    auto lexer = Lexer("4.3 as Int;");
+    auto tokens = lexer.tokenize();
+    auto parser = Parser(tokens);
+
+    auto ast = parser.parse();
+
+    auto castNode = dynamic_cast<CastingExpressionNode*>(ast->children[0].get());
+
+    ASSERT_EQ(castNode->targetType, "i32");
+}
+
 

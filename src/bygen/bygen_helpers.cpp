@@ -192,6 +192,9 @@ bool ByGen::twoLengthInstruction(const std::string &instruction) {
 
             instruction == "INDEX_ACCESS" ||
 
+            instruction == "INSERT" ||
+            instruction == "REMOVE" ||
+
            instruction == "PRINT";
 }
 
@@ -212,6 +215,9 @@ uint64_t ByGen::getInstructionLength(const std::string& instruction, const std::
 
     if (twoLengthInstruction(instruction)) {
         offset = 2;
+    }
+    else if (instruction == "CAST") {
+        offset = 3;
     }
     else if (instruction == "CONST") {
         offset = 2 + ByMapper::getSize(tempType) / 8;

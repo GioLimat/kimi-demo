@@ -11,6 +11,19 @@
 
 std::string ParserDeclaration::getType() {
     std::string type;
+
+    if (peek().type == LexerTokenType::ARRAY) {
+        advance();
+        if (advance().type != LexerTokenType::L_BRACKET)
+            throw std::runtime_error("Expected '[' after ARRAY");
+        std::string inner = getType();
+
+        if (advance().type != LexerTokenType::R_BRACKET)
+            throw std::runtime_error("Expected ']' after array element type");
+
+        type = "array<" + inner + ">";
+    }
+
     if (peek().type == LexerTokenType::INT) {
         advance();
         type = "i32";
@@ -50,9 +63,6 @@ std::string ParserDeclaration::getType() {
     else if (peek().type == LexerTokenType::STR) {
         advance();
         type = "str";
-    }
-    else {
-        type = LexerTokensMap::getStringByToken(peek().type);
     }
     return type;
 }
@@ -101,6 +111,7 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseVarDeclaration() {
     }
     VarDeclarationNode var(name.value, std::move(initializer), isConst);
     var.declaredType = type;
+
     return std::make_unique<VarDeclarationNode>(std::move(var));
 }
 

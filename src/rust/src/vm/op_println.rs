@@ -31,6 +31,7 @@ pub fn op_println(vm: &mut VM) {
     let op_type = vm.bytecode[vm.ip as usize];
     vm.ip += 1;
     let value = vm.pop().expect("Stack underflow on op_println");
+    
     match op_type {
         0x01 | 0x02 | 0x07 | 0x08 => println!("{}", value as i64),
         0x03 => println!("{:.10}", f32::from_bits(value as u32)),

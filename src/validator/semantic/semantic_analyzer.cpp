@@ -51,6 +51,8 @@ void SemanticAnalyzer::visitIdentifier(IdentifierExprNode *node) {
 void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
     std::string inferredType;
     std::string arrType = "";
+
+
     if (var->initializer) {
         var->initializer->accept(*this);
         inferredType = TypeInfer::analyzeExpression(var->initializer.get(), &scopes);
@@ -58,6 +60,20 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
 
         if (auto* arr = dynamic_cast<ArrayLiteralNode*>(var->initializer.get())) {
             arrType = arr->extendType;
+        }
+        else if (auto* idx = dynamic_cast<IndexAccessExpr*>(var->initializer.get())) {
+            if (idx->baseType.starts_with("array<array<")) {
+                arrType = idx->baseType.substr(6, idx->baseType.size() - 7);
+            }
+            auto* copy = dynamic_cast<IndexAccessExpr*>(idx->base.get());
+            std::string copyType = arrType;
+            while (copy) {
+                if (copyType.starts_with("array<array<")) {
+                   copyType = copyType.substr(6, copyType.size() - 7);
+                }
+                copy = dynamic_cast<IndexAccessExpr*>(copy->base.get());
+            }
+            arrType = copyType;
         }
 
 
@@ -71,23 +87,26 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
                 inferredType = "f32";
             }
         }
-        else {
-            auto itInf = typePrecedence.find(inferredType);
-            auto itDec = typePrecedence.find(var->declaredType);
 
-            if (itInf == typePrecedence.end() || itDec == typePrecedence.end()) {
-                throw std::runtime_error(
-                    "Unknown types in declaration: inferred=" + inferredType +
-                    ", declared=" + var->declaredType
-                );
+        else {
+            if ( !var->declaredType.starts_with("array") && !var->declaredType.starts_with("str")) {
+                auto itInf = typePrecedence.find(inferredType);
+                auto itDec = typePrecedence.find(var->declaredType);
+
+                if ((itInf == typePrecedence.end() || itDec == typePrecedence.end())) {
+                    throw std::runtime_error(
+                        "Unknown types in declaration: inferred=" + inferredType +
+                        ", declared=" + var->declaredType
+                    );
+                    }
+                if (itInf->second > itDec->second ) {
+                    throw std::runtime_error(
+                        "Type mismatch in variable declaration: expected a type at least as wide as "
+                        + var->declaredType + ", got " + inferredType
+                    );
+                }
+                inferredType = var->declaredType;
             }
-            if (itInf->second > itDec->second) {
-                throw std::runtime_error(
-                    "Type mismatch in variable declaration: expected a type at least as wide as "
-                    + var->declaredType + ", got " + inferredType
-                );
-            }
-            inferredType = var->declaredType;
         }
     }
     else if (var->isConst) {
@@ -103,8 +122,9 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
         var->isGlobal = false;
     }
 
-    const std::string finalType = var->declaredType.empty() ? inferredType : var->declaredType;
 
+    std::string finalType = var->declaredType.empty() ? inferredType : var->declaredType;
+    if (var->declaredType.starts_with("array")) finalType = inferredType;
     declareVariable(var->name, finalType, var->isConst, var->isGlobal, arrType);
     var->type = finalType;
 }
@@ -135,6 +155,11 @@ void SemanticAnalyzer::visitAssignmentExpr(AssignmentExprNode* expr) {
     expr->type = varType;
 }
 
+
+void SemanticAnalyzer::visitCastingExpressionNode(CastingExpressionNode *node) {
+    node->expression->accept(*this);
+    TypeInfer::analyzeExpression(node, &scopes);
+}
 
 
 void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
@@ -388,6 +413,33 @@ void SemanticAnalyzer::visitAssignmentIndexExpr(AssignmentIndexExprNode *node) {
     node->value->accept(*this);
 }
 
+
+void SemanticAnalyzer::visitInsertCollection(InsertStatementNode *node) {
+    node->collection->accept(*this);
+    std::string collectionType = TypeInfer::analyzeExpression(node->collection.get(), &scopes);
+    node->value->accept(*this);
+    node->idx->accept(*this);
+
+    if (collectionType.starts_with("array") || collectionType == "string") {
+        node->operandType = collectionType;
+        return;
+    }
+
+    throw std::runtime_error("Mutation target must be a mutatable item, got: " + collectionType);
+}
+
+void SemanticAnalyzer::visitRemoveCollection(RemoveStatementNode *node) {
+    node->collection->accept(*this);
+    std::string collectionType = TypeInfer::analyzeExpression(node->collection.get(), &scopes);
+    node->idx->accept(*this);
+
+    if (collectionType.starts_with("array") || collectionType == "string") {
+        node->operandType = collectionType;
+        return;
+    }
+
+    throw std::runtime_error("Mutation target must be a mutatable item, got: " + collectionType);
+}
 
 
 void SemanticAnalyzer::declareFunction(const std::string &name, const std::vector<FunctionDeclarationNode::Param> &parameters, const std::string &returnType) {

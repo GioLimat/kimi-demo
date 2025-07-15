@@ -296,28 +296,39 @@ public:
 };
 
 
-class BaseCollectionMutationStatementNode : public StatementNode {
+
+class InsertStatementNode : public StatementNode {
 public:
     std::unique_ptr<ExpressionNode> collection;
     std::unique_ptr<ExpressionNode> idx;
     std::unique_ptr<ExpressionNode> value;
     std::string operandType;
 
-    explicit BaseCollectionMutationStatementNode(std::unique_ptr<ExpressionNode> collection,
+    explicit InsertStatementNode(std::unique_ptr<ExpressionNode> collection,
                                                 std::unique_ptr<ExpressionNode> idx,
-                                                std::unique_ptr<ExpressionNode> value,
-                                                std::string operandType);
-};
-
-class InsertStatementNode : public BaseCollectionMutationStatementNode {
-public:
-    InsertStatementNode() = delete;
+                                                std::unique_ptr<ExpressionNode> value);
     void accept(ASTVisitor &visitor) override;
 };
 
-class RemoveStatementNode : public BaseCollectionMutationStatementNode {
+class RemoveStatementNode : public StatementNode {
 public:
-    RemoveStatementNode() = delete;
+    std::unique_ptr<ExpressionNode> collection;
+    std::unique_ptr<ExpressionNode> idx;
+    std::string operandType;
+
+    explicit RemoveStatementNode(std::unique_ptr<ExpressionNode> collection,
+                                                std::unique_ptr<ExpressionNode> idx);
+    void accept(ASTVisitor &visitor) override;
+};
+
+
+class CastingExpressionNode : public ExpressionNode {
+public:
+    std::unique_ptr<ExpressionNode> expression;
+    std::string targetType;
+    std::string operandType;
+
+    explicit CastingExpressionNode(std::unique_ptr<ExpressionNode> expression);
     void accept(ASTVisitor &visitor) override;
 };
 

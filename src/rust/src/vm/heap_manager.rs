@@ -41,6 +41,21 @@ impl HeapValue {
             None
         }
     }
+
+    pub fn as_array_mut(&mut self) -> Option<(&u8, &Option<u64>, &mut Vec<u64>)> {
+        if let HeapValue::Array {
+            elem_type,
+            elem_type_id,
+            elements,
+        } = self
+        {
+            Some((elem_type, elem_type_id, elements))
+        } else {
+            None
+        }
+    }
+
+
 }
 
 pub struct HeapManager {

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use crate::vm::heap_manager::HeapManager;
 use crate::vm::op_binary::*;
+use crate::vm::op_cast::op_cast;
 use crate::vm::op_const::op_const;
 use crate::vm::op_function::*;
 use crate::vm::op_incremental::*;
@@ -12,6 +13,7 @@ use crate::vm::op_store::{op_store, op_store_array_element};
 use crate::vm::op_unary::*;
 use crate::vm::op_jmp_if::*;
 use crate::vm::op_memory::*;
+use crate::vm::op_native_helpers::*;
 
 pub(crate) struct  CallFrame {
     pub(crate) return_ip: u64,
@@ -104,6 +106,9 @@ impl VM {
                 0x31 => op_index_access(self), // op_index_access
                 0x32 => op_alloc_array(self), // op_alloc_array
                 0x33 => op_store_array_element(self), // op_store_array_element
+                0x34 => op_insert_(self), // op_insert_
+                0x35 => op_remove_(self), // op_remove_
+                0x36 => op_cast(self), // op_cast
                 _ => {
                     println!("Unknown opcode: 0x{:02X}", opcode);
                     break;

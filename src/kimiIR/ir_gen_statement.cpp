@@ -113,3 +113,18 @@ void IRGen::visitForStatement(ForStatementNode *node) {
 
     scopes.pop();
 }
+
+
+
+void IRGen::visitInsertCollection(InsertStatementNode *node) {
+    node->value->accept(*this);
+    node->idx->accept(*this);
+    node->collection->accept(*this);
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::INSERT) + " [" + node->operandType + "]");
+}
+
+void IRGen::visitRemoveCollection(RemoveStatementNode *node) {
+    node->idx->accept(*this);
+    node->collection->accept(*this);
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::REMOVE) + " [" + node->operandType + "]");
+}

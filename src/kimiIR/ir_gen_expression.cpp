@@ -143,3 +143,10 @@ void IRGen::visitAssignmentIndexExpr(AssignmentIndexExprNode *node) {
         + " : " + elemType
     );
 }
+
+
+
+void IRGen::visitCastingExpressionNode(CastingExpressionNode *node) {
+    node->expression->accept(*this);
+    bytecode.push_back(IRMapper::getInstruction(IRInstruction::CAST) + " : " + node->targetType + " [" + node->operandType + "]");
+}

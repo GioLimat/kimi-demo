@@ -14,6 +14,8 @@
 #include <variant>
 #include <stdexcept>
 
+std::string unwrapArrayType(const std::string& t);
+
 class SemanticAnalyzer : public DefaultASTVisitor {
 public:
     void analyze(const AST& ast);
@@ -118,6 +120,9 @@ private:
     void visitIndexAccessExpr(IndexAccessExpr *node) override;
     void visitArrayLiteralNode(ArrayLiteralNode *node) override;
     void visitAssignmentIndexExpr(AssignmentIndexExprNode *node) override;
+    void visitRemoveCollection(RemoveStatementNode *node) override;
+    void visitInsertCollection(InsertStatementNode *node) override;
+    void visitCastingExpressionNode(CastingExpressionNode *node) override;
 };
 
 #endif //SEMANTIC_ANALYZER_H

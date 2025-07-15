@@ -64,6 +64,15 @@ std::vector<uint8_t> ByGen::generate() {
 
         if (instructionType == "EL_ARRAY_ASSIGN") continue;
 
+        if (instructionType == "CAST") {
+            std::string targetType = getType(parts);
+            std::string operandType = getMeta(instruction);
+
+            emitLiteralLE<uint8_t>(ByMapper::getType(targetType));
+            emitLiteralLE<uint8_t>(ByMapper::getType(operandType));
+            continue;
+        }
+
         if (instructionType == "ALLOC") {
             std::string type = getType(parts);
             std::string length = getFirstMeta(instruction);

@@ -54,6 +54,47 @@ int ParserExpression::precedence(const LexerTokenType type) {
     }
 }
 
+static std::string swapTypes(const std::string& type) {
+    auto pos = type.find('[');
+    if (pos == std::string::npos) {
+        if (type == "Int")   return "i32";
+        if (type == "Float") return "f32";
+        if (type == "Bool")  return "bool";
+        if (type == "Char") return "char";
+        return type;
+    } else {
+        auto base = type.substr(0, pos);
+        auto num  = type.substr(pos + 1, type.find(']') - pos - 1);
+        if (base == "Int")   return "i" + num;
+        if (base == "Float") return "f" + num;
+        return type;
+    }
+}
+
+std::unique_ptr<ExpressionNode> ParserExpression::parseCastOrUnary() {
+    auto left = parseUnary();
+
+    if (peek().type == LexerTokenType::AS) {
+        advance();
+
+        std::string target = advance().value;
+
+        if (peek().type == LexerTokenType::L_BRACKET) {
+            advance();
+            std::string num = advance().value;
+            advance();
+            target += "[" + num + "]";
+        }
+
+        auto castNode = std::make_unique<CastingExpressionNode>(std::move(left));
+        castNode->targetType  = std::move(swapTypes(target));
+        return std::move(castNode);
+    }
+
+    return left;
+}
+
+
 
 
 std::unique_ptr<ExpressionNode> ParserExpression::parseLeftHandSide() {
@@ -127,7 +168,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parseAssignmentIndexExpression
 
 
 std::unique_ptr<ExpressionNode> ParserExpression::parseBinaryOperation(const int minPrecedence) {
-    auto left = parseUnary();
+    auto left = parseCastOrUnary();
     while (true) {
         const auto currentToken = peek();
         const int currentPrecedence = precedence(currentToken.type);
@@ -321,7 +362,7 @@ std::unique_ptr<ExpressionNode> ParserExpression::parsePrimary() {
         bool v = advance().type == LexerTokenType::TRUE;
         node = std::make_unique<BooleanNode>(v);
     }
-    else if (token.type == LexerTokenType::IDENTIFIER) {
+    else if (token.type == LexerTokenType::IDENTIFIER || token.type == LexerTokenType::INSERT_ || token.type == LexerTokenType::REMOVE_) {
         node = parseCallIdentifier();
     }
     else if (token.type == LexerTokenType::L_PAREN) {

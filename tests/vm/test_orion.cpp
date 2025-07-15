@@ -123,7 +123,7 @@ TEST(Orion, SimpleCode13) {
 }
 
 TEST(Orion, SimpleCode14) {
-    auto code = "var x = \" essa é a continuação da string \"; println(\"olá mundo isso é grande vai para o heap!\" + x); ";
+    auto code = "var x : Str = \" essa é a continuação da string \"; println(\"olá mundo isso é grande vai para o heap!\" + x); ";
     runOrion(code);
 }
 TEST(Orion, SimpleCode15) {
@@ -133,7 +133,24 @@ TEST(Orion, SimpleCode15) {
 
 
 TEST(Orion, SimpleCode16) {
-    auto code = "val x = [[10,20], [30, 40]];  for (var i = 0; i < 2; i++) { for (var j = 0; j < 2; j++) { println(x[i][j]); } }" ;
+    auto code = "val x : Array[Array[Int]] = [[10,20], [30, 40]];  for (var i = 0; i < 2; i++) { for (var j = 0; j < 2; j++) { println(x[i][j]); } }" ;
     runOrion(code);
 }
 
+TEST(Orion, SimpleCode17) {
+    auto code = "var arr = [10]; insert!(arr, 1, 40); insert!(arr, 0, 25); println(arr); remove!(arr, 1);  println(arr);" ;
+    runOrion(code);
+}
+
+TEST(Orion, SimpleCode18) {
+    auto code = "var arr : Array[Str] = [\"dsadasd\"]; insert!(arr, 1, \"dsadasd2\"); insert!(arr, 0,\"dsadasd3\"); println(arr); remove!(arr, 1);  println(arr);" ;
+    runOrion(code);
+}
+
+
+
+
+TEST(Orion, SimpleCode19) {
+    auto code = "println(3.2 as Int);" ;
+    runOrion(code);
+}

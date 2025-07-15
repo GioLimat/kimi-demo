@@ -93,6 +93,11 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
 
     {LexerTokenType::INSERT_, "insert!"},
     {LexerTokenType::REMOVE_, "remove!"},
+
+    {LexerTokenType::ARRAY, "Array"},
+
+    {LexerTokenType::AS, "as"},
+    {LexerTokenType::TYPEOF, "typeof"},
 };
 
 

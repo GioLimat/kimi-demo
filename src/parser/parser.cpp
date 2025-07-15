@@ -308,8 +308,9 @@ std::unique_ptr<AST> Parser::parse() {
 
             try {
                 if (peek().type == LexerTokenType::PRINTLN ||
-                    peek().type == LexerTokenType::INSERT_ ||
-                    peek().type == LexerTokenType::REMOVE_ || peek().type == LexerTokenType::RETURN) end = findEndOfExpression(current);
+                   peek().type == LexerTokenType::RETURN) end = findEndOfExpression(current);
+                else if ( peek().type == LexerTokenType::INSERT_ ||
+                    peek().type == LexerTokenType::REMOVE_) end = findEndOfExpression(current) + 1;
                 else if (peek().type == LexerTokenType::IF) end = findEndOfIfElse(current);
                 else if (peek().type == LexerTokenType::DO) end = findEndOfDoWhile(current + 1);
                 else if (peek().type == LexerTokenType::FOR) end = findEndOfForLoop(current + 1);

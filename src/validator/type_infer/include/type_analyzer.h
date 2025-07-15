@@ -11,6 +11,7 @@
 #include "semantic_analyzer.h"
 
 
+
 class TypeInfer : public DefaultASTVisitor {
 private:
     static SemanticAnalyzer::Scope* scopes;
@@ -36,6 +37,7 @@ public:
     void visitCharLiteralExpr(CharLiteralExpr *node) override;
     void visitStringLiteralExpr(StringLiteralExpr *node) override;
     void visitArrayLiteralNode(ArrayLiteralNode *node) override;
+    void visitCastingExpressionNode(CastingExpressionNode *node) override;
 };
 
 

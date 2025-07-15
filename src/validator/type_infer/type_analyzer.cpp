@@ -111,7 +111,7 @@ void TypeInfer::visitPostFixExpr(PostFixExprNode *node) {
 }
 
 
-static std::string unwrapArrayType(const std::string& t) {
+std::string unwrapArrayType(const std::string& t) {
     const std::string prefix = "array<";
     if (!t.starts_with(prefix)) return t;
 
@@ -145,6 +145,7 @@ void TypeInfer::visitIndexAccessExpr(IndexAccessExpr *node) {
         }
     } else if (auto* ident = dynamic_cast<IdentifierExprNode*>(node->base.get())) {
         auto varInfo = lookupVariable(ident->name);
+
         baseType = varInfo.arrayType.empty() || varInfo.arrayType == "void" ? varInfo.type : varInfo.arrayType;
     }
     else {
@@ -203,6 +204,16 @@ void TypeInfer::visitArrayLiteralNode(ArrayLiteralNode *node) {
     currentType = "array";
 
 }
+
+
+
+void TypeInfer::visitCastingExpressionNode(CastingExpressionNode *node) {
+    node->expression->accept(*this);
+    node->operandType = currentType;
+    currentType = node->targetType;
+}
+
+
 
 
 

@@ -83,6 +83,11 @@ enum class IRInstruction {
   EQUAL_EQUAL,
   GRATER_THAN,
   LESS_THAN,
+
+  INSERT,
+  REMOVE,
+
+  CAST,
  };
 
 

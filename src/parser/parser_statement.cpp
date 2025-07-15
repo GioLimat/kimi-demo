@@ -239,5 +239,28 @@ std::unique_ptr<StatementNode> ParserStatement::parseForStatement() {
 
 
 std::unique_ptr<StatementNode> ParserStatement::parseInsertRemoveStatement() {
-    return nullptr;
+    const auto mutationType = peek().type;
+    uint64_t callNativeEnd = findEndOfExpression(current);
+
+    auto target = delegateToExpression(callNativeEnd);
+
+    current = callNativeEnd + 1;
+
+    const auto call = dynamic_cast<CallFunctionNode*>(target.get());
+
+
+
+    if (mutationType == LexerTokenType::INSERT_) {
+        return std::make_unique<InsertStatementNode>(
+            std::move(call->arguments[0]),
+        std::move(call->arguments[1]),
+        std::move(call->arguments[2]));
+    } else if (mutationType == LexerTokenType::REMOVE_) {
+        return std::make_unique<RemoveStatementNode>(
+            std::move(call->arguments[0]),
+        std::move(call->arguments[1]));
+    }
+
+
+    return  nullptr;
 }

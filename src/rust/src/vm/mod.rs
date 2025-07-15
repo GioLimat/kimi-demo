@@ -15,3 +15,5 @@ mod register_functions;
 mod op_function;
 mod op_memory;
 mod op_index_access;
+mod op_native_helpers;
+mod op_cast;

@@ -37,6 +37,7 @@ public:
     virtual void visitAssignmentIndexExpr(AssignmentIndexExprNode* node) = 0;
     virtual void visitInsertCollection(InsertStatementNode* node) = 0;
     virtual void visitRemoveCollection(RemoveStatementNode* node) = 0;
+    virtual void visitCastingExpressionNode(CastingExpressionNode* node) = 0;
     virtual ~ASTVisitor() = default;
 };
 
@@ -70,5 +71,6 @@ public:
     void visitAssignmentIndexExpr(AssignmentIndexExprNode* node) override {};
     void visitInsertCollection(InsertStatementNode* node) override {};
     void visitRemoveCollection(RemoveStatementNode* node) override {};
+    void visitCastingExpressionNode(CastingExpressionNode *node) override {};
 };
 #endif //VISITOR_H

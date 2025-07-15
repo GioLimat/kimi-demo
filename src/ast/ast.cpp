@@ -119,11 +119,20 @@ ArrayLiteralNode::ArrayLiteralNode(std::vector<std::unique_ptr<ExpressionNode>> 
 AssignmentIndexExprNode::AssignmentIndexExprNode(std::string name, std::unique_ptr<ExpressionNode> value, std::unique_ptr<ExpressionNode> target): name(std::move(name)), value(std::move(value)), target(std::move(target)) {}
 
 
-BaseCollectionMutationStatementNode::BaseCollectionMutationStatementNode(std::unique_ptr<ExpressionNode> collection, std::unique_ptr<ExpressionNode> idx, std::unique_ptr<ExpressionNode> value, std::string operandType)
+InsertStatementNode::InsertStatementNode(std::unique_ptr<ExpressionNode> collection, std::unique_ptr<ExpressionNode> idx, std::unique_ptr<ExpressionNode> value)
         : collection(std::move(collection)),
           idx(std::move(idx)),
-          value(std::move(value)),
-          operandType(std::move(operandType)) {}
+          value(std::move(value)){}
+
+RemoveStatementNode::RemoveStatementNode(std::unique_ptr<ExpressionNode> collection, std::unique_ptr<ExpressionNode> idx)
+        : collection(std::move(collection)),
+          idx(std::move(idx))
+{}
+
+
+CastingExpressionNode::CastingExpressionNode(std::unique_ptr<ExpressionNode> expression)
+        : expression(std::move(expression)) {}
+
 
 
  //VISITORS
@@ -245,4 +254,8 @@ void InsertStatementNode::accept(ASTVisitor &visitor) {
 
 void RemoveStatementNode::accept(ASTVisitor &visitor) {
         visitor.visitRemoveCollection(this);
+}
+
+void CastingExpressionNode::accept(ASTVisitor &visitor) {
+        visitor.visitCastingExpressionNode(this);
 }

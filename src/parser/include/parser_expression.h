@@ -25,6 +25,7 @@ protected:
     std::unique_ptr<ExpressionNode> parseComposeAssignment();
     std::unique_ptr<ExpressionNode> parseLeftHandSide();
     std::unique_ptr<ExpressionNode> parseAssignmentIndexExpression();
+    std::unique_ptr<ExpressionNode> parseCastOrUnary();
 };
 
 #endif //PARSER_EXPRESSION_H

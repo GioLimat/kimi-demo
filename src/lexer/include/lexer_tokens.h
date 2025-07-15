@@ -23,7 +23,7 @@ enum class LexerTokenType {
     // Identifiers and literals
     IDENTIFIER,
     NUMBER_FLOAT, NUMBER_INT, CHAR,
-    INT, FLOAT, BOOLEAN, TRUE, FALSE, STR,
+    INT, FLOAT, BOOLEAN, TRUE, FALSE, STR, ARRAY,
 
     // Symbols and punctuation
     L_PAREN, R_PAREN,
@@ -87,6 +87,9 @@ enum class LexerTokenType {
 
     INSERT_,
     REMOVE_,
+
+    AS,
+    TYPEOF
 };
 
 
