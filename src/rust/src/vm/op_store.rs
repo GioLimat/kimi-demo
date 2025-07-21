@@ -1,3 +1,4 @@
+use std::process::id;
 use crate::vm::heap_manager::HeapValue;
 use crate::vm::vm::VM;
 
@@ -11,16 +12,21 @@ pub fn op_store(vm: &mut VM) {
 
     let identifier_id = vm.read_u32();
 
-    let locals = vm.get_call_frame_scope_mut(frames_to_store as usize, scopes_to_store as usize);
+    let mut found = false;
 
-    match locals {
-        Some(scope) => {
-            scope.insert(identifier_id as u64, value);
-        },
-        None => {
-            println!("Error: Unable to find the specified scope for storing identifier with id: {}", identifier_id);
-            return;
-        }
+    for frame in vm.call_stack.iter_mut().rev() {
+       for scope in frame.locals.iter_mut().rev() {
+           let entry = scope.get_mut(&(identifier_id as u64));
+           if let Some(k) = entry {
+               *k = value;
+               found = true;
+               break;
+           }
+       }
+    }
+
+    if !found {
+        vm.call_stack.last_mut().unwrap().locals.last_mut().unwrap().insert(identifier_id as u64, value);
     }
 }
 

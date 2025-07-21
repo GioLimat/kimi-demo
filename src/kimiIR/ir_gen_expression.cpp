@@ -72,14 +72,18 @@ void IRGen::visitGenericExpressionNode(GenericExpressionNode *node) {
 
 
 void IRGen::visitPostFixExpr(PostFixExprNode *node) {
-    node->operand->accept(*this);
     auto ident = dynamic_cast<IdentifierExprNode*>(node->operand.get());
     auto variable = lookup<SemanticAnalyzer::VariableInfo>(ident->name, "Variable not found: " + ident->name);
     if (variable.isConst) {
         throw std::runtime_error("Cannot modify a constant variable: " + ident->name);
     }
-    if (node->op == "--") bytecode.push_back(IRMapper::getInstruction(IRInstruction::POST_DEC) + " " + ident->name + " : " + node->type);
-    else if (node->op == "++") bytecode.push_back(IRMapper::getInstruction(IRInstruction::POST_INC) + " " + ident->name + " : " + node->type);
+    if (node->op == "--") {
+        bytecode.push_back(IRMapper::getInstruction(IRInstruction::DEC) + " " + ident->name + " : " + node->type);
+    }
+    else if (node->op == "++") {
+        bytecode.push_back(IRMapper::getInstruction(IRInstruction::INC) + " " + ident->name + " : " + node->type);
+    }
+    node->operand->accept(*this);
 }
 
 

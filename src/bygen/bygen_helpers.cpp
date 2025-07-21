@@ -41,10 +41,7 @@ void ByGen::declareIdentifier(const std::string &name, bool isParam = false, boo
 
     if (currentScope.contains(name)) return;
 
-    if (isParam) {
-        varId = currentScope.size();
-    }
-    else if (isFunction) {
+    if (isFunction) {
         varId = functionId++;
     }
     else {
@@ -66,6 +63,10 @@ void ByGen::emitBasedOnType(const std::string &type) {
     else if (type == "f64") emitLiteralLE<double>(0.0);
     else if (type == "bool") emitLiteralLE<bool>(false);
     else if (type == "char") emitLiteralLE<uint32_t>(0);
+    else if (type == "u8") emitLiteralLE<uint8_t>(0);
+    else if (type == "u16") emitLiteralLE<uint16_t>(0);
+    else if (type == "u32") emitLiteralLE<uint32_t>(0);
+    else if (type == "u64") emitLiteralLE<uint64_t>(0);
 }
 
 

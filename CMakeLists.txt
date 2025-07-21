@@ -9,6 +9,14 @@ if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
 endif()
 
+if(WIN32)
+    file(TO_CMAKE_PATH "$ENV{USERPROFILE}" USERPROFILE_PATH)
+    set(USER_KIMI_DIR "${USERPROFILE_PATH}/Tools/kimi")
+    file(MAKE_DIRECTORY ${USER_KIMI_DIR})
+    message(STATUS "Will install Kimi to: ${USER_KIMI_DIR}")
+    set(CMAKE_INSTALL_PREFIX "${USER_KIMI_DIR}")
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
         cli11_proj
@@ -74,12 +82,27 @@ target_include_directories(kimi PUBLIC
 
 add_executable(kimi_cli src/cli/cli.cpp)
 set_target_properties(kimi_cli PROPERTIES OUTPUT_NAME kimi)
-target_link_libraries(kimi_cli PRIVATE kimi rust_lib CLI11::CLI11)
+target_link_libraries(kimi_cli
+        PRIVATE
+        kimi
+        ws2_32
+        rust_lib
+        CLI11::CLI11
+        advapi32
+        ntdll
+        userenv
+)
 
 install(TARGETS kimi_cli
         RUNTIME DESTINATION bin
 )
 
+if(WIN32)
+    add_custom_command(TARGET kimi_cli POST_BUILD
+            COMMAND powershell -ExecutionPolicy Bypass -File ${CMAKE_SOURCE_DIR}/path.ps1
+            COMMENT "Running PowerShell to update user's PATH"
+    )
+endif()
 
 #if(BUILD_TESTS)
 add_subdirectory(tests)

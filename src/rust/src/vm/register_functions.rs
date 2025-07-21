@@ -21,7 +21,9 @@ impl VM {
 
     fn get_instruction_length(&self, op: u8) -> u64 {
         match op {
-            0x01 => 2 + self.decode_type(self.bytecode[(self.ip + 1) as usize]),
+            0x01 => {
+                2 + self.decode_type(self.bytecode[(self.ip + 1) as usize])
+            },
             0x02 | 0x1D | 0x1E | 0x1F | 0x20 | 0x03 => 7,
             0x1A | 0x1B | 0x05 | 0x16 | 0x06 => 5,
             0x07 | 0x08 | 0x19 | 0x33 => 1,
@@ -32,7 +34,7 @@ impl VM {
             0x28 | 0x29 | 0x2A | 0x2B | 0x2C | 0x31 | 0x34 | 0x35  => 2,
             0x2E => {
                 let bytes = &self.bytecode[(self.ip  + 5) as usize..(self.ip + 9) as usize];
-                u32::from_le_bytes(bytes.try_into().unwrap()) as u64
+                5 + u32::from_le_bytes(bytes.try_into().unwrap())  as u64
             },
             0x32 => {
                 6
@@ -61,10 +63,12 @@ impl VM {
         let start_ip = self.ip;
         let mut end_ip = 0;
         let mut args = 0;
+        let params_ids = Vec::<u32>::new();
         self.functions.push(FunctionInfo {
             param_count: 0,
             start_ip,
             end_ip: 0,
+            params_ids
         });
         let idx = self.functions.len() - 1;
         while self.ip < self.bytecode.len() as u64 {
@@ -78,6 +82,11 @@ impl VM {
             }
             if op == 0x06 {
                 args += 1;
+
+                let id = self.read_u32();
+              
+                self.functions.get_mut(idx).unwrap().params_ids.push(id);
+                self.ip -= 5;
             } else if op == 0x19 {
                 end_ip = self.ip;
                 break;

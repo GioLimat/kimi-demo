@@ -36,9 +36,13 @@ void IRGen::visitFunctionDeclaration(FunctionDeclarationNode *function) {
     scopes.emplace();
     bytecode.push_back(IRMapper::getInstruction(IRInstruction::FN) + " " + function->name + " : i32");
     for (const auto &param : function->parameters) {
-        auto instruction = IRMapper::getInstruction(IRInstruction::FN_PARAM) + " " + param.name + " : " + param.type;
+        bool paramIsArray = param.type.find("array<") == 0;
+        std::string paramType = paramIsArray ? "array" : param.type;
+        auto instruction = IRMapper::getInstruction(IRInstruction::FN_PARAM) + " " + param.name + " : " + paramType;
         bytecode.push_back(instruction);
-        scopes.top()[param.name] = SemanticAnalyzer::VariableInfo{param.type, false, false};
+        scopes.top()[param.name] = SemanticAnalyzer::VariableInfo{paramType, false, false,
+            paramIsArray ? param.type : ""
+        };
     }
     for (const auto &node : function->body->statements) {
         node->accept(*this);

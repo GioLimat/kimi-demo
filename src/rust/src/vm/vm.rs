@@ -20,11 +20,12 @@ pub(crate) struct  CallFrame {
     pub(crate) locals: Vec<HashMap<u64, u64>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct FunctionInfo {
     pub(crate) param_count: u32,
     pub(crate) start_ip: u64,
     pub(crate) end_ip: u64,
+    pub(crate) params_ids: Vec<u32>
 }
 
 
@@ -65,8 +66,8 @@ impl VM {
                     break;
                 }
                 0x01 => op_const(self), // op_const
-                0x02 => op_load(self), // op_load
-                0x03 => op_store(self), // op_store
+                0x02 => op_load(self), // op_load (BUGGED)
+                0x03 => op_store(self), // op_store (BUGGED)
                 0x04 => op_println(self), // op_println
                 0x05 => op_function(self), // op_function
                 0x06 => op_fn_param(self), // op_fn_param
@@ -86,10 +87,10 @@ impl VM {
                 0x1A => op_if_false(self), // op_if_false
                 0x1B => op_jmp(self), // op_jmp
                 0x1C => op_neg(self), // op_neg
-                0x1D => op_inc(self), // op_inc
-                0x1E => op_dec(self), // op_dec
-                0x1F => op_post_inc(self), // op_post_inc
-                0x20 => op_post_dec(self), // op_post_dec
+                0x1D => op_inc(self), // op_inc (BUGGED)
+                0x1E => op_dec(self), // op_dec (BUGGED)
+                0x1F => op_post_inc(self), // op_post_inc (BUGGED) (DEPRECATED)
+                0x20 => op_post_dec(self), // op_post_dec (BUGGED) (DEPRECATED)
                 0x21 => op_greater_equal(self), // op_greater_equal
                 0x22 => op_less_equal(self), // op_less_equal
                 0x23 => op_not_equal(self), // op_not_equal

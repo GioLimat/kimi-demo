@@ -93,6 +93,11 @@ enum class IRInstruction {
 
 enum class IRType {
   // Integer
+  U8,
+  U16,
+  U32,
+  U64,
+
   INT8,
   INT32,
   INT64,

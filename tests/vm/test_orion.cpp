@@ -14,43 +14,13 @@
 #include "pipeline.h++";
 
 void  runOrion(const std::string& code) {
-    /*Lexer lexer(code);
-    auto tokens = lexer.tokenize();
-    Parser parser(tokens);
-    auto ast = parser.parse();
-    SemanticAnalyzer semantic_analyzer;
-    semantic_analyzer.analyze(*ast);
-    IRGen ir_gen(ast);
-    auto ir = ir_gen.generate();
-    for (auto& instruction : ir) {
-        std::cout << instruction << std::endl;
-    }
-    OrionVM vm;
-    auto by_gen = ByGen(ir, vm);
-    auto gen = by_gen.generate();
-    for (auto b : gen) {
-        auto v = static_cast<unsigned int>(b);
-        std::cout
-            << "0x"
-            << std::uppercase
-            << std::hex
-            << std::setw(2)
-            << std::setfill('0')
-            << v
-            << std::dec
-           << " ";
-    }
-    std::cout << std::endl;
-    vm.bytecode = gen;
-    vm.preprocessFunctions();
-    vm.run();*/
     runVm(code);
 }
 
 
 
 TEST(Orion, SimpleCode) {
-    auto code = "var x = -2;  var y = 2; ++y; y++; println(--y); if (x < y) { println(21 << 4); } ";
+    auto code = "var x = -2;  var y = 2; ++y; y++; println(--y); println(y >= x); ";
     runOrion(code);
 }
 
@@ -102,7 +72,7 @@ TEST(Orion, SimpleCode9) {
 }
 
 TEST(Orion, SimpleCode10) {
-    auto code = "var i : Int; for (i = 0; i < 10; i++) { println(i); } println(i);";
+    auto code = "var i : Int = 0; for (i = 0; i < 10; ++i) { println(i); } println(i);";
     runOrion(code);
 }
 
@@ -118,7 +88,7 @@ TEST(Orion, SimpleCode12) {
 
 
 TEST(Orion, SimpleCode13) {
-    auto code = "println(\"olá mundo isso é grande vai para o heap!\");";
+    auto code = "println(\"olá mundoç isso é grande vai para o heap!\");";
     runOrion(code);
 }
 
@@ -147,10 +117,7 @@ TEST(Orion, SimpleCode18) {
     runOrion(code);
 }
 
-
-
-
 TEST(Orion, SimpleCode19) {
-    auto code = "println(3.2 as Int);" ;
+    auto code = "var x = 4; fn printArr(arr: Array[Int]) {println(arr);} printArr([1, 2, 3, 4]);" ;
     runOrion(code);
 }

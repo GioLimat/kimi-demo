@@ -98,6 +98,7 @@ const std::unordered_map<LexerTokenType, std::string> LexerTokensMap::lexerToken
 
     {LexerTokenType::AS, "as"},
     {LexerTokenType::TYPEOF, "typeof"},
+    {LexerTokenType::UINT, "Uint"}
 };
 
 

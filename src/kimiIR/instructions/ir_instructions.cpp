@@ -49,6 +49,10 @@ std::string IRMapper::getType(const IRType type) {
         case IRType::BOOL: return "bool";
         case IRType::STR: return  "str";
         case IRType::ARRAY:  return "array";
+        case IRType::U8:  return "u8";
+        case IRType::U16:  return "u16";
+        case IRType::U32:  return "u32";
+        case IRType::U64:  return "u64";
         default: return "";
     }
 

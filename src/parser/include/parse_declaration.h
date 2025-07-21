@@ -10,12 +10,15 @@
 #include "parser_expression.h"
 
 class ParserDeclaration : public Parser {
+private:
+    void extractType(std::string &type, std::string assumedType, std::vector<std::string> sizes);
 
 public:
     explicit ParserDeclaration(const std::vector<LexerToken>& tokens) : Parser(tokens) {}
     std::unique_ptr<StatementNode> parseDeclaration();
     std::unique_ptr<StatementNode> parseVarDeclaration();
     std::unique_ptr<StatementNode> parseFunctionDeclaration();
+
 
 
 private:

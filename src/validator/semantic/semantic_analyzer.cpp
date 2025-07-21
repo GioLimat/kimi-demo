@@ -83,6 +83,10 @@ void SemanticAnalyzer::visitVarDeclaration(VarDeclarationNode* var) {
                 if (inferredType == "i64") inferredType = "i64";
                 else inferredType = "i32";
             }
+            else if (inferredType.rfind('u', 0) == 0) {
+                if (inferredType == "u64") inferredType = "u64";
+                else inferredType = "u32";
+            }
             else if (inferredType.rfind('f', 0) == 0) {
                 inferredType = "f32";
             }
@@ -167,7 +171,7 @@ void SemanticAnalyzer::visitFunctionDeclaration(FunctionDeclarationNode *node) {
     declareFunction(node->name, node->parameters, node->returnType);
     enterScope();
     for (const auto& param : node->parameters) {
-        declareVariable(param.name, param.type, false, false, "");
+        declareVariable(param.name, param.type, false, false, param.type.starts_with("array") ? param.type : "");
     }
     for (const auto& child : node->body->statements) {
         child->accept(*this);
@@ -230,7 +234,8 @@ void SemanticAnalyzer::visitPrintln(PrintlnStatementNode *node) {
         }
         else node->type = preType;
     }
-    else node->type = preType;
+
+    else node->type = preType.starts_with("array<") ? "array" : preType;
 }
 
 void SemanticAnalyzer::visitReturnStatement(ReturnStatementNode *node) {

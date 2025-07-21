@@ -171,6 +171,7 @@ pub fn op_greater(vm: &mut VM) {
     let raw_b = vm.pop().expect("Stack underflow on op_greater");
     let raw_a = vm.pop().expect("Stack underflow on op_greater");
 
+
     match op_type  {
         0x03 => {
             let value = f32::from_bits(raw_a as u32) > f32::from_bits(raw_b as u32);
@@ -183,7 +184,7 @@ pub fn op_greater(vm: &mut VM) {
         }
 
         _ => {
-            vm.push((raw_a > raw_b) as u64);
+            vm.push((raw_a as i64 > raw_b as i64) as u64);
 
         }
     }
@@ -211,7 +212,7 @@ pub fn op_less(vm: &mut VM) {
         }
 
         _ => {
-            vm.push((raw_a < raw_b) as u64);
+            vm.push(((raw_a as i64)  < raw_b as i64) as u64);
 
         }
     }
@@ -235,7 +236,7 @@ pub fn op_greater_equal(vm: &mut VM) {
             vm.push(value as u64);
         }
         _ => {
-            vm.push((raw_a >= raw_b) as u64);
+            vm.push((raw_a as i64 >= raw_b as i64) as u64);
         }
     }
 }
@@ -259,7 +260,7 @@ pub fn op_less_equal(vm: &mut VM) {
             vm.push(value as u64);
         }
         _ => {
-            vm.push((raw_a <= raw_b) as u64);
+            vm.push(((raw_a as i64) <= raw_b as i64) as u64);
         }
     }
 }

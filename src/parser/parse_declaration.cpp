@@ -9,6 +9,24 @@
 #include "sizes.h"
 
 
+
+void ParserDeclaration::extractType(std::string &type, std::string assumedType, std::vector<std::string> sizes) {
+    advance();
+    type = assumedType;
+    if (peek().type == LexerTokenType::L_BRACKET) {
+        advance();
+        if (peek().type != LexerTokenType::NUMBER_INT) throw std::runtime_error("Expected number int");
+        if (sizes.end() == std::find(sizes.begin(), sizes.end(), peek().value)) {
+            throw std::runtime_error("Expected " + assumedType + "  size");
+        }
+        type = assumedType[0] + peek().value;
+        advance();
+        if (advance().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']'");
+    }
+}
+
+
+
 std::string ParserDeclaration::getType() {
     std::string type;
 
@@ -24,34 +42,9 @@ std::string ParserDeclaration::getType() {
         type = "array<" + inner + ">";
     }
 
-    if (peek().type == LexerTokenType::INT) {
-        advance();
-        type = "i32";
-        if (peek().type == LexerTokenType::L_BRACKET) {
-            advance();
-            if (peek().type != LexerTokenType::NUMBER_INT) throw std::runtime_error("Expected number int");
-            if (intSizes.end() == std::find(intSizes.begin(), intSizes.end(), peek().value)) {
-                throw std::runtime_error("Expected int size");
-            }
-            type = "i" + peek().value;
-            advance();
-            if (advance().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']'");
-        }
-    }
-    else if (peek().type == LexerTokenType::FLOAT) {
-        advance();
-        type = "f32";
-        if (peek().type == LexerTokenType::L_BRACKET) {
-            advance();
-            if (peek().type != LexerTokenType::NUMBER_INT) throw std::runtime_error("Expected number int");
-            if (floatSizes.end() == std::find(floatSizes.begin(), floatSizes.end(), peek().value)) {
-                throw std::runtime_error("Expected float size");
-            }
-            type = "f" + peek().value;
-            advance();
-            if (advance().type != LexerTokenType::R_BRACKET) throw std::runtime_error("Expected ']'");
-        }
-    }
+    if (peek().type == LexerTokenType::INT) extractType(type, "i32", intSizes);
+    else if (peek().type == LexerTokenType::FLOAT) extractType(type, "f32", floatSizes);
+    else if (peek().type == LexerTokenType::UINT) extractType(type, "u32", intSizes);
     else if (peek().type == LexerTokenType::CHAR) {
         advance();
         type = "char";
@@ -147,6 +140,11 @@ std::unique_ptr<StatementNode> ParserDeclaration::parseFunctionDeclaration() {
 
             if (peek().type != LexerTokenType::INT &&
                 peek().type != LexerTokenType::FLOAT
+                && peek().type != LexerTokenType::CHAR &&
+                peek().type != LexerTokenType::BOOLEAN &&
+                peek().type != LexerTokenType::STR &&
+                peek().type != LexerTokenType::UINT &&
+                peek().type != LexerTokenType::ARRAY
             ) {
                 throw std::runtime_error("Expected parameter type");
             }

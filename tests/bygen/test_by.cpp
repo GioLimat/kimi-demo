@@ -91,3 +91,18 @@ TEST(Bygen, StringConcatenation) {
     }
     std::cout << std::endl;
 }
+
+
+
+
+TEST(Bygen, Uint) {
+    auto byte = genBy("var x = 4 as Uint[16]; println(x);");
+
+    for (const auto& b : byte) {
+        std::cout << "0x"
+            << std::hex
+            << (int)b
+           << " ";
+    }
+    std::cout << std::endl;
+}

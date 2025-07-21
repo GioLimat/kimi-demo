@@ -61,12 +61,15 @@ static std::string swapTypes(const std::string& type) {
         if (type == "Float") return "f32";
         if (type == "Bool")  return "bool";
         if (type == "Char") return "char";
+        if (type == "Str") return "str";
+        if (type == "Uint") return "u32";
         return type;
     } else {
         auto base = type.substr(0, pos);
         auto num  = type.substr(pos + 1, type.find(']') - pos - 1);
         if (base == "Int")   return "i" + num;
         if (base == "Float") return "f" + num;
+        if (base == "Uint") return "u" + num;
         return type;
     }
 }
