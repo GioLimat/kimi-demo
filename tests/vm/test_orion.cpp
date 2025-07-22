@@ -121,3 +121,9 @@ TEST(Orion, SimpleCode19) {
     auto code = "var x = 4; fn printArr(arr: Array[Int]) {println(arr);} printArr([1, 2, 3, 4]);" ;
     runOrion(code);
 }
+
+
+TEST(Orion, SimpleCode20) {
+    auto code = "var x = 4 as Uint[8]; println(x);" ;
+    runOrion(code);
+}

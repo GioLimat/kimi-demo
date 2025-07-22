@@ -38,7 +38,7 @@ pub fn op_println(vm: &mut VM) {
     vm.ip += 1;
     let value = vm.pop().expect("Stack underflow on op_println");
     match op_type {
-        0x01 | 0x02 | 0x07 | 0x08 => println!("{}", value as i64),
+        0x01 | 0x02 | 0x07 | 0x08 | 0x0C | 0x0D | 0x0E | 0x0F => println!("{}", value as i64),
         0x03 => println!("{}", fmt_f32_fixed10(f32::from_bits(value as u32))),
         0x04 => println!("{:.10}", f64::from_bits(value)),
         0x05 => println!("{}", if value == 0 { "false" } else { "true" }),

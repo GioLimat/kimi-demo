@@ -12,22 +12,19 @@ pub fn op_store(vm: &mut VM) {
 
     let identifier_id = vm.read_u32();
 
-    let mut found = false;
 
     for frame in vm.call_stack.iter_mut().rev() {
        for scope in frame.locals.iter_mut().rev() {
            let entry = scope.get_mut(&(identifier_id as u64));
            if let Some(k) = entry {
                *k = value;
-               found = true;
-               break;
+               return;
            }
        }
     }
 
-    if !found {
-        vm.call_stack.last_mut().unwrap().locals.last_mut().unwrap().insert(identifier_id as u64, value);
-    }
+    vm.call_stack.last_mut().unwrap().locals.last_mut().unwrap().insert(identifier_id as u64, value);
+
 }
 
 pub fn op_store_array_element(vm: &mut VM) {

@@ -59,6 +59,7 @@ impl VM {
         while self.ip < self.bytecode.len() as u64 {
             let opcode = self.bytecode[self.ip as usize];
             self.ip += 1;
+            //println!("Executing opcode: 0x{:02X} at IP: {}", opcode, self.ip - 1);
 
             match opcode {
                 0x00 => { // op_halt

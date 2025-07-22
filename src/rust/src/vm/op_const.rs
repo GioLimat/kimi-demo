@@ -3,13 +3,13 @@ use crate::vm::vm::VM;
 pub fn op_const(vm: &mut VM) {
     let op_type = vm.bytecode.get(vm.ip as usize).unwrap();
 
-    
+
     match op_type {
-        0x01 | 0x09 => {
+        0x01 | 0x09 | 0x0E => {
             let value = vm.read_u32() as u64;
             vm.push(value);
         }
-        0x02 => {
+        0x02 | 0x0F => {
             let value = vm.read_u64();
             vm.push(value);
         }
@@ -22,12 +22,12 @@ pub fn op_const(vm: &mut VM) {
             vm.push(value.to_bits());
         }
 
-        0x05 | 0x07 => {
+        0x05 | 0x07 | 0x0C => {
             let value = vm.read_u8() as u64;
             vm.push(value);
         }
 
-        0x08 => {
+        0x08 | 0x0D => {
             let value = vm.read_u16() as u64;
             vm.push(value);
         }
